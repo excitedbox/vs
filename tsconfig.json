@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "bin",
+    "rootDir": "src",
+    "moduleResolution": "node"
+  },
+  "include": [
+    "src/server/**/*"
+  ]
+}
