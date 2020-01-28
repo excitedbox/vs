@@ -65,6 +65,17 @@ class JsonTable {
     }
 
     /**
+     * Remove data from the table
+     * @param query
+     */
+    remove(query: any = {}) {
+        let results = this.find(query);
+        for (let i = 0; i < results.length; i++)
+            this._collection.splice(this._collection.indexOf(results[i]), 1);
+        return this;
+    }
+
+    /**
      * Write the DB to file
      */
     async write() {
