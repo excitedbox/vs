@@ -2,6 +2,7 @@ import * as Chai from 'chai';
 import User from "../src/server/user/User";
 import Application from "../src/server/app/Application";
 import Session from "../src/server/user/Session";
+import AuthenticationError from "../src/server/error/AuthenticationError";
 
 describe('Base', function () {
     Chai.use(require('chai-as-promised'));
@@ -9,17 +10,18 @@ describe('Base', function () {
     let session;
 
     it('auth', async function () {
-        Chai.expect(await User.auth('root', '1234')).to.be.an('string');
-        await Chai.expect(User.auth('root', '2281488')).to.be.rejectedWith(Error);
-        await Chai.expect(User.auth('', '')).to.be.rejectedWith(Error);
-        await Chai.expect(User.auth(null, null)).to.be.rejectedWith(Error);
-        await Chai.expect(User.auth(undefined, undefined)).to.be.rejectedWith(Error);
+        Chai.expect(await User.auth('root', '1234')).to.be.an('object');
+        await Chai.expect(User.auth('root', '2281488')).to.be.rejectedWith(AuthenticationError);
+        await Chai.expect(User.auth('', '')).to.be.rejectedWith(AuthenticationError);
+        await Chai.expect(User.auth(null, null)).to.be.rejectedWith(AuthenticationError);
+        await Chai.expect(User.auth(undefined, undefined)).to.be.rejectedWith(AuthenticationError);
     });
 
     it('session', async function () {
-        let sessionKey = await User.auth('root', '1234');
-        let user = await User.getBySession(sessionKey);
-        session = new Session(sessionKey, user);
+        session = await User.auth('root', '1234');
+        let user = session.user;
+        //let user = await User.getBySession(sessionKey);
+        //session = new Session(sessionKey, user);
 
         Chai.expect(user).to.be.an('object');
         Chai.expect(user).to.have.property('id', 1);
@@ -28,8 +30,8 @@ describe('Base', function () {
         Chai.expect(user.homeDir).to.be.eq( './user/root');
         Chai.expect(user.docsDir).to.be.eq( './user/root/docs');
 
-        await Chai.expect(User.getBySession(null)).to.be.rejectedWith(Error, /incorrect/i);
-        await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(Error, /session/i);
+        await Chai.expect(User.getBySession(null)).to.be.rejectedWith(AuthenticationError, /incorrect/i);
+        await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(AuthenticationError, /session/i);
     });
 
     it('install app', async function () {
@@ -75,7 +77,7 @@ describe('Base', function () {
         await Application.pullUpdate(session, 'https://github.com/maldan/vde-image-lab.git');
 
         // Current commit
-        Chai.expect(await Application.currentCommit(session, 'https://github.com/maldan/vde-image-lab.git')).to.be.eq('3277ffc5f16f21151b0396276c9f7af7a3b8646d');
+        Chai.expect(await Application.currentCommit(session, 'https://github.com/maldan/vde-image-lab.git')).to.own.include({ hash: '3277ffc5f16f21151b0396276c9f7af7a3b8646d' });
 
         // Commit list
         let commitList = await Application.commitList(session, 'https://github.com/maldan/vde-image-lab.git');

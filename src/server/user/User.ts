@@ -1,9 +1,18 @@
 import JsonDb from "../../lib/db/JsonDb";
-import Helper from "../Helper";
+import Helper from "../core/Helper";
+import AuthenticationError from "../error/AuthenticationError";
+import Session from "./Session";
 
 export default class User {
     public id: number;
     public name: string;
+
+    /**
+     * Response types for http server for each method. Method forbidden to call if it's not listed here.
+     */
+    public static readonly methodResponseType: any = {
+        'auth': 'session'
+    };
 
     constructor({ id, name }) {
         this.id = id;
@@ -31,9 +40,9 @@ export default class User {
      * @param name
      * @param password
      */
-    static async auth(name: string, password: string): Promise<string> {
+    static async auth(name: string, password: string): Promise<Session> {
         // Get user and session data bases
-        let userDb = await this.getUserDb(), sessionDb = await this.getSessionDb();
+        let userDb = await User.getUserDb(), sessionDb = await User.getSessionDb();
 
         // Find user with this login and password
         let user = userDb.get('user').findOne({name, password});
@@ -44,11 +53,11 @@ export default class User {
 
             // Save session to session data base
             await sessionDb.get('session').push({userId: user.id, key: sessionKey}).write();
-            return sessionKey;
+            return new Session(sessionKey, new User(user));
         } else {
             // Incorrect auth
             // return false;
-            throw new Error('Incorrect a login or password');
+            throw new AuthenticationError('Incorrect a login or password');
         }
     }
 
@@ -57,17 +66,17 @@ export default class User {
      * @param key
      */
     static async getBySession(key: string): Promise<User> {
-        if (!key) throw new Error('Incorrect key');
+        if (!key) throw new AuthenticationError('Incorrect access token');
 
         // Get user and session data bases
-        let userDb = await this.getUserDb(), sessionDb = await this.getSessionDb();
+        let userDb = await User.getUserDb(), sessionDb = await User.getSessionDb();
 
         // Find user with this login and password
         let session = sessionDb.get('session').findOne({key});
-        if (!session) throw new Error('Session not found!');
+        if (!session) throw new AuthenticationError('Session not found!');
 
         let user = userDb.get('user').findOne({id: session.userId});
-        if (!user) throw new Error('User not found!');
+        if (!user) throw new AuthenticationError('User not found!');
         return new User(user);
     }
 

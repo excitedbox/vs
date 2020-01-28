@@ -1,6 +1,6 @@
 import * as Fs from 'fs';
-import AppServer from "./app/AppServer";
-import OsServer from "./OsServer";
+import AppServer from "./core/AppServer";
+import OsServer from "./core/OsServer";
 import FileSystem from "./fs/FileSystem";
 import User from "./user/User";
 import JsonDb from "../lib/db/JsonDb";
