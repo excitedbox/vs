@@ -5,9 +5,9 @@ export default class User {
     public id: number;
     public name: string;
 
-    constructor(data: any) {
-        this.id = data.id;
-        this.name = data.name;
+    constructor({ id, name }) {
+        this.id = id;
+        this.name = name;
     }
 
     get homeDir() {
@@ -26,6 +26,11 @@ export default class User {
         return `./user/${this.name}/docs`;
     }
 
+    /**
+     * Auth user by a login and password. Return accessToken if success.
+     * @param name
+     * @param password
+     */
     static async auth(name: string, password: string): Promise<string> {
         // Get user and session data bases
         let userDb = await this.getUserDb(), sessionDb = await this.getSessionDb();
@@ -47,16 +52,23 @@ export default class User {
         }
     }
 
+    /**
+     * Get user from db by accessToken.
+     * @param key
+     */
     static async getBySession(key: string): Promise<User> {
+        if (!key) throw new Error('Incorrect key');
+
         // Get user and session data bases
         let userDb = await this.getUserDb(), sessionDb = await this.getSessionDb();
 
         // Find user with this login and password
         let session = sessionDb.get('session').findOne({key});
-        if (!session) return null;
+        if (!session) throw new Error('Session not found!');
 
         let user = userDb.get('user').findOne({id: session.userId});
-        return new User(user) || null;
+        if (!user) throw new Error('User not found!');
+        return new User(user);
     }
 
     static async getUserDb() {

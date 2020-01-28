@@ -24,10 +24,16 @@ describe('Base', function () {
         Chai.expect(user).to.be.an('object');
         Chai.expect(user).to.have.property('id', 1);
         Chai.expect(user).to.have.property('name', 'root');
+
+        Chai.expect(user.homeDir).to.be.eq( './user/root');
+        Chai.expect(user.docsDir).to.be.eq( './user/root/docs');
+
+        await Chai.expect(User.getBySession(null)).to.be.rejectedWith(Error, /incorrect/i);
+        await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(Error, /session/i);
     });
 
     it('install app', async function () {
-        this.timeout(25000);
+        this.timeout(60000);
 
         // Install incorrect
         await Chai.expect(Application.install(null, 'https://github.com/maldan/vde-image-lab.git'), 'Null session').to.be.rejectedWith(Error, /session/i);
@@ -49,6 +55,60 @@ describe('Base', function () {
         await Chai.expect(Application.remove(null, 'https://github.com/maldan/vde-image-lab.git'), 'Null session').to.be.rejectedWith(Error);
         await Chai.expect(Application.remove(session, 'https://github.com/maldan/random-shit-228.git'), 'Invalid repo').to.be.rejectedWith(Error);
         await Chai.expect(Application.remove(session, null), 'Null repo').to.be.rejectedWith(Error);
+        await Application.remove(session, 'https://github.com/maldan/vde-image-lab.git');
+
+        // Get list of apps
+        await Chai.expect(Application.list(null), 'Null session').to.be.rejectedWith(Error);
+        Chai.expect(await Application.list(session)).to.be.an('array');
+    });
+
+    it('update app', async function () {
+        this.timeout(60000);
+
+        // Pull update
+        await Chai.expect(Application.pullUpdate(null, 'https://github.com/maldan/vde-image-lab.git'), 'Null session').to.be.rejectedWith(Error, /session/i);
+        await Chai.expect(Application.pullUpdate(session, null), 'Null repo').to.be.rejectedWith(Error, /repo/i);
+        await Chai.expect(Application.pullUpdate(session, 'sdass fsdf'), 'Invalid repo').to.be.rejectedWith(Error, /application/i);
+
+        // Install & update correct with session
+        await Application.install(session, 'https://github.com/maldan/vde-image-lab.git');
+        await Application.pullUpdate(session, 'https://github.com/maldan/vde-image-lab.git');
+
+        // Current commit
+        Chai.expect(await Application.currentCommit(session, 'https://github.com/maldan/vde-image-lab.git')).to.be.eq('3277ffc5f16f21151b0396276c9f7af7a3b8646d');
+
+        // Commit list
+        let commitList = await Application.commitList(session, 'https://github.com/maldan/vde-image-lab.git');
+        Chai.expect(commitList).to.be.an('array');
+        Chai.expect(commitList[0]).to.have.property('hash');
+        Chai.expect(commitList[0]).to.have.property('author');
+        Chai.expect(commitList[0]).to.have.property('date');
+        Chai.expect(commitList[0]).to.have.property('comment');
+    });
+
+    it('run app', async function () {
+        // Run incorrect
+        await Chai.expect(Application.run(null, 'https://github.com/maldan/vde-image-lab.git'), 'Null session').to.be.rejectedWith(Error, /session/i);
+        await Chai.expect(Application.run(session, null), 'Null repo').to.be.rejectedWith(Error, /repo/i);
+        await Chai.expect(Application.run(session, 'f sdf sdf sdd'), 'Invalid repo').to.be.rejectedWith(Error, /application/i);
+
+        // Run correct
+        let appSession = await Application.run(session, 'https://github.com/maldan/vde-image-lab.git');
+        Chai.expect(appSession).to.be.an('object');
+        Chai.expect(appSession).to.have.property('application');
+
+        // Check if saved
+        Chai.expect(Application.runningApplications).to.have.property('size', 1);
+
+        // Close app
+        Application.close(appSession);
+
+        // Check if closed
+        Chai.expect(Application.runningApplications).to.have.property('size', 0);
+    });
+
+    it('remove app', async function () {
+        // Remove correct
         await Application.remove(session, 'https://github.com/maldan/vde-image-lab.git');
     });
 });

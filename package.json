@@ -8,7 +8,9 @@
     "watch": "webpack --mode development --watch",
     "start": "ts-node src/server/Main.ts",
     "test": "mocha -r ts-node/register test/**/*.test.ts",
-    "coverage": "nyc --temp-dir bin/nyc --report-dir bin/public/coverage -r lcov -e .ts -x \"*.test.ts\" npm run test"
+    "coverage": "nyc --temp-dir bin/nyc --report-dir bin/public/coverage -r lcov -e .ts -x \"*.test.ts\" npm run test",
+    "docs": "typedoc --mode file --out bin/public/docs src",
+    "amount": "node amount.js"
   },
   "browserslist": [
     "ie >= 9",
