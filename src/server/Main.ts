@@ -18,13 +18,6 @@ class Main {
 
         // Run os server
         OsServer.run(+process.env.OS_PORT);
-
-        Main.sas();
-    }
-
-    static async sas() {
-        console.log(FileSystem.list(null, '/$lib/db/JsonDb.ts'));
-        console.log(FileSystem.list(null, '/$user/sas/../gas'));
     }
 
     /**

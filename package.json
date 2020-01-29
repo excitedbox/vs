@@ -1,43 +1,64 @@
 {
-  "name": "vde2",
-  "version": "1.0.0",
-  "description": "Virtual Desktop Environment 2",
-  "main": "index.js",
-  "scripts": {
-    "build": "webpack --mode production",
-    "watch": "webpack --mode development --watch",
-    "start": "ts-node src/server/Main.ts",
-    "test": "mocha -r ts-node/register test/**/*.test.ts",
-    "coverage": "nyc --temp-dir bin/nyc --report-dir bin/public/coverage -r lcov -e .ts -x \"*.test.ts\" npm run test",
-    "docs": "typedoc --mode file --out bin/public/docs src",
-    "amount": "node amount.js"
-  },
-  "browserslist": [
-    "ie >= 9",
-    "last 4 version"
-  ],
-  "author": "Maldan",
-  "license": "ISC",
-  "dependencies": {
-    "@types/chai": "^4.2.7",
-    "@types/chai-as-promised": "^7.1.2",
-    "@types/express": "^4.17.2",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^13.5.0",
-    "@types/rimraf": "^2.0.3",
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "md5": "^2.2.1",
-    "mocha": "^7.0.1",
-    "nyc": "^15.0.0",
-    "recursive-readdir": "^2.2.2",
-    "rimraf": "^3.0.0",
-    "ts-node": "^8.6.2",
-    "typedoc": "^0.16.9",
-    "typescript": "^3.7.5",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
-  }
+    "name": "vde2",
+    "version": "1.0.0",
+    "description": "Virtual Desktop Environment 2",
+    "main": "index.js",
+    "scripts": {
+        "build": "webpack --mode production",
+        "watch": "webpack --mode development --watch",
+        "start": "ts-node src/server/Main.ts",
+        "test": "mocha -r ts-node/register test/**/*.test.ts",
+        "coverage": "nyc --temp-dir bin/nyc --report-dir bin/public/coverage -r lcov -e .ts -x \"*.test.ts\" npm run test",
+        "docs": "typedoc --mode file --out bin/public/docs src",
+        "amount": "node amount.js",
+        "lint": "eslint src/**/*.ts"
+    },
+    "eslintConfig": {
+        "parser": "@typescript-eslint/parser",
+        "extends": [
+            "plugin:@typescript-eslint/recommended"
+        ],
+        "env": {
+            "node": true
+        },
+        "parserOptions": {
+            "ecmaVersion": 6,
+            "sourceType": "module"
+        },
+        "rules": {
+            "semi": "error"
+        }
+    },
+    "browserslist": [
+        "ie >= 9",
+        "last 4 version"
+    ],
+    "author": "Maldan",
+    "license": "ISC",
+    "dependencies": {
+        "@types/chai": "^4.2.7",
+        "@types/chai-as-promised": "^7.1.2",
+        "@types/express": "^4.17.2",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^13.5.0",
+        "@types/rimraf": "^2.0.3",
+        "@typescript-eslint/eslint-plugin": "^2.18.0",
+        "@typescript-eslint/parser": "^2.18.0",
+        "chai": "^4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "dotenv": "^8.2.0",
+        "eslint": "^6.8.0",
+        "express": "^4.17.1",
+        "md5": "^2.2.1",
+        "mocha": "^7.0.1",
+        "nyc": "^15.0.0",
+        "recursive-readdir": "^2.2.2",
+        "rimraf": "^3.0.0",
+        "ts-node": "^8.6.2",
+        "typedoc": "^0.16.9",
+        "typescript": "^3.7.5",
+        "typescript-eslint": "0.0.1-alpha.0",
+        "webpack": "^4.41.5",
+        "webpack-cli": "^3.3.10"
+    }
 }

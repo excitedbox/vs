@@ -17,7 +17,9 @@ const RemoveFolder = Util.promisify(Rimraf);
 export default class Application {
     public id: number;
     public name: string;
+    public repo: string;
     public path: string;
+    public access: Array<string>;
 
     /**
      * Current running applications for all users.
@@ -43,10 +45,21 @@ export default class Application {
      * Create application info from data
      * @param data
      */
-    constructor({ id, name, path }) {
+    constructor({id, name, path, repo, access = []}) {
         this.id = +id;
         this.name = name;
         this.path = path;
+        this.repo = repo;
+        this.access = access;
+    }
+
+    /**
+     * Check if the application have specific access.
+     * @param access
+     */
+    hasAccess(access: string) {
+        if (!Array.isArray(this.access)) return false;
+        return this.access.includes(access);
     }
 
     /**
@@ -161,7 +174,7 @@ export default class Application {
      * Get list of applications from session user
      * @param session
      */
-    static async list(session: Session):Promise<Array<any>> {
+    static async list(session: Session): Promise<Array<any>> {
         if (!session) throw new Error(`Session is require!`);
 
         // Get application db and return all applications

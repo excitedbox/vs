@@ -45,6 +45,7 @@ export default class OsServer {
 
                 // Session response, remove critical information
                 if (responseType === 'session') {
+                    response = Object.assign({}, response);
                     delete response.user;
                     delete response.application;
                     responseType = 'json';

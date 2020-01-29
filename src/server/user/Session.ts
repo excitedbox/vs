@@ -12,9 +12,33 @@ export default class Session {
         this.application = application;
     }
 
+    get isUserLevel(): boolean {
+        return !!this.user;
+    }
+
+    get isApplicationLevel(): boolean {
+        return this.isUserLevel && !!this.application;
+    }
+
+    /**
+     * Check access for this session.
+     * @param access
+     */
     checkAccess(access: string): boolean {
+        // Root access
         if ((access === 'root' || access === 'root-readonly') && this.user.name !== 'root')
             return false;
+
+        // Access to data folder
+        if (access === 'data' && this.application.hasAccess('data')) return true;
+
+        // Access to user folder
+        if (access === 'user' && this.application.hasAccess('user')) return true;
+
+        // Access to user folder but readonly
+        if (access === 'user-readonly'
+            && (this.application.hasAccess('user-readonly') || this.application.hasAccess('user')))
+            return true;
 
         return false;
     }
