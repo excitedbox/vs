@@ -7,13 +7,6 @@ export default class User {
     public id: number;
     public name: string;
 
-    /**
-     * Response types for http server for each method. Method forbidden to call if it's not listed here.
-     */
-    public static readonly methodResponseType: any = {
-        'auth': 'session'
-    };
-
     constructor({ id, name }) {
         this.id = id;
         this.name = name;

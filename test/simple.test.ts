@@ -103,7 +103,7 @@ describe('Base', function () {
         Chai.expect(Application.runningApplications).to.have.property('size', 1);
 
         // Close app
-        Application.close(appSession);
+        Application.close(appSession, appSession.key);
 
         // Check if closed
         Chai.expect(Application.runningApplications).to.have.property('size', 0);

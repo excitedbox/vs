@@ -83,11 +83,12 @@ export default class Application {
     }
 
     /**
-     * Close application session by session info. Note it's not only user session but application too.
+     * Close application session by session key info.
      * @param session
+     * @param key
      */
-    static close(session: Session) {
-        Application.runningApplications.delete(session.key);
+    static close(session: Session, key: string) {
+        Application.runningApplications.delete(key);
     }
 
     /**

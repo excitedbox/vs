@@ -9,12 +9,35 @@ export default class OsServer {
 
         // Api classes
         const Classes = {
-            'Application': Application,
-            'User': User
+            'Application': Application
         };
 
         // Set public folder
         RestApp.use(Express.static('./bin/public'));
+
+        // Auth entry point
+        RestApp.get('^/auth', async (req, res) => {
+            try {
+                // Get user from db by session key
+                let accessToken = req.query.access_token || req.headers['access_token'];
+                if (accessToken) {
+                    let user = await User.getBySession(accessToken);
+                    if (user) throw new Error(`Already signed!`);
+                }
+
+                // Auth user and return access token
+                let session = await User.auth(req.query.name, req.query.password);
+                res.setHeader('Content-Type', 'application/json');
+                res.send({ key: session.key });
+            }
+            catch (e) {
+                res.status(e.httpStatusCode || 500);
+                res.send({
+                    status: false,
+                    message: e.message
+                });
+            }
+        });
 
         // Rest api
         RestApp.get('^/api', async (req, res) => {

@@ -13,11 +13,11 @@ class Main {
         // Init directories and other stuff
         Main.defaultInit();
 
-        // Run app server
-        AppServer.run(+process.env.APP_PORT);
-
         // Run os server
         OsServer.run(+process.env.OS_PORT);
+
+        // Run app server
+        AppServer.run(+process.env.OS_PORT + 1);
     }
 
     /**
