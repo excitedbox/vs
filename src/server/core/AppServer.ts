@@ -2,6 +2,7 @@ import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
+import FileConverter from "../fs/FileConverter";
 
 export default class AppServer {
     static run(port: number) {
@@ -23,6 +24,18 @@ export default class AppServer {
 
                 // Resolve path
                 let file = await FileSystem.resolvePath(session, req.params.path);
+
+                // If convert enabled
+                if (req.query.convert) {
+                    let convertedFile = await FileConverter.convert(file, req.query);
+
+                    // If converted
+                    if (convertedFile) {
+                        res.setHeader('Content-Type', convertedFile.type);
+                        res.send(convertedFile.output);
+                        return;
+                    }
+                }
 
                 // Send file
                 res.sendFile(file);
