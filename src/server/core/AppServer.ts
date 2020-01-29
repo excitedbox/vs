@@ -1,3 +1,4 @@
+import * as Util from 'util';
 import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
@@ -5,8 +6,9 @@ import FileSystem from "../fs/FileSystem";
 import FileConverter from "../fs/FileConverter";
 
 export default class AppServer {
-    static run(port: number) {
+    static async run(port: number) {
         const Express = require('express'), RestApp = Express();
+        // const Listen = Util.promisify(RestApp.listen);
 
         // Api classes
         const Classes = {
@@ -49,8 +51,14 @@ export default class AppServer {
             }
         });
 
-        RestApp.listen(port, function () {
-            console.log(`App Server starts at :${port}`);
-        });
+        return new Promise<void>((resolve => {
+            RestApp.listen(port, () => {
+                console.log(`App Server starts at :${port}`);
+                resolve();
+            });
+        }));
+
+        //await Listen(RestApp.listen(port));
+        //console.log(`App Server starts at :${port}`);
     }
 }

@@ -55,6 +55,7 @@
         "mocha": "^7.0.1",
         "node-sass": "^4.13.1",
         "nyc": "^15.0.0",
+        "opn": "^6.0.0",
         "postcss": "^7.0.26",
         "recursive-readdir": "^2.2.2",
         "rimraf": "^3.0.0",

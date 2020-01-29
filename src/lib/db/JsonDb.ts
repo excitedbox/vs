@@ -24,6 +24,15 @@ class JsonTable {
      * @param limit
      */
     find(query: any = {}, limit: number = 0) {
+        // If or query, for example [{ id: 1 }, { id: 2 }] means find id = 1 or id = 2
+        if (Array.isArray(query)) {
+            let orResult = [];
+            for (let i = 0; i < query.length; i++) {
+                orResult.push(...this.find(query[i], limit));
+            }
+            return Array.from(new Set(orResult));
+        }
+
         let result: Array<any> = [];
         let maxAmount = limit ? limit : Number.MAX_SAFE_INTEGER;
 
@@ -32,10 +41,14 @@ class JsonTable {
             for (let key in query) {
                 if (!query.hasOwnProperty(key)) continue;
 
-                if (this._collection[i][key] !== query[key]) {
-                    allMatch = false;
-                    break;
-                }
+                // Regexp test
+                if (query[key] instanceof RegExp && query[key].test(this._collection[i][key])) continue;
+
+                // Other matching
+                if (this._collection[i][key] === query[key]) continue;
+
+                allMatch = false;
+                break;
             }
             if (allMatch) {
                 result.push(this._collection[i]);
@@ -81,6 +94,10 @@ class JsonTable {
     async write() {
         await this._db.write();
     }
+
+    get size() {
+        return this._collection.length;
+    }
 }
 
 /**
@@ -101,16 +118,20 @@ export default class JsonDb {
      * @param file
      * @param defaultTable
      */
-    static async db(file: string, defaultTable: any = {}) {
+    static async db(file: string = null, defaultTable: any = {}) {
         let jsonDb: JsonDb, table: any;
 
-        try {
-            table = JSON.parse(await ReadFile(file, 'utf-8'));
-            jsonDb = new JsonDb(file, table);
-        } catch (e) {
+        if (file === null) {
             table = defaultTable;
-            jsonDb = new JsonDb(file, table);
+        } else {
+            try {
+                table = JSON.parse(await ReadFile(file, 'utf-8'));
+            } catch (e) {
+                table = defaultTable;
+            }
         }
+
+        jsonDb = new JsonDb(file, table);
 
         // Init system table
         if (!table.$sys) table.$sys = {};
@@ -140,6 +161,7 @@ export default class JsonDb {
      * Write the DB to file
      */
     async write() {
+        if (!this._path) return;
         await WriteFile(this._path, JSON.stringify(this._json, null, 4));
     }
 }

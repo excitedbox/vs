@@ -1,11 +1,13 @@
+import * as Util from 'util';
 import User from "../user/User";
 import Application from "../app/Application";
 import Helper from "./Helper";
 import Session from "../user/Session";
 
 export default class OsServer {
-    static run(port: number) {
+    static async run(port: number) {
         const Express = require('express'), RestApp = Express();
+        // const Listen = Util.promisify(RestApp.listen);
 
         // Api classes
         const Classes = {
@@ -96,8 +98,14 @@ export default class OsServer {
             }
         });
 
-        RestApp.listen(port, function () {
-            console.log(`OS Server starts at :${port}`);
-        });
+        return new Promise<void>((resolve => {
+            RestApp.listen(port, () => {
+                console.log(`OS Server starts at :${port}`);
+                resolve();
+            });
+        }));
+        // await Listen(port);
+        /*console.log(`OS Server starts at :${port}`);
+        RestApp.listen(port);*/
     }
 }

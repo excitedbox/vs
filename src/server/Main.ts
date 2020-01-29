@@ -4,9 +4,12 @@ import OsServer from "./core/OsServer";
 import FileSystem from "./fs/FileSystem";
 import User from "./user/User";
 import JsonDb from "../lib/db/JsonDb";
+import Application from "./app/Application";
+import Session from "./user/Session";
+import ShellApi from "./core/ShellApi";
 
 class Main {
-    constructor() {
+    static async run() {
         // Import .env config
         require('dotenv').config();
 
@@ -14,10 +17,12 @@ class Main {
         Main.defaultInit();
 
         // Run os server
-        OsServer.run(+process.env.OS_PORT);
+        await OsServer.run(+process.env.OS_PORT);
 
         // Run app server
-        AppServer.run(+process.env.OS_PORT + 1);
+        await AppServer.run(+process.env.OS_PORT + 1);
+
+        await ShellApi.run();
     }
 
     /**
@@ -47,4 +52,5 @@ class Main {
     }
 }
 
-new Main();
+// Start server
+Main.run();

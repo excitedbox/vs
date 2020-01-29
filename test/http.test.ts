@@ -38,16 +38,18 @@ describe('Http', function () {
         this.timeout(60000);
 
         // Install & run
-        await Axios.get(`${osServer}api?m=Application.install&repo=https://github.com/maldan/vde-image-lab.git`);
-        let appKey = (await Axios.get(`${osServer}api?m=Application.run&repo=https://github.com/maldan/vde-image-lab.git`)).data.key;
+        await Axios.get(`${osServer}api?m=Application.install&repo=http://maldan.ru:3569/root/test-app.git`);
+        let appKey = (await Axios.get(`${osServer}api?m=Application.run&repo=http://maldan.ru:3569/root/test-app.git`)).data.key;
 
         // Get main app page
         await Axios.get(`${appServer()}index.html?access_token=${appKey}`);
+        await Axios.get(`${appServer()}test.ts?convert=true&access_token=${appKey}`);
+        await Axios.get(`${appServer()}style.scss?convert=true&access_token=${appKey}`);
         // await Axios.get(`${appServer()}index.html`);
         await Axios.get(`${appServer()}$lib/db/JsonDb.ts?convert=true&access_token=${appKey}`);
 
         // Close and remove
         await Axios.get(`${osServer}api?m=Application.close&key=${appKey}`);
-        await Axios.get(`${osServer}api?m=Application.remove&repo=https://github.com/maldan/vde-image-lab.git`);
+        await Axios.get(`${osServer}api?m=Application.remove&repo=http://maldan.ru:3569/root/test-app.git`);
     });
 });

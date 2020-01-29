@@ -104,7 +104,9 @@ export default class Application {
         if (!(repo.startsWith('https://') || repo.startsWith('http://'))) throw new Error(`Invalid repo url!`);
 
         // Get repo domain
-        let domain = repo.replace(/https?:\/\//, '').split('/').shift();
+        let domain = repo.replace(/https?:\/\//, '')
+            .split('/')
+            .shift().replace(':', '-');
 
         // Generate repo folder name
         let folderName = domain + '_' + repo.split('/').slice(-2).map(x => x.replace('.git', '')
