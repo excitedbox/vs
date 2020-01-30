@@ -1,12 +1,8 @@
 import * as Fs from 'fs';
 import AppServer from "./core/AppServer";
 import OsServer from "./core/OsServer";
-import FileSystem from "./fs/FileSystem";
-import User from "./user/User";
-import JsonDb from "../lib/db/JsonDb";
-import Application from "./app/Application";
-import Session from "./user/Session";
 import ShellApi from "./core/ShellApi";
+import SystemJournal from "./core/SystemJournal";
 
 class Main {
     static async run() {
@@ -16,12 +12,16 @@ class Main {
         // Init directories and other stuff
         Main.defaultInit();
 
+        // Init system journal for logs
+        await SystemJournal.init();
+
         // Run os server
         await OsServer.run(+process.env.OS_PORT);
 
         // Run app server
         await AppServer.run(+process.env.OS_PORT + 1);
 
+        // Run shell api for command input from terminal
         await ShellApi.run();
     }
 
@@ -32,6 +32,7 @@ class Main {
     static defaultInit() {
         ['root', 'test'].forEach(x => {
             // Create default folders
+            Fs.mkdirSync('./logs', {recursive: true});
             Fs.mkdirSync('./bin/public', {recursive: true});
             Fs.mkdirSync(`./user/${x}`, {recursive: true});
             Fs.mkdirSync(`./user/${x}/bin`, {recursive: true});

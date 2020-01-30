@@ -90,7 +90,7 @@ export default class FileSystem {
      * @param session
      * @param path
      */
-    static async exists(session: Session, path: string) {
+    static async exists(session: Session, path: string):Promise<any> {
         let finalPath = await FileSystem.resolvePath(session, path, false, 'r');
         return {status: await Exists(finalPath)};
     }
@@ -156,42 +156,65 @@ export default class FileSystem {
         path = FileSystem.safePath(path);
         if (path[0] !== '/') path = '/' + path;
 
+        let redirect = [
+            {
+                route: '/$lib',
+                access: 'r',
+                path: './src/lib/'
+            },
+            {
+                route: '/$public',
+                access: 'r',
+                path: './bin/public/'
+            },
+            {
+                route: '/$data',
+                access: 'rw',
+                privilege: { r: 'data', w: 'data' },
+                path: session.application.storage
+            },
+            {
+                route: '/$user',
+                access: 'rw',
+                privilege: { r: 'user-readonly', w: 'user' },
+                path: `./user/${session.user.name}/docs/`
+            },
+            {
+                route: '/$root',
+                access: 'rw',
+                privilege: { r: 'root-readonly', w: 'root' },
+                path: `./`
+            },
+            {
+                route: '/$logs',
+                access: 'r',
+                path: `./logs/${session.key}.json`
+            },
+            {
+                route: '/',
+                access: 'r',
+                path: session.application.path + '/'
+            }
+        ];
+
         // Convert special path folder
-        if (path.startsWith('/$lib')) {
-            if (access.match('w')) throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            path = path.replace('/$lib', './src/lib/');
-        } else if (path.startsWith('/$public')) {
-            if (access.match('w')) throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            path = path.replace('/$public', './bin/public/');
-        } else if (path.startsWith('/$data')) {
-            // Check access to data folder
-            if (!session.checkAccess('data'))
-                throw new Error(`Application "${session.application.name}" doesn't have access to $data folder.`);
-            path = path.replace('/$data', session.application.storage);
-        } else if (path.startsWith('/$user')) {
-            // Check access to user folder, at least readonly
-            if (!session.checkAccess('user-readonly'))
-                throw new Error(`Application "${session.application.name}" doesn't have access to $user folder.`);
-            // If want to write but doesn't have privilege
-            if (access.match('w') && !session.checkAccess('user'))
-                throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            // Ok
-            path = path.replace('/$user', `./user/${session.user.name}/docs/`);
-        } else if (path.startsWith('/$root')) {
-            // Check access to root folder, at least readonly
-            if (!session.checkAccess('root-readonly'))
-                throw new Error(`Application "${session.application.name}" doesn't have access to $root folder.`);
-            // If want to write but doesn't have privilege
-            if (access.match('w') && !session.checkAccess('root'))
-                throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            // Ok
-            path = path.replace('/$root', './');
-        } else {
-            // You can't write to app folder it's readonly
-            if (access.match('w'))
-                throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            // Ok
-            path = path.replace('/', session.application.path + '/');
+        for (let item of redirect) {
+            if (path.startsWith(item.route)) {
+                // Check base access
+                if (access.match('w') && !item.access.match('w'))
+                    throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
+
+                // Check app access to write
+                if (item.privilege && access.match('r') && !(session.checkAccess(item.privilege.r) || session.checkAccess(item.privilege.w)))
+                    throw new Error(`Application "${session.application.name}" doesn't have access to read from "${path}".`);
+
+                // Check app access to write
+                if (item.privilege && access.match('w') && !session.checkAccess(item.privilege.w))
+                    throw new Error(`Application "${session.application.name}" doesn't have access to write to "${path}".`);
+
+                path = path.replace(item.route, item.path);
+                break;
+            }
         }
 
         // Generate final path

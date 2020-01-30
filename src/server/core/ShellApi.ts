@@ -49,7 +49,7 @@ export default class ShellApi {
                 // Start service if exists
                 await Service.start(session);
 
-                // Opn(`http://${session.key}.localhost:${+process.env.OS_PORT + 1}/index.html`);
+                Opn(`http://${session.key}.localhost:${+process.env.OS_PORT + 1}/index.html`);
                 console.log(`${app.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }
