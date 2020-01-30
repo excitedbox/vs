@@ -3,3 +3,4 @@ bin
 user
 .env
 node_modules
+.nyc_output

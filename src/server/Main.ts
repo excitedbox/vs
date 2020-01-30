@@ -30,12 +30,14 @@ class Main {
      * it will create default files, config, directories and other stuff for server work.
      */
     static defaultInit() {
-        // Create default folders
-        Fs.mkdirSync('./bin/public', {recursive: true});
-        Fs.mkdirSync('./user/root', {recursive: true});
-        Fs.mkdirSync('./user/root/bin', {recursive: true});
-        Fs.mkdirSync('./user/root/data', {recursive: true});
-        Fs.mkdirSync('./user/root/docs', {recursive: true});
+        ['root', 'test'].forEach(x => {
+            // Create default folders
+            Fs.mkdirSync('./bin/public', {recursive: true});
+            Fs.mkdirSync(`./user/${x}`, {recursive: true});
+            Fs.mkdirSync(`./user/${x}/bin`, {recursive: true});
+            Fs.mkdirSync(`./user/${x}/data`, {recursive: true});
+            Fs.mkdirSync(`./user/${x}/docs`, {recursive: true});
+        });
 
         // Create default user list
         if (!Fs.existsSync('./user/list.json')) {
@@ -45,6 +47,11 @@ class Main {
                         id: 1,
                         name: 'root',
                         password: process.env.DEFAULT_ROOT_PASSWORD || 'root'
+                    },
+                    {
+                        id: 2,
+                        name: 'test',
+                        password: 'test123'
                     }
                 ]
             }, null, 4));

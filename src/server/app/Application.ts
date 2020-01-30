@@ -19,6 +19,7 @@ export default class Application {
     public name: string;
     public repo: string;
     public path: string;
+    public storage: string;
     public access: Array<string>;
 
     /**
@@ -32,6 +33,7 @@ export default class Application {
     public static readonly methodResponseType: any = {
         'run': 'session',
         'close': 'json',
+        'silentInstall': 'json',
         'install': 'json',
         'remove': 'json',
         'list': 'json',
@@ -45,10 +47,11 @@ export default class Application {
      * Create application info from data
      * @param data
      */
-    constructor({id, name, path, repo, access = []}) {
+    constructor({id, name, path, storage, repo, access = []}) {
         this.id = +id;
         this.name = name;
         this.path = path;
+        this.storage = storage;
         this.repo = repo;
         this.access = access;
     }
@@ -92,6 +95,21 @@ export default class Application {
     }
 
     /**
+     * Install application but if there is error it won't rise exception
+     * @param session
+     * @param repo
+     */
+    static async silentInstall(session: Session, repo: string):Promise<any> {
+        try {
+            await Application.install(session, repo);
+        }
+        catch {
+            return { status: false };
+        }
+        return { status: true };
+    }
+
+    /**
      * Install application from the repo url to user (from the session) folder
      * @param session
      * @param repo
@@ -106,12 +124,15 @@ export default class Application {
         // Get repo domain
         let domain = repo.replace(/https?:\/\//, '')
             .split('/')
-            .shift().replace(':', '-');
+            .shift()
+            .replace(':', '-');
 
         // Generate repo folder name
-        let folderName = domain + '_' + repo.split('/').slice(-2).map(x => x.replace('.git', '')
+        let folderName = domain + '/' + repo.split('/')
+            .slice(-2)
+            .map(x => x.replace('.git', '')
             .replace('.', '_'))
-            .join('_');
+            .join('/');
 
         // Final app path in user app folder
         let finalAppPath = session.user.appDir + '/' + folderName;
@@ -141,6 +162,7 @@ export default class Application {
         let appInfo = Object.assign(appJson, {
             name: folderName,
             path: finalAppPath,
+            storage: `./user/${session.user.name}/data/${folderName}`,
             repo: repo
         });
 
@@ -150,6 +172,21 @@ export default class Application {
 
         // Create data folder
         await MkDir(`${session.user.dataDir}/${folderName}`, {recursive: true});
+    }
+
+    /**
+     * Remove application but if there is error it won't rise exception
+     * @param session
+     * @param repo
+     */
+    static async silentRemove(session: Session, repo: string):Promise<any> {
+        try {
+            await Application.remove(session, repo);
+        }
+        catch {
+            return { status: false };
+        }
+        return { status: true };
     }
 
     /**
@@ -251,6 +288,24 @@ export default class Application {
         return {
             hash: stdout.replace(/\n/g, '').trim()
         };
+    }
+
+    /**
+     * Update privileges for application.
+     * @param session
+     * @param repo
+     * @param access
+     */
+    static async updatePrivileges(session: Session, repo: string, access:string) {
+        // Find app by repo
+        let app = await Application.findByRepo(session, repo);
+
+        // Set new access
+        app.access = access.split(',');
+
+        // Update db
+        let appDb = await Application.getApplicationDb(session.user.name);
+        await appDb.get('application').update({ access: app.access }, { repo: app.repo }).write();
     }
 
     /**

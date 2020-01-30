@@ -3,16 +3,11 @@ import User from "../user/User";
 import Application from "../app/Application";
 import Helper from "./Helper";
 import Session from "../user/Session";
+import BaseServerApi from "./BaseServerApi";
 
 export default class OsServer {
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
-        // const Listen = Util.promisify(RestApp.listen);
-
-        // Api classes
-        const Classes = {
-            'Application': Application
-        };
 
         // Set public folder
         RestApp.use(Express.static('./bin/public'));
@@ -42,7 +37,11 @@ export default class OsServer {
         });
 
         // Rest api
-        RestApp.get('^/api', async (req, res) => {
+        BaseServerApi.baseApiWithSessionControl(RestApp, '^/api', {
+            'Application': Application
+        });
+
+        /*RestApp.get('^/api', async (req, res) => {
             try {
                 // Get user from db by session key
                 let accessToken = req.query.access_token || req.headers['access_token'];
@@ -96,7 +95,7 @@ export default class OsServer {
                     message: e.message
                 });
             }
-        });
+        });*/
 
         return new Promise<void>((resolve => {
             RestApp.listen(port, () => {

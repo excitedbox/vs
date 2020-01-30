@@ -10,25 +10,25 @@ describe('Base', function () {
     let session;
 
     it('auth', async function () {
-        Chai.expect(await User.auth('root', '1234')).to.be.an('object');
-        await Chai.expect(User.auth('root', '2281488')).to.be.rejectedWith(AuthenticationError);
+        Chai.expect(await User.auth('test', 'test123')).to.be.an('object');
+        await Chai.expect(User.auth('test', '2281488')).to.be.rejectedWith(AuthenticationError);
         await Chai.expect(User.auth('', '')).to.be.rejectedWith(AuthenticationError);
         await Chai.expect(User.auth(null, null)).to.be.rejectedWith(AuthenticationError);
         await Chai.expect(User.auth(undefined, undefined)).to.be.rejectedWith(AuthenticationError);
     });
 
     it('session', async function () {
-        session = await User.auth('root', '1234');
+        session = await User.auth('test', 'test123');
         let user = session.user;
         //let user = await User.getBySession(sessionKey);
         //session = new Session(sessionKey, user);
 
         Chai.expect(user).to.be.an('object');
-        Chai.expect(user).to.have.property('id', 1);
-        Chai.expect(user).to.have.property('name', 'root');
+        Chai.expect(user).to.have.property('id', 2);
+        Chai.expect(user).to.have.property('name', 'test');
 
-        Chai.expect(user.homeDir).to.be.eq( './user/root');
-        Chai.expect(user.docsDir).to.be.eq( './user/root/docs');
+        Chai.expect(user.homeDir).to.be.eq( './user/test');
+        Chai.expect(user.docsDir).to.be.eq( './user/test/docs');
 
         await Chai.expect(User.getBySession(null)).to.be.rejectedWith(AuthenticationError, /incorrect/i);
         await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(AuthenticationError, /session/i);
@@ -36,6 +36,10 @@ describe('Base', function () {
 
     it('install app', async function () {
         this.timeout(60000);
+
+        // Remove if exists
+        await Application.silentRemove(session, 'http://maldan.ru:3569/root/test-app.git');
+        await Application.silentRemove(session, 'http://maldan.ru:3569/root/failed-app.git');
 
         // Install incorrect
         await Chai.expect(Application.install(null, 'http://maldan.ru:3569/root/test-app.git'), 'Null session').to.be.rejectedWith(Error, /session/i);

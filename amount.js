@@ -16,11 +16,13 @@ const Fs = require('fs');
         let ff = Fs.readFileSync(x, 'utf-8');
         ff = ff.replace(/\/\/.*/g, '')
             .replace(/\/\*\*.*?\*\//gsm, '');
-        console.log(ff.split('\n').map(x => x.trim()).filter(Boolean).join('\n'));
+        // console.log(ff.split('\n').map(x => x.trim()).filter(Boolean).join('\n'));
         return ff.split('\n').map(x => x.trim()).filter(Boolean).length;
     });
     let total = x.reduce((a, b) => a + b, 0);
-    console.log(c);
-    console.log(x);
+
+    let final = {};
+    for (let i = 0; i < c.length; i++) final[c[i]] = x[i];
+    console.log(final);
     console.log(total);
 })();

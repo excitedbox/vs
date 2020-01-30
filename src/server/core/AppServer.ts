@@ -4,16 +4,16 @@ import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
 import FileConverter from "../fs/FileConverter";
+import BaseServerApi from "./BaseServerApi";
 
 export default class AppServer {
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
-        // const Listen = Util.promisify(RestApp.listen);
 
-        // Api classes
-        const Classes = {
-            'Application': Application
-        };
+        // Rest api
+        BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
+            'FileSystem': FileSystem
+        }, 'application');
 
         // Get file from file system api
         RestApp.get('^/:path(*)', async (req, res) => {
@@ -25,7 +25,7 @@ export default class AppServer {
                 if (!session) throw new AuthenticationError(`Session not found!`);
 
                 // Resolve path
-                let file = await FileSystem.resolvePath(session, req.params.path);
+                let file = await FileSystem.resolvePath(session, req.params.path, true, 'r');
 
                 // If convert enabled
                 if (req.query.convert) {

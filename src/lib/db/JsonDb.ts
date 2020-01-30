@@ -89,6 +89,20 @@ class JsonTable {
     }
 
     /**
+     * Update by condition
+     * @param setData
+     * @param query
+     */
+    update(setData: any, query: any = {}) {
+        let found = this.find(query);
+        let indexArray = found.map(x => this._collection.indexOf(x));
+        indexArray.forEach(x => {
+            this._collection[x] = Object.assign(this._collection[x], setData);
+        });
+        return this;
+    }
+
+    /**
      * Write the DB to file
      */
     async write() {
