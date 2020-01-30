@@ -9,10 +9,12 @@ export default class BaseServerApi {
         restApp.get(path, async (req, res) => {
             try {
                 // Get user from db by session key
-                let accessToken = req.query.access_token || req.headers['access_token'];
-                let session = null;
+                let subdomainKey = req.headers.host.split('.')[0];
+                let accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                let session;
                 if (serverType === 'application') session = Application.runningApplications.get(accessToken);
                 else session = new Session(accessToken, await User.getBySession(accessToken));
+                if (!session) throw new Error(`Session not found!`);
 
                 if (!req.query.m) throw new Error(`Parameter "m" is required!`);
 

@@ -5,6 +5,9 @@ import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
 import FileConverter from "../fs/FileConverter";
 import BaseServerApi from "./BaseServerApi";
+import Session from "../user/Session";
+import Helper from "./Helper";
+import Service from "./Service";
 
 export default class AppServer {
     static async run(port: number) {
@@ -14,6 +17,35 @@ export default class AppServer {
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'FileSystem': FileSystem
         }, 'application');
+
+        // Get file from file system api
+        RestApp.get('^/\\$service/:path(*)', async (req, res) => {
+            try {
+                // Get user from db by session key
+                let subdomainKey = req.headers.host.split('.')[0];
+                let accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                let session = Application.runningApplications.get(accessToken);
+                if (!session) throw new Error(`Session not found!`);
+
+                if (!Service.runningServices.has(session))
+                    throw new Error(`Service not found!`);
+
+                let args = Object.assign({}, req.query);
+                delete args.access_token;
+                if (req.params.path[0] !== '/')
+                    req.params.path = '/' + req.params.path;
+                let response = await (Service.runningServices.get(session).execute(req.params.path, args));
+
+                res.setHeader('Content-Type', 'application/json');
+                res.send(response);
+            } catch (e) {
+                res.status(e.httpStatusCode || 500);
+                res.send({
+                    status: false,
+                    message: e.message
+                });
+            }
+        });
 
         // Get file from file system api
         RestApp.get('^/:path(*)', async (req, res) => {

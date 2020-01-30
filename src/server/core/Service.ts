@@ -3,18 +3,25 @@ import * as Util from 'util';
 import Session from "../user/Session";
 import FileSystem from "../fs/FileSystem";
 import SystemJournal from "./SystemJournal";
+import Helper from "./Helper";
 
 const {NodeVM} = require('vm2');
 
 const Exists = Util.promisify(Fs.exists);
 
 export default class Service {
+    public static runningServices: Map<Session, Service> = new Map<Session, Service>();
+    public bindingPath: Map<string, Function> = new Map<string, Function>();
+
     static async start(session: Session) {
         if (!session) throw new Error(`Session is require!`);
         if (!session.isApplicationLevel) throw new Error(`Access denied for this session!`);
 
         // Check if service exists
         if (!await Exists(session.application.path + '/service/index.js')) return;
+
+        // Create service
+        let service = new Service();
 
         // Create virtual environment
         const vm = new NodeVM({
@@ -28,7 +35,8 @@ export default class Service {
                     error(msg) {
                         SystemJournal.error(session, msg);
                     }
-                }
+                },
+                service
             },
             eval: false,
             wasm: false,
@@ -40,14 +48,16 @@ export default class Service {
                     fs: {
                         readFile: (path, options, callback) => this._fsReadFile(session, path, options, callback),
                         writeFile: (path, options, callback) => this._fsWriteFile(session, path, options, callback),
-                        stat: (path, callback) =>  this._fsStat(session, path, callback),
+                        stat: (path, callback) => this._fsStat(session, path, callback),
                         exists: (path, callback) => this._fsExists(session, path, callback),
                         mkdir: (path, options, callback) => this._fsMkDir(session, path, options, callback),
                         rename: (oldPath, newPath, callback) => this._fsRename(session, oldPath, newPath, callback),
                         unlink: (path, callback) => this._fsUnlink(session, path, callback),
                         readdir: (path, options, callback) => this._fsReadDir(session, path, options, callback),
-                        search: (path, filter) => {},
-                        tree: (path, filter) => {},
+                        search: (path, filter) => {
+                        },
+                        tree: (path, filter) => {
+                        },
                     },
                     util: {
                         promisify: Util.promisify
@@ -59,6 +69,18 @@ export default class Service {
         // Start service in vm
         let sex = Fs.readFileSync(session.application.path + '/service/index.js', 'utf-8');
         vm.run(sex, session.application.path + '/service/index.js');
+
+        // Save service
+        Service.runningServices.set(session, service);
+    }
+
+    listen(path: string, fn: Function) {
+        this.bindingPath.set(path, fn);
+    }
+
+    async execute(path: string, args: any) {
+        if (!this.bindingPath.has(path)) return;
+        return await Helper.callFunctionWithArgumentNames(this.bindingPath.get(path), args);
     }
 
     private static async _fsReadFile(session: Session, path: string, options: any, callback: Function) {
@@ -96,7 +118,7 @@ export default class Service {
         }
     }
 
-    private static async _fsMkDir(session: Session, path: string, options:any, callback: Function) {
+    private static async _fsMkDir(session: Session, path: string, options: any, callback: Function) {
         try {
             callback(null, await FileSystem.createDir(session, path));
         } catch (e) {
@@ -120,7 +142,7 @@ export default class Service {
         }
     }
 
-    private static async _fsReadDir(session: Session, path: string, options:any, callback: Function) {
+    private static async _fsReadDir(session: Session, path: string, options: any, callback: Function) {
         try {
             callback(null, await FileSystem.createDir(session, path));
         } catch (e) {
