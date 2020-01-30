@@ -5,6 +5,10 @@ import Session from "../user/Session";
 import * as Rimraf from "rimraf";
 
 const ReadFile = Util.promisify(Fs.readFile);
+const WriteFile = Util.promisify(Fs.writeFile);
+const ReadDir = Util.promisify(Fs.readdir);
+const RenamePath = Util.promisify(Fs.rename);
+const StatFile = Util.promisify(Fs.stat);
 const Exists = Util.promisify(Fs.exists);
 const MkDir = Util.promisify(Fs.mkdir);
 const RemoveFolder = Util.promisify(Rimraf);
@@ -14,20 +18,67 @@ export default class FileSystem {
      * Response types for http server for each method. Method forbidden to call if it's not listed here.
      */
     public static readonly methodResponseType: any = {
+        'info': 'json',
+        'list': 'json',
+        'createDir': 'json',
+        'rename': 'json',
+        'remove': 'json',
         'exists': 'json',
+        'writeFile': 'json',
     };
 
-    static fileInfo(session: Session, path: string) {
-        return FileSystem.resolvePath(session, path);
+    /**
+     * Get info about a file or folder.
+     * @param session
+     * @param path
+     */
+    static async info(session: Session, path: string) {
+        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
+        return await StatFile(finalPath);
     }
 
+    /**
+     * Read file and return file content
+     * @param session
+     * @param path
+     */
     static async readFile(session: Session, path: string) {
-        let finalPath = await FileSystem.resolvePath(session, path);
+        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
         return await ReadFile(finalPath);
     }
 
-    static list(session: Session, path: string, filter: string = '') {
-        return FileSystem.resolvePath(session, path);
+    /**
+     * Get file and folder list from the path.
+     * @param session
+     * @param path
+     * @param filter
+     */
+    static async list(session: Session, path: string, filter: string = '') {
+        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
+        let list: any = await ReadDir(finalPath);
+
+        // Transform data
+        list = list.map(x => {
+            const stat = Fs.lstatSync(finalPath + '/' + x);
+            return {
+                name: x,
+                isDir: stat.isDirectory(),
+                size: Fs.statSync(finalPath + '/' + x)['size'],
+                created: Fs.statSync(finalPath + '/' + x)['birthtime'],
+            }
+        });
+
+        // Filter files
+        list = list.filter(x => {
+            if (x.isDir) return true;
+            return x.name.match(new RegExp(filter));
+        });
+
+        return list;
+    }
+
+    static search(session: Session, path: string, filter: string = '') {
+
     }
 
     static tree(session: Session, path: string, filter: string = '') {
@@ -44,10 +95,6 @@ export default class FileSystem {
         return {status: await Exists(finalPath)};
     }
 
-    static search(session: Session, path: string, filter: string = '') {
-
-    }
-
     /**
      * Create folder
      * @param session
@@ -59,12 +106,29 @@ export default class FileSystem {
         if (!await this.exists(session, finalPath)) throw new Error(`Can't create the directory "${finalPath}"`);
     }
 
-    static writeFile(session: Session, path: string, data: Buffer) {
-
+    /**
+     * Write file data. Create a file if it's not exists.
+     * @param session
+     * @param path
+     * @param data
+     */
+    static async writeFile(session: Session, path: string, data: Buffer | Uint8Array | string) {
+        let finalPath = await FileSystem.resolvePath(session, path, false);
+        await WriteFile(finalPath, data);
     }
 
-    static rename(session: Session, path: string, name: string) {
+    /**
+     * Rename a file or folder.
+     * @param session
+     * @param path
+     * @param name
+     */
+    static async rename(session: Session, path: string, name: string) {
+        if (name.match(/\.{2,}|[\/\\]/g)) throw new Error('Incorrect name');
 
+        let srcPath = await FileSystem.resolvePath(session, path);
+        let dstPath = await FileSystem.resolvePath(session, path.split('/').slice(0, -1).join('/') + '/' + name, false);
+        await RenamePath(srcPath, dstPath);
     }
 
     /**
@@ -96,12 +160,10 @@ export default class FileSystem {
         if (path.startsWith('/$lib')) {
             if (access.match('w')) throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
             path = path.replace('/$lib', './src/lib/');
-        }
-        else if (path.startsWith('/$public')) {
+        } else if (path.startsWith('/$public')) {
             if (access.match('w')) throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
-            path = path.replace('/$root', './bin/public/');
-        }
-        else if (path.startsWith('/$data')) {
+            path = path.replace('/$public', './bin/public/');
+        } else if (path.startsWith('/$data')) {
             // Check access to data folder
             if (!session.checkAccess('data'))
                 throw new Error(`Application "${session.application.name}" doesn't have access to $data folder.`);

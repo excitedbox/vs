@@ -36,6 +36,7 @@ export default class Application {
         'silentInstall': 'json',
         'install': 'json',
         'remove': 'json',
+        'removeSilent': 'json',
         'list': 'json',
         'pullUpdate': 'json',
         'commitList': 'json',

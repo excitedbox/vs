@@ -63,6 +63,82 @@ describe('Base', function () {
         await Chai.expect(FileSystem.remove(appSession, '/index.html')).to.be.rejectedWith(Error, /can't write/i);
     });
 
+    it('get file list', async function () {
+        // Must contain an index.html file
+        let list:Array<any> = await FileSystem.list(appSession, `/`);
+        Chai.expect(list.find(x => x.name === 'index.html')).to.be.not.eq(undefined);
+        Chai.expect(list.find(x => x.name === 'style.scss')).to.be.not.eq(undefined);
+
+        // Must filter
+        list = await FileSystem.list(appSession, `/`, 'style');
+        Chai.expect(list.length).eq(2);
+        Chai.expect(list.find(x => x.name === 'style.scss')).to.be.not.eq(undefined);
+
+        // Must filter except folders
+        list = await FileSystem.list(appSession, `/`, 'df gdf gdfgdfg');
+        Chai.expect(list.length).eq(1);
+        Chai.expect(list.find(x => x.name === '.git')).to.be.not.eq(undefined);
+    });
+
+    it('get file info', async function () {
+        // Must contain an index.html file
+        let info = await FileSystem.info(appSession, `/index.html`);
+        Chai.expect(info).to.be.not.eq(undefined);
+        Chai.expect(info).to.have.property('size');
+    });
+
+    it('read file', async function () {
+        // Must contain an index.html file
+        let info = await FileSystem.readFile(appSession, `/index.html`);
+        Chai.expect(info).to.be.not.eq(undefined);
+
+        await Chai.expect(FileSystem.readFile(appSession, '/indexxxdd.html')).to.be.rejectedWith(Error, /not exists/i);
+        await Chai.expect(FileSystem.readFile(appSession, '/.git')).to.be.rejectedWith(Error, /directory/i);
+    });
+
+    it('rename file', async function () {
+        await Chai.expect(FileSystem.rename(appSession, '/index.html', 'sas.html'))
+            .to.be.rejectedWith(Error, /can't write/i);
+
+
+        // Write to app data folder
+        let dirName = Math.random() + '';
+        await FileSystem.createDir(appSession, `/$data/${dirName}`);
+        Chai.expect((await FileSystem.exists(appSession, `/$data/${dirName}`)).status).to.be.eq(true);
+
+        // Incorrect rename
+        await Chai.expect(FileSystem.rename(appSession, `/$data/${dirName}`, '../../'))
+            .to.be.rejectedWith(Error, /incorrect/i);
+
+        // Correct rename
+        await FileSystem.rename(appSession, `/$data/${dirName}`, 'sas228');
+        Chai.expect((await FileSystem.exists(appSession, `/$data/${dirName}`)).status).to.be.eq(false);
+        Chai.expect((await FileSystem.exists(appSession, `/$data/sas228`)).status).to.be.eq(true);
+        await FileSystem.remove(appSession, `/$data/sas228`);
+        Chai.expect((await FileSystem.exists(appSession, `/$data/sas228`)).status).to.be.eq(false);
+    });
+
+    it('write file', async function () {
+        await Chai.expect(FileSystem.writeFile(appSession, '/index2.html', 'test'))
+            .to.be.rejectedWith(Error, /can't write/i);
+
+        await Chai.expect(FileSystem.writeFile(appSession, '/$lib/index2.html', 'test'))
+            .to.be.rejectedWith(Error, /can't write/i);
+
+        await Chai.expect(FileSystem.writeFile(appSession, '/$public/index2.html', 'test'))
+            .to.be.rejectedWith(Error, /can't write/i);
+
+        await Chai.expect(FileSystem.writeFile(appSession, '/$root/index2.html', 'test'))
+            .to.be.rejectedWith(Error, /access/i);
+
+        // Write to app data folder
+        let fileName = Math.random() + '.txt';
+        await FileSystem.writeFile(appSession, `/$data/${fileName}`, 'sas228');
+
+        let data = await FileSystem.readFile(appSession, `/$data/${fileName}`);
+        Chai.expect(data.toString('utf-8')).to.be.eq('sas228');
+    });
+
     it('remove app', async function () {
         // Close app
         Application.close(session, appSession.key);
