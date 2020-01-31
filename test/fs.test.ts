@@ -5,12 +5,18 @@ import Application from "../src/server/app/Application";
 import Session from "../src/server/user/Session";
 import AuthenticationError from "../src/server/error/AuthenticationError";
 import FileSystem from "../src/server/fs/FileSystem";
+import Main from "../src/server/Main";
 
 describe('Base', function () {
     Chai.use(require('chai-as-promised'));
 
     let session:Session;
     let appSession:Session;
+
+    it('server start', async function () {
+        // Run os server
+        await Main.run(true);
+    });
 
     it('session', async function () {
         session = await User.auth('test', 'test123');
@@ -41,11 +47,11 @@ describe('Base', function () {
     });
 
     it('resolve path', async function () {
-        Chai.expect(await FileSystem.resolvePath(appSession, '/', false, 'r')).eq(FileSystem.safePath(Path.resolve(appSession.application.path)));
-        Chai.expect(await FileSystem.resolvePath(appSession, '/index.html', false, 'r')).eq(FileSystem.safePath(Path.resolve(appSession.application.path + '/index.html')));
-        Chai.expect(await FileSystem.resolvePath(appSession, '/$data', false, 'rw')).eq(FileSystem.safePath(Path.resolve(appSession.application.storage)));
-        Chai.expect(await FileSystem.resolvePath(appSession, '/$data/index.html', false, 'rw')).eq(FileSystem.safePath(Path.resolve(appSession.application.storage+ '/index.html')));
-        Chai.expect(await FileSystem.resolvePath(appSession, '/$lib', false, 'r')).eq(FileSystem.safePath(Path.resolve('./src/lib')));
+        Chai.expect(FileSystem.getDrive(appSession, '/', 'r').path).eq(FileSystem.safePath(Path.resolve(appSession.application.path)));
+        Chai.expect(FileSystem.getDrive(appSession, '/index.html',  'r').path).eq(FileSystem.safePath(Path.resolve(appSession.application.path + '/index.html')));
+        Chai.expect(FileSystem.getDrive(appSession, '/$data',  'rw').path).eq(FileSystem.safePath(Path.resolve(appSession.application.storage)));
+        Chai.expect(FileSystem.getDrive(appSession, '/$data/index.html',  'rw').path).eq(FileSystem.safePath(Path.resolve(appSession.application.storage+ '/index.html')));
+        Chai.expect(FileSystem.getDrive(appSession, '/$lib',  'r').path).eq(FileSystem.safePath(Path.resolve('./')));
     });
 
     it('create a dir, exists, remove', async function () {
@@ -101,7 +107,7 @@ describe('Base', function () {
         let info = await FileSystem.readFile(appSession, `/index.html`);
         Chai.expect(info).to.be.not.eq(undefined);
 
-        await Chai.expect(FileSystem.readFile(appSession, '/indexxxdd.html')).to.be.rejectedWith(Error, /not exists/i);
+        await Chai.expect(FileSystem.readFile(appSession, '/indexxxdd.html')).to.be.rejectedWith(Error, /no such file/i);
         await Chai.expect(FileSystem.readFile(appSession, '/.git')).to.be.rejectedWith(Error, /directory/i);
     });
 
@@ -154,5 +160,9 @@ describe('Base', function () {
 
         // Remove application
         await Application.remove(session, 'http://maldan.ru:3569/root/test-app.git');
+    });
+
+    it('end', async function () {
+        Main.stop();
     });
 });

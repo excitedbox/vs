@@ -3,15 +3,16 @@ import * as Opn from 'opn';
 import User from "../user/User";
 import Application from "../app/Application";
 import Session from "../user/Session";
-import Service from "./Service";
+import Service from "../app/Service";
 
 export default class ShellApi {
     private static _tmpSession: Session;
     private static _runningApplicationList: Array<Session> = [];
+    private static _lineReader:any;
 
     static async run() {
         // Listen command line
-        ReadLine.createInterface({
+        this._lineReader = ReadLine.createInterface({
             input: process.stdin,
             output: process.stdout,
             terminal: false
@@ -20,10 +21,16 @@ export default class ShellApi {
         });
 
         // Auth as root
-        this._tmpSession = await User.auth('test', 'test123');
+        this._tmpSession = await User.auth(process.env.SHELL_LOGIN, process.env.SHELL_PASSWORD);
+        console.log(`You are log in as "${process.env.SHELL_LOGIN}"`);
 
         // Dummy
         this._processCommand('');
+    }
+
+    static stop() {
+        this._lineReader.close();
+        this._lineReader.removeAllListeners();
     }
 
     private static async _processCommand(cmd: string) {

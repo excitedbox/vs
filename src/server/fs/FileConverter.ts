@@ -25,15 +25,18 @@ export default class FileConverter {
         if (params.target === 'es5') targetType = Tsc.ScriptTarget.ES5;
         if (params.module === 'amd') moduleType = Tsc.ModuleKind.AMD;
         if (params.module === 'system') moduleType = Tsc.ModuleKind.System;
+        if (params.module === 'umd') moduleType = Tsc.ModuleKind.UMD;
 
         // Compile ts to js
         let result = Tsc.transpileModule(fileContent, {
             reportDiagnostics: true,
             compilerOptions: {
+                allowSyntheticDefaultImports: true,
                 removeComments: true,
                 target: targetType,
                 module: moduleType
-            }
+            },
+            moduleName: Path.basename(path).split('.').slice(0, -1).join('.')
         });
 
         return {

@@ -4,9 +4,9 @@ import * as Util from "util";
 import * as ChildProcess from "child_process";
 import * as Rimraf from "rimraf";
 import JsonDb from "../../lib/db/JsonDb";
-import Helper from "../core/Helper";
-import Service from "../core/Service";
-import SystemJournal from "../core/SystemJournal";
+import Helper from "../system/Helper";
+import Service from "./Service";
+import SystemJournal from "../system/SystemJournal";
 
 const Exec = Util.promisify(ChildProcess.exec);
 const ReadFile = Util.promisify(Fs.readFile);

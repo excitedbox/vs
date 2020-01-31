@@ -6,7 +6,7 @@
     "scripts": {
         "build": "webpack --mode production",
         "watch": "webpack --mode development --watch",
-        "start": "ts-node src/server/Main.ts",
+        "start": "ts-node index.ts",
         "test": "mocha -r ts-node/register test/**/*.test.ts",
         "coverage": "nyc --temp-dir bin/nyc --report-dir bin/public/coverage -r lcov -e .ts -x \"*.test.ts\" npm run test",
         "docs": "typedoc --mode file --out bin/public/docs src",

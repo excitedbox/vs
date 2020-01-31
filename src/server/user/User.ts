@@ -1,5 +1,5 @@
 import JsonDb from "../../lib/db/JsonDb";
-import Helper from "../core/Helper";
+import Helper from "../system/Helper";
 import AuthenticationError from "../error/AuthenticationError";
 import Session from "./Session";
 

@@ -6,10 +6,13 @@ import FileSystem from "../fs/FileSystem";
 import FileConverter from "../fs/FileConverter";
 import BaseServerApi from "./BaseServerApi";
 import Session from "../user/Session";
-import Helper from "./Helper";
-import Service from "./Service";
+import Helper from "../system/Helper";
+import Service from "../app/Service";
+import StdDrive from "../fs/drive/StdDrive";
 
 export default class AppServer {
+    private static _server:any;
+
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
 
@@ -57,22 +60,30 @@ export default class AppServer {
                 if (!session) throw new AuthenticationError(`Session not found!`);
 
                 // Resolve path
-                let file = await FileSystem.resolvePath(session, req.params.path, true, 'r');
+                // let file = await FileSystem.resolvePath(session, req.params.path, true, 'r');
+                let drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
+                if (drive instanceof StdDrive) {
+                    if (!await drive.exists()) throw new Error(`File "${drive.path}" not found!`);
 
-                // If convert enabled
-                if (req.query.convert) {
-                    let convertedFile = await FileConverter.convert(file, req.query);
+                    // If convert enabled
+                    if (req.query.hasOwnProperty('convert')) {
+                        let convertedFile = await FileConverter.convert(drive.path, req.query);
 
-                    // If converted
-                    if (convertedFile) {
-                        res.setHeader('Content-Type', convertedFile.type);
-                        res.send(convertedFile.output);
-                        return;
+                        // If converted
+                        if (convertedFile) {
+                            res.setHeader('Content-Type', convertedFile.type);
+                            res.send(convertedFile.output);
+                            return;
+                        }
                     }
-                }
 
-                // Send file
-                res.sendFile(file);
+                    // Send file
+                    res.sendFile(drive.path);
+                } else {
+                    let fileData = await drive.readFile();
+                    res.setHeader('Content-Type', drive.contentType);
+                    res.send(fileData);
+                }
             }
             catch (e) {
                 res.status(e.httpStatusCode || 500);
@@ -84,13 +95,15 @@ export default class AppServer {
         });
 
         return new Promise<void>((resolve => {
-            RestApp.listen(port, () => {
+            AppServer._server = RestApp.listen(port, () => {
                 console.log(`App Server starts at :${port}`);
                 resolve();
             });
         }));
+    }
 
-        //await Listen(RestApp.listen(port));
-        //console.log(`App Server starts at :${port}`);
+    static stop() {
+        if (this._server)
+            this._server.close();
     }
 }

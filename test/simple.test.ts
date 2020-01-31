@@ -3,11 +3,17 @@ import User from "../src/server/user/User";
 import Application from "../src/server/app/Application";
 import Session from "../src/server/user/Session";
 import AuthenticationError from "../src/server/error/AuthenticationError";
+import Main from "../src/server/Main";
 
 describe('Base', function () {
     Chai.use(require('chai-as-promised'));
 
     let session;
+
+    it('server start', async function () {
+        // Run os server
+        await Main.run(true);
+    });
 
     it('auth', async function () {
         Chai.expect(await User.auth('test', 'test123')).to.be.an('object');
@@ -116,5 +122,9 @@ describe('Base', function () {
     it('remove app', async function () {
         // Remove correct
         await Application.remove(session, 'http://maldan.ru:3569/root/test-app.git');
+    });
+
+    it('end', async function () {
+        Main.stop();
     });
 });

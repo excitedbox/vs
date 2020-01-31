@@ -8,25 +8,29 @@ import Application from "../app/Application";
 const WriteFile = Util.promisify(Fs.writeFile);
 
 export default class SystemJournal {
-    private static _logs: JsonDb;
+    private static _logs: any = 1;
+    private static _interval:any;
 
     static async init() {
-        this._logs = await JsonDb.db('./logs/logs.json', { logs: [] });
-
-        setInterval(() => {
-            this.flushLogs();
+        SystemJournal._logs = await JsonDb.db('./logs/logs.json', {logs: []});
+        this._interval = setInterval(() => {
+            SystemJournal.flushLogs();
         }, 15000);
     }
 
+    static stop() {
+        clearInterval(this._interval);
+    }
+
     static log(session: Session, message: string) {
-        this._add(session, 'log', message);
+        SystemJournal._add(session, 'log', message);
     }
 
     static error(session: Session, message: string) {
-        this._add(session, 'error', message);
+        SystemJournal._add(session, 'error', message);
     }
 
-    static _add(session: Session, type:string, message: string) {
+    static _add(session: Session, type: string, message: string) {
         if (!session) return;
         if (!session.isApplicationLevel) return;
 
@@ -41,7 +45,7 @@ export default class SystemJournal {
     }
 
     static async flushLogs() {
-        await this._logs.write();
+        await SystemJournal._logs.write();
 
         // Save logs to file
         Application.runningApplications.forEach(x => {
@@ -51,7 +55,7 @@ export default class SystemJournal {
     }
 
     static getSessionLogs(session: Session) {
-        return this._logs.get('logs').find({ key: session.key });
+        return SystemJournal._logs.get('logs').find({key: session.key});
     }
 
     static getUserLogs(user: User) {

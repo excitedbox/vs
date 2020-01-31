@@ -1,6 +1,6 @@
 import User from "../user/User";
 import Session from "../user/Session";
-import Helper from "./Helper";
+import Helper from "../system/Helper";
 import Application from "../app/Application";
 
 export default class BaseServerApi {

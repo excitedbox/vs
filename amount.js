@@ -15,7 +15,8 @@ const Fs = require('fs');
     let x = c.map((x) => {
         let ff = Fs.readFileSync(x, 'utf-8');
         ff = ff.replace(/\/\/.*/g, '')
-            .replace(/\/\*\*.*?\*\//gsm, '');
+            .replace(/\/\*\*.*?\*\//gsm, '')
+            .replace(/\/\*.*?\*\//gsm, '');
         // console.log(ff.split('\n').map(x => x.trim()).filter(Boolean).join('\n'));
         return ff.split('\n').map(x => x.trim()).filter(Boolean).length;
     });

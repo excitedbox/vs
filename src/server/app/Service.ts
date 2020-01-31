@@ -2,8 +2,8 @@ import * as Fs from 'fs';
 import * as Util from 'util';
 import Session from "../user/Session";
 import FileSystem from "../fs/FileSystem";
-import SystemJournal from "./SystemJournal";
-import Helper from "./Helper";
+import SystemJournal from "../system/SystemJournal";
+import Helper from "../system/Helper";
 
 const {NodeVM} = require('vm2');
 

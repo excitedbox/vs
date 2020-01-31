@@ -3,6 +3,9 @@ import * as Util from 'util';
 import * as Path from 'path';
 import Session from "../user/Session";
 import * as Rimraf from "rimraf";
+import StdDrive from "./drive/StdDrive";
+import IDrive from "./drive/IDrive";
+import LibDrive from "./drive/LibDrive";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -27,34 +30,23 @@ export default class FileSystem {
         'writeFile': 'json',
     };
 
-    /**
-     * Get info about a file or folder.
-     * @param session
-     * @param path
-     */
     static async info(session: Session, path: string) {
-        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
-        return await StatFile(finalPath);
+        /*let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
+        return await StatFile(finalPath);*/
+        return await FileSystem.getDrive(session, path, 'r').info();
     }
 
-    /**
-     * Read file and return file content
-     * @param session
-     * @param path
-     */
     static async readFile(session: Session, path: string) {
-        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
-        return await ReadFile(finalPath);
+        return await FileSystem.getDrive(session, path, 'r').readFile();
+
+        //let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
+        //return await ReadFile(finalPath);
     }
 
-    /**
-     * Get file and folder list from the path.
-     * @param session
-     * @param path
-     * @param filter
-     */
     static async list(session: Session, path: string, filter: string = '') {
-        let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
+        return await FileSystem.getDrive(session, path, 'r').list(filter);
+
+        /*let finalPath = await FileSystem.resolvePath(session, path, true, 'r');
         let list: any = await ReadDir(finalPath);
 
         // Transform data
@@ -74,81 +66,52 @@ export default class FileSystem {
             return x.name.match(new RegExp(filter));
         });
 
-        return list;
+        return list;*/
     }
 
-    static search(session: Session, path: string, filter: string = '') {
-
+    static async search(session: Session, path: string, filter: string = '') {
+        return await FileSystem.getDrive(session, path, 'r').search(filter);
     }
 
-    static tree(session: Session, path: string, filter: string = '') {
-        return FileSystem.resolvePath(session, path);
+    static async tree(session: Session, path: string, filter: string = '') {
+        return await FileSystem.getDrive(session, path, 'r').tree(filter);
     }
 
-    /**
-     * Check if file or folder exists
-     * @param session
-     * @param path
-     */
-    static async exists(session: Session, path: string):Promise<any> {
-        let finalPath = await FileSystem.resolvePath(session, path, false, 'r');
-        return {status: await Exists(finalPath)};
+    static async exists(session: Session, path: string): Promise<any> {
+        /*let finalPath = await FileSystem.resolvePath(session, path, false, 'r');
+        return {status: await Exists(finalPath)};*/
+        return {status: await FileSystem.getDrive(session, path, 'r').exists()};
     }
 
-    /**
-     * Create folder
-     * @param session
-     * @param path
-     */
     static async createDir(session: Session, path: string) {
-        let finalPath = await FileSystem.resolvePath(session, path, false);
+        /*let finalPath = await FileSystem.resolvePath(session, path, false);
         await MkDir(finalPath, {recursive: true});
-        if (!await this.exists(session, finalPath)) throw new Error(`Can't create the directory "${finalPath}"`);
+        if (!await this.exists(session, finalPath)) throw new Error(`Can't create the directory "${finalPath}"`);*/
+        return await FileSystem.getDrive(session, path, 'w').createDir();
     }
 
-    /**
-     * Write file data. Create a file if it's not exists.
-     * @param session
-     * @param path
-     * @param data
-     */
     static async writeFile(session: Session, path: string, data: Buffer | Uint8Array | string) {
-        let finalPath = await FileSystem.resolvePath(session, path, false);
-        await WriteFile(finalPath, data);
+        /*let finalPath = await FileSystem.resolvePath(session, path, false);
+        await WriteFile(finalPath, data);*/
+        return await FileSystem.getDrive(session, path, 'w').writeFile(data);
     }
 
-    /**
-     * Rename a file or folder.
-     * @param session
-     * @param path
-     * @param name
-     */
     static async rename(session: Session, path: string, name: string) {
-        if (name.match(/\.{2,}|[\/\\]/g)) throw new Error('Incorrect name');
+        /*if (name.match(/\.{2,}|[\/\\]/g)) throw new Error('Incorrect name');
 
         let srcPath = await FileSystem.resolvePath(session, path);
         let dstPath = await FileSystem.resolvePath(session, path.split('/').slice(0, -1).join('/') + '/' + name, false);
-        await RenamePath(srcPath, dstPath);
+        await RenamePath(srcPath, dstPath);*/
+        return await FileSystem.getDrive(session, path, 'w').rename(name);
     }
 
-    /**
-     * Remove file or folder
-     * @param session
-     * @param path
-     */
     static async remove(session: Session, path: string) {
-        let finalPath = await FileSystem.resolvePath(session, path);
-        await RemoveFolder(finalPath);
+        /*let finalPath = await FileSystem.resolvePath(session, path);
+        await RemoveFolder(finalPath);*/
+        return await FileSystem.getDrive(session, path, 'w').remove();
     }
 
-    /**
-     * Resolve a virtual path for application.
-     * @param session
-     * @param path
-     * @param checkIfExists
-     * @param access
-     */
-    static async resolvePath(session: Session, path: string, checkIfExists: boolean = true, access: string = 'rw'): Promise<string> {
+    static getDrive(session: Session, path: string, access: string = 'rw', args:any = {}):IDrive {
         if (!session) throw new Error(`Session is require!`);
         if (!session.isApplicationLevel) throw new Error(`Access denied for this session!`);
 
@@ -156,44 +119,52 @@ export default class FileSystem {
         path = FileSystem.safePath(path);
         if (path[0] !== '/') path = '/' + path;
 
+        let drive: IDrive;
         let redirect = [
             {
                 route: '/$lib',
                 access: 'r',
-                path: './src/lib/'
+                path: './',
+                drive: LibDrive
             },
             {
                 route: '/$public',
                 access: 'r',
-                path: './bin/public/'
+                path: './bin/public/',
+                drive: StdDrive
             },
             {
                 route: '/$data',
                 access: 'rw',
-                privilege: { r: 'data', w: 'data' },
-                path: session.application.storage
+                privilege: {r: 'data', w: 'data'},
+                path: session.application.storage,
+                drive: StdDrive
             },
             {
                 route: '/$user',
                 access: 'rw',
-                privilege: { r: 'user-readonly', w: 'user' },
-                path: `./user/${session.user.name}/docs/`
+                privilege: {r: 'user-readonly', w: 'user'},
+                path: `./user/${session.user.name}/docs/`,
+                drive: StdDrive
             },
             {
                 route: '/$root',
                 access: 'rw',
-                privilege: { r: 'root-readonly', w: 'root' },
-                path: `./`
+                privilege: {r: 'root-readonly', w: 'root'},
+                path: `./`,
+                drive: StdDrive
             },
             {
                 route: '/$logs',
                 access: 'r',
-                path: `./logs/${session.key}.json`
+                path: `./logs/${session.key}.json`,
+                drive: StdDrive
             },
             {
                 route: '/',
                 access: 'r',
-                path: session.application.path + '/'
+                path: session.application.path + '/',
+                drive: StdDrive
             }
         ];
 
@@ -212,22 +183,12 @@ export default class FileSystem {
                 if (item.privilege && access.match('w') && !session.checkAccess(item.privilege.w))
                     throw new Error(`Application "${session.application.name}" doesn't have access to write to "${path}".`);
 
-                path = path.replace(item.route, item.path);
+                drive = new item.drive(path.replace(item.route, item.path), args);
                 break;
             }
         }
 
-        // Generate final path
-        let finalPath = FileSystem.safePath(Path.resolve(__dirname + '/../../../', path)
-            .replace(/\\/g, '/'));
-
-        // Check if path exists
-        if (checkIfExists) {
-            let status = await Exists(finalPath);
-            if (!status) throw new Error(`Path "${finalPath}" not exists!`);
-        }
-
-        return finalPath;
+        return drive;
     }
 
     /**
