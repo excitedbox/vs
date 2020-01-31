@@ -35,7 +35,7 @@ export default class ShellApi {
             if (mainCmd === 'install') {
                 await Application.install(this._tmpSession, cmdParsed.join(' '));
             }
-            if (mainCmd === 'run') {
+            if (mainCmd === 'run' || mainCmd === 'open') {
                 let appName = cmdParsed.join(' ');
                 let db = await Application.getApplicationDb(this._tmpSession.user.name);
                 let app = db.get('application').findOne([
@@ -46,10 +46,7 @@ export default class ShellApi {
 
                 let session = await Application.run(this._tmpSession, app.repo);
 
-                // Start service if exists
-                await Service.start(session);
-
-                Opn(`http://${session.key}.localhost:${+process.env.OS_PORT + 1}/index.html`);
+                if (mainCmd === 'open') Opn(`http://${session.key}.localhost:${+process.env.OS_PORT + 1}/index.html`);
                 console.log(`${app.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }

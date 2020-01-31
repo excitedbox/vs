@@ -9,8 +9,14 @@ const {NodeVM} = require('vm2');
 
 const Exists = Util.promisify(Fs.exists);
 
+class ServiceParams {
+    public intervalKeys: Array<any> = [];
+    public timeoutKeys: Array<any> = [];
+}
+
 export default class Service {
     public static runningServices: Map<Session, Service> = new Map<Session, Service>();
+    public static serviceParams: Map<Service, ServiceParams> = new Map<Service, ServiceParams>();
     public bindingPath: Map<string, Function> = new Map<string, Function>();
 
     static async start(session: Session) {
@@ -22,6 +28,7 @@ export default class Service {
 
         // Create service
         let service = new Service();
+        let serviceParams = new ServiceParams();
 
         // Create virtual environment
         const vm = new NodeVM({
@@ -35,6 +42,12 @@ export default class Service {
                     error(msg) {
                         SystemJournal.error(session, msg);
                     }
+                },
+                setInterval: function(fn, time, ...args) {
+                    serviceParams.intervalKeys.push(setInterval(fn, time, ...args));
+                },
+                setTimeout: function(fn, time, ...args) {
+                    serviceParams.timeoutKeys.push(setTimeout(fn, time, ...args));
                 },
                 service
             },
@@ -72,6 +85,26 @@ export default class Service {
 
         // Save service
         Service.runningServices.set(session, service);
+        Service.serviceParams.set(service, serviceParams);
+    }
+
+    /**
+     * Stop service and remove all service resources.
+     * @param session
+     */
+    static stop(session: Session) {
+
+        if (this.runningServices.has(session)) {
+            // Get service and params
+            let service = this.runningServices.get(session);
+            let params = this.serviceParams.get(service);
+
+            // Destroy all service timers
+            params.intervalKeys.forEach(x => clearInterval(x));
+            params.timeoutKeys.forEach(x => clearTimeout(x));
+            this.serviceParams.delete(service);
+        }
+        this.runningServices.delete(session);
     }
 
     listen(path: string, fn: Function) {

@@ -14,14 +14,8 @@ export default class SystemJournal {
         this._logs = await JsonDb.db('./logs/logs.json', { logs: [] });
 
         setInterval(() => {
-            this._logs.write();
-
-            // Save logs to file
-            Application.runningApplications.forEach(x => {
-                let logs = SystemJournal.getSessionLogs(x);
-                WriteFile(`./logs/${x.key}.json`, JSON.stringify(logs));
-            });
-        }, 5000);
+            this.flushLogs();
+        }, 15000);
     }
 
     static log(session: Session, message: string) {
@@ -43,6 +37,16 @@ export default class SystemJournal {
             applicationId: session.application.id,
             message: message + '',
             created: new Date()
+        });
+    }
+
+    static async flushLogs() {
+        await this._logs.write();
+
+        // Save logs to file
+        Application.runningApplications.forEach(x => {
+            let logs = SystemJournal.getSessionLogs(x);
+            WriteFile(`./logs/${x.key}.json`, JSON.stringify(logs));
         });
     }
 

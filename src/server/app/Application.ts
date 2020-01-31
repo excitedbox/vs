@@ -5,6 +5,8 @@ import * as ChildProcess from "child_process";
 import * as Rimraf from "rimraf";
 import JsonDb from "../../lib/db/JsonDb";
 import Helper from "../core/Helper";
+import Service from "../core/Service";
+import SystemJournal from "../core/SystemJournal";
 
 const Exec = Util.promisify(ChildProcess.exec);
 const ReadFile = Util.promisify(Fs.readFile);
@@ -82,6 +84,12 @@ export default class Application {
         // Save application session
         Application.runningApplications.set(newKey, newSession);
 
+        // Start service if exists
+        await Service.start(newSession);
+
+        // Save current logs
+        await SystemJournal.flushLogs();
+
         // Return session
         return newSession;
     }
@@ -92,6 +100,10 @@ export default class Application {
      * @param key
      */
     static close(session: Session, key: string) {
+        // Stop service if exists
+        Service.stop(Application.runningApplications.get(key));
+
+        // Remove app from list
         Application.runningApplications.delete(key);
     }
 
