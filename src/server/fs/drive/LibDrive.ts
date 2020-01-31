@@ -1,17 +1,14 @@
 import * as Fs from 'fs';
 import * as Util from 'util';
 import * as Path from 'path';
-import Session from "../../user/Session";
+import {JSDOM} from 'jsdom';
 import IDrive from "./IDrive";
-import * as Rimraf from "rimraf";
 import FileConverter from "../FileConverter";
 import Axios from "axios";
+import FileSystem from "../FileSystem";
 
 const ReadFile = Util.promisify(Fs.readFile);
-const ReadDir = Util.promisify(Fs.readdir);
-const StatFile = Util.promisify(Fs.stat);
 const Exists = Util.promisify(Fs.exists);
-const MkDir = Util.promisify(Fs.mkdir);
 const WriteFile = Util.promisify(Fs.writeFile);
 
 export default class LibDrive implements IDrive {
@@ -19,7 +16,7 @@ export default class LibDrive implements IDrive {
     public readonly args: any;
     public contentType: string = "text/javascript";
 
-    constructor(path: string, args:any = {}) {
+    constructor(path: string, args: any = {}) {
         this.path = path;
         this.args = args;
     }
@@ -37,17 +34,71 @@ export default class LibDrive implements IDrive {
             }
             return await ReadFile(finalPath);
         } else {
+            // Remove any unsafe chars
             let libName = this.path.replace('./', '').replace(/\//g, '');
+            libName = FileSystem.safePath(libName);
+            let pureName = libName.split('@')[0];
 
+            // Return from cache
+            if (!this.args.hasOwnProperty('no-cache') && await Exists(`./bin/lib/${libName}`))
+                return await ReadFile(`./bin/lib/${libName}`);
 
+            // Go to https://unpkg.com and try to download lib
+            // Try first step
+            try {
+                let libData = (await Axios.get(`https://unpkg.com/${libName}/dist/${pureName}.min.js`)).data;
+                await WriteFile(Path.resolve(`./bin/lib/${libName}`), libData);
+                return libData;
+            } catch {
+            }
 
-            let libs = (await Axios.get(`https://api.cdnjs.com/libraries?search=${libName}&fields=name,filename,version`)).data.results;
-            if (!libs[0]) throw new Error(`Lib "${libName}" not found!`);
-            let libPath = libs[0].name + '/' + libs[0].version + '/' + libs[0].filename;
-            let libData = (await Axios.get(libs[0].latest)).data;
-            await MkDir(Path.resolve('./bin/lib/' + libs[0].name + '/' + libs[0].version), {recursive: true});
-            await WriteFile(Path.resolve('./bin/lib/' + libPath), libData);
-            return libData;
+            // Try second step
+            try {
+                let libData = (await Axios.get(`https://unpkg.com/${libName}/dist/${pureName}.js`)).data;
+                await WriteFile(Path.resolve(`./bin/lib/${libName}`), libData);
+                return libData;
+            } catch {
+            }
+
+            // Try third step
+            try {
+                let libData = (await Axios.get(`https://unpkg.com/${libName}`)).data;
+                await WriteFile(Path.resolve(`./bin/lib/${libName}`), libData);
+                return libData;
+            } catch {
+            }
+
+            // Try forth step
+            try {
+                // Get file list in dist folder
+                let libData = (await Axios.get(`https://unpkg.com/browse/${libName}/dist/`)).data;
+
+                // Parse a table from site with file list
+                let dom = new JSDOM(libData);
+                let files = [...dom.window.document.querySelectorAll('table tr')]
+                    .map(x => x.querySelectorAll('td')[1])
+                    .filter(Boolean)
+                    .map(x => x.textContent);
+
+                // Filter not js files
+                files = files.filter(x => x.match(/\.js$/g));
+
+                // Try to filter files without .min otherwise keep old files
+                let files2 = files.filter(x => x.match(/\.min/g));
+                if (files2.length) files = files2;
+
+                // Sort files by max match with lib name. For example "xxx.js" match with "xxx" 3 times.
+                // The "yyy.js" matches with "xxx" 0 times. In other words we need maximum matching file.
+                // This will probably our lib we are searching for.
+                files = files.sort((a, b) => b.maxCharsMatch(libName) - a.maxCharsMatch(libName));
+
+                libData = (await Axios.get(`https://unpkg.com/${libName}/dist/${files[0]}`)).data;
+                await WriteFile(Path.resolve(`./bin/lib/${libName}`), libData);
+                return libData;
+            } catch {
+            }
+
+            throw new Error(`Lib "${libName}" not found!`);
         }
     }
 

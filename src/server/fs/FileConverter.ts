@@ -20,6 +20,9 @@ export default class FileConverter {
     static async convertTypeScript(path: string, params: any) {
         let fileContent = await ReadFile(path, 'utf-8');
 
+        // Remove nodejs specific code
+        fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');
+
         let targetType = Tsc.ScriptTarget.ES2016;
         let moduleType = Tsc.ModuleKind.CommonJS;
         if (params.target === 'es5') targetType = Tsc.ScriptTarget.ES5;

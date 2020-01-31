@@ -1,10 +1,11 @@
 import * as Fs from 'fs';
 import * as Util from 'util';
-import Session from "../../user/Session";
+import * as MimeTypes from 'mime-types';
 import IDrive from "./IDrive";
 import * as Rimraf from "rimraf";
 import * as Path from "path";
 import FileSystem from "../FileSystem";
+import FileConverter from "../FileConverter";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -27,6 +28,19 @@ export default class StdDrive implements IDrive {
     }
 
     async readFile() {
+        if (!this.exists()) throw new Error(`File "${this.path}" not found!`);
+
+        // If auto convert is enable
+        if (this.args.hasOwnProperty('convert')) {
+            let convertedFile = await FileConverter.convert(this.path, this.args);
+            // If converted
+            if (convertedFile) {
+                this.contentType = convertedFile.type;
+                return convertedFile.output;
+            }
+        }
+
+        this.contentType = MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
         return await ReadFile(this.path);
     }
 

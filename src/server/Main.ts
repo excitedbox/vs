@@ -5,6 +5,7 @@ import ShellApi from "./system/ShellApi";
 import SystemJournal from "./system/SystemJournal";
 import Application from "./app/Application";
 import Service from "./app/Service";
+import "../lib/extender/StringExtender";
 
 export default class Main {
     static async run(isDebug: boolean = false) {

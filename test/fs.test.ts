@@ -51,7 +51,7 @@ describe('Base', function () {
         Chai.expect(FileSystem.getDrive(appSession, '/index.html',  'r').path).eq(FileSystem.safePath(Path.resolve(appSession.application.path + '/index.html')));
         Chai.expect(FileSystem.getDrive(appSession, '/$data',  'rw').path).eq(FileSystem.safePath(Path.resolve(appSession.application.storage)));
         Chai.expect(FileSystem.getDrive(appSession, '/$data/index.html',  'rw').path).eq(FileSystem.safePath(Path.resolve(appSession.application.storage+ '/index.html')));
-        Chai.expect(FileSystem.getDrive(appSession, '/$lib',  'r').path).eq(FileSystem.safePath(Path.resolve('./')));
+        Chai.expect(FileSystem.getDrive(appSession, '/$lib',  'r').path).eq('./');
     });
 
     it('create a dir, exists, remove', async function () {

@@ -3,7 +3,7 @@ const Fs = require('fs');
 
 (async () => {
     let c = [
-        ...await RecursiveReaddir('./src/server'),
+        ...await RecursiveReaddir('./src'),
         //...await RecursiveReaddir('./resource'),
         //...await RecursiveReaddir('./storage/user/root/bin'),
     ].filter(x => {

@@ -1,14 +1,8 @@
-import * as Util from 'util';
 import Application from "../app/Application";
-import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
-import FileConverter from "../fs/FileConverter";
 import BaseServerApi from "./BaseServerApi";
-import Session from "../user/Session";
-import Helper from "../system/Helper";
 import Service from "../app/Service";
-import StdDrive from "../fs/drive/StdDrive";
 
 export default class AppServer {
     private static _server:any;
@@ -60,30 +54,10 @@ export default class AppServer {
                 if (!session) throw new AuthenticationError(`Session not found!`);
 
                 // Resolve path
-                // let file = await FileSystem.resolvePath(session, req.params.path, true, 'r');
                 let drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
-                if (drive instanceof StdDrive) {
-                    if (!await drive.exists()) throw new Error(`File "${drive.path}" not found!`);
-
-                    // If convert enabled
-                    if (req.query.hasOwnProperty('convert')) {
-                        let convertedFile = await FileConverter.convert(drive.path, req.query);
-
-                        // If converted
-                        if (convertedFile) {
-                            res.setHeader('Content-Type', convertedFile.type);
-                            res.send(convertedFile.output);
-                            return;
-                        }
-                    }
-
-                    // Send file
-                    res.sendFile(drive.path);
-                } else {
-                    let fileData = await drive.readFile();
-                    res.setHeader('Content-Type', drive.contentType);
-                    res.send(fileData);
-                }
+                let fileData = await drive.readFile();
+                res.setHeader('Content-Type', drive.contentType);
+                res.send(fileData);
             }
             catch (e) {
                 res.status(e.httpStatusCode || 500);
