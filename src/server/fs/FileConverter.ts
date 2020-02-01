@@ -19,10 +19,11 @@ export default class FileConverter {
         let extension = Path.extname(path);
         if (extension === '.ts') return await this.convertTypeScript(path, params);
         if (extension === '.scss' || extension === '.sass') return await this.convertSCSS(path, params);
+        if (extension === '.vue') return await this.convertVue(path, params);
         return false;
     }
 
-    private static async resolveTypeScriptFiles(rootDir:string, path: string, fileList: Set<string> = null) {
+    private static async resolveTypeScriptFiles(rootDir: string, path: string, fileList: Set<string> = null) {
         if (!fileList) fileList = new Set<string>();
         if (fileList.has(Path.resolve(rootDir + '/' + path))) return fileList;
         fileList.add(Path.resolve(rootDir + '/' + path));
@@ -90,6 +91,54 @@ export default class FileConverter {
         return {
             type: 'text/css',
             output: PostCSS([AutoPrefixer]).process(result.css).css
+        };
+    }
+
+    static async convertVue(path: string, params: any) {
+        let fileContent = await ReadFile(path, 'utf-8');
+
+        let template = '';
+        let script = '';
+        let style = '';
+
+        fileContent = fileContent.replace(/<template>(.*?)<\/template>/gsm, (r1, r2) => {
+            template = r2;
+            return '';
+        });
+
+        fileContent = fileContent.replace(/<script.*>(.*?)<\/script>/gsm, (r1, r2) => {
+            script = r2.replace('export default {', '(() => { return {') + '})()';
+            return '';
+        });
+
+        fileContent = fileContent.replace(/<style.*>(.*?)<\/style>/gsm, (r1, r2) => {
+            style = r2;
+            return '';
+        });
+
+        // Transpile
+        let result = await TranspileSCSS({
+            data: style
+        });
+        style = PostCSS([AutoPrefixer]).process(result.css).css;
+
+        /*let template = fileContent.substring(
+            fileContent.lastIndexOf("<template>") + 10,
+            fileContent.lastIndexOf("</template>")
+        );
+
+        let script = fileContent.substring(
+            fileContent.lastIndexOf("<script>") + 8,
+            fileContent.lastIndexOf("</script>")
+        ).replace('export default {', '(() => { return {') + '})()';*/
+
+        return {
+            type: 'application/json',
+            output: {
+                template: template,
+                script: script,
+                style: style
+            }
         };
     }
 }

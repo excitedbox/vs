@@ -7,6 +7,7 @@ import FileConverter from "../FileConverter";
 import Axios from "axios";
 import FileSystem from "../FileSystem";
 
+const Stat = Util.promisify(Fs.stat);
 const ReadFile = Util.promisify(Fs.readFile);
 const Exists = Util.promisify(Fs.exists);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -41,19 +42,19 @@ export default class LibDrive implements IDrive {
 
     private async getLibFile(libPath: string) {
         let finalPath = Path.resolve('./src/lib/' + libPath);
+        if (Path.extname(finalPath) !== '.ts') finalPath += '.ts';
 
         // Check if file exists in system lib folder
-        if (await Exists(finalPath) || await Exists(finalPath + '.ts')) {
-            // Add ts if not specified
-            if (Path.extname(finalPath) !== ".ts") finalPath += ".ts";
-
+        if (await Exists(finalPath) && (await Stat(finalPath)).isFile()) {
             // Convert lib by default
             let convertedFile = await FileConverter.convert(finalPath, this.args);
 
             // If converted
             if (convertedFile) return convertedFile.output;
             return await ReadFile(finalPath);
-        } else return await this.getLibFileFromCDN(libPath);
+        }
+
+        return await this.getLibFileFromCDN(libPath);
     }
 
     private async getLibFileFromCDN(libPath: string) {

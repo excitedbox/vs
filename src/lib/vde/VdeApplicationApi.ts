@@ -34,7 +34,7 @@ class VdeApplicationApi {
         return await response.json();
     }
 
-    async close(key:string) {
+    async close(key: string) {
         let response = await fetch(`/$api?m=Application.close&key=${key}`);
         return await response.json();
     }

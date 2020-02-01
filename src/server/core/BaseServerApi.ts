@@ -4,7 +4,7 @@ import Helper from "../system/Helper";
 import Application from "../app/Application";
 
 export default class BaseServerApi {
-    private static async requestLogic(restApp, path: string, classList: any, serverType: string = 'user', req, res) {
+    private static async requestLogic(classList: any, serverType: string = 'user', req, res) {
         try {
             let finalParams = Object.assign(req.query, req.body, req.files);
 
@@ -17,8 +17,6 @@ export default class BaseServerApi {
             if (!session) throw new Error(`Session not found!`);
 
             if (!finalParams.m) throw new Error(`Parameter "m" is required!`);
-
-            // console.log(req.query, req.body, req.files);
 
             // Parse method name & params
             let methodInfo = finalParams.m.split('.');
@@ -78,12 +76,12 @@ export default class BaseServerApi {
     static baseApiWithSessionControl(restApp, path: string, classList: any, serverType: string = 'user') {
         // Rest api
         restApp.get(path, async (req, res) => {
-            return await BaseServerApi.requestLogic(restApp, path, classList, serverType, req, res);
+            return await BaseServerApi.requestLogic(classList, serverType, req, res);
         });
 
         // Rest api
         restApp.post(path, async (req, res) => {
-            return await BaseServerApi.requestLogic(restApp, path, classList, serverType, req, res);
+            return await BaseServerApi.requestLogic(classList, serverType, req, res);
         });
     }
 }

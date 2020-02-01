@@ -5,11 +5,13 @@ export default class Session {
     public key: string;
     public readonly user: User;
     public readonly application: Application;
+    public readonly url: string;
 
     constructor(key: string, user: User, application: Application = null) {
         this.key = key;
         this.user = user;
         this.application = application;
+        this.url = `http://${key}.localhost:${+process.env.OS_PORT + 1}/`;
     }
 
     get isUserLevel(): boolean {
