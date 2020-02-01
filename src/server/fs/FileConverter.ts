@@ -5,9 +5,14 @@ import * as Tsc from 'typescript';
 import * as SASS from 'node-sass';
 import * as AutoPrefixer from 'autoprefixer';
 import * as PostCSS from 'postcss';
+import * as ChildProcess from 'child_process';
+import * as Os from 'os';
+import * as Glob from 'glob';
 
 const ReadFile = Util.promisify(Fs.readFile);
 const TranspileSCSS = Util.promisify(SASS.render);
+const Exec = Util.promisify(ChildProcess.exec);
+const GlobSearch = Util.promisify(Glob);
 
 export default class FileConverter {
     static async convert(path: string, params: any) {
@@ -24,27 +29,24 @@ export default class FileConverter {
         fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');
 
         let targetType = Tsc.ScriptTarget.ES2016;
-        let moduleType = Tsc.ModuleKind.CommonJS;
+        let sourceMap = false;
+
         if (params.target === 'es5') targetType = Tsc.ScriptTarget.ES5;
-        if (params.module === 'amd') moduleType = Tsc.ModuleKind.AMD;
-        if (params.module === 'system') moduleType = Tsc.ModuleKind.System;
-        if (params.module === 'umd') moduleType = Tsc.ModuleKind.UMD;
+        if (params.hasOwnProperty('source-map')) sourceMap = true;
 
         // Compile ts to js
-        let result = Tsc.transpileModule(fileContent, {
+        let tmpResult = Tsc.transpileModule(fileContent, {
             reportDiagnostics: true,
             compilerOptions: {
-                allowSyntheticDefaultImports: true,
                 removeComments: true,
                 target: targetType,
-                module: moduleType
-            },
-            moduleName: Path.basename(path).split('.').slice(0, -1).join('.')
+                inlineSourceMap: sourceMap
+            }
         });
 
         return {
             type: 'application/javascript',
-            output: result.outputText
+            output: tmpResult.outputText
         }
     }
 
@@ -60,7 +62,7 @@ export default class FileConverter {
         // Auto prefix
         return {
             type: 'text/css',
-            output: PostCSS([ AutoPrefixer ]).process(result.css).css
+            output: PostCSS([AutoPrefixer]).process(result.css).css
         };
     }
 }

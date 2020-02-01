@@ -93,7 +93,6 @@ Array.prototype.clean = function (deleteValue: any) {
     return this;
 };
 
-// Sort array by specific field
 Array.prototype.sortBy = function (field: string, isReverse: boolean) {
     this.sort(function (a, b) {
         if (isReverse) return (a[field] > b[field]) ? -1 : ((b[field] > a[field]) ? 1 : 0);
