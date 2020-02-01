@@ -42,7 +42,7 @@ export default class Application {
         'list': 'json',
         'pullUpdate': 'json',
         'commitList': 'json',
-        'findByRepo': 'json',
+        'find': 'json',
         'currentCommit': 'json',
     };
 
@@ -71,11 +71,11 @@ export default class Application {
     /**
      * Run user application by a repo url. Method creates a new session with application info.
      * @param session
-     * @param repo
+     * @param query
      */
-    static async run(session: Session, repo: string): Promise<Session> {
+    static async run(session: Session, query: string): Promise<Session> {
         // Find app by repo
-        let app = await Application.findByRepo(session, repo);
+        let app = await Application.find(session, query);
 
         // Generate new session
         let newKey = Helper.randomKey;
@@ -190,11 +190,11 @@ export default class Application {
     /**
      * Remove application but if there is error it won't rise exception
      * @param session
-     * @param repo
+     * @param query
      */
-    static async silentRemove(session: Session, repo: string):Promise<any> {
+    static async silentRemove(session: Session, query: string):Promise<any> {
         try {
-            await Application.remove(session, repo);
+            await Application.remove(session, query);
         }
         catch {
             return { status: false };
@@ -205,22 +205,22 @@ export default class Application {
     /**
      * Remove application from user folder and application db
      * @param session
-     * @param repo
+     * @param query
      */
-    static async remove(session: Session, repo: string) {
-        if (!session) throw new Error(`Session is require!`);
-        if (!repo) throw new Error(`Invalid repo url!`);
-
-        // Get application db and search the app
+    static async remove(session: Session, query: string) {
+        // Find application by query
         let appDb = await Application.getApplicationDb(session.user.name);
-        let app = appDb.get('application').findOne({repo});
-        if (!app) throw new Error(`Application "${repo}" not found!`);
+        let app = await Application.find(session, query);
 
         // Remove folder
         await RemoveFolder(new Application(app).path);
 
         // Remove application from db
-        await appDb.get('application').remove({repo}).write();
+        await appDb.get('application').remove([
+            {repo: new RegExp(query, 'i')},
+            {name: new RegExp(query, 'i')},
+            {title: new RegExp(query, 'i')}
+        ]).write();
     }
 
     /**
@@ -238,11 +238,11 @@ export default class Application {
     /**
      * Pull last commits from repo
      * @param session
-     * @param repo
+     * @param query
      */
-    static async pullUpdate(session: Session, repo: string) {
+    static async pullUpdate(session: Session, query: string) {
         // Find app by repo
-        let app = await Application.findByRepo(session, repo);
+        let app = await Application.find(session, query);
 
         // Pull new commits
         await Exec(`cd "${new Application(app).path}" && git pull && git fetch --tags`);
@@ -251,11 +251,11 @@ export default class Application {
     /**
      * Get commit list for user' application.
      * @param session
-     * @param repo
+     * @param query
      */
-    static async commitList(session: Session, repo: string) {
+    static async commitList(session: Session, query: string) {
         // Find app by repo
-        let app = await Application.findByRepo(session, repo);
+        let app = await Application.find(session, query);
 
         // Pull new commits
         const {stdout} = await Exec(`cd "${new Application(app).path}" && git log --pretty=format:"%H|%an|%ad|%s"`);
@@ -271,18 +271,22 @@ export default class Application {
     }
 
     /**
-     * Find user application by a repo url.
+     * Find user application by a query.
      * @param session
-     * @param repo
+     * @param query
      */
-    static async findByRepo(session: Session, repo: string): Promise<Application> {
+    static async find(session: Session, query: string): Promise<Application> {
         if (!session) throw new Error(`Session is require!`);
-        if (!repo) throw new Error(`Invalid repo url!`);
+        if (!query) throw new Error(`Invalid query!`);
 
         // Get application db and find app
         let appDb = await Application.getApplicationDb(session.user.name);
-        let app = appDb.get('application').findOne({repo});
-        if (!app) throw new Error(`Application "${repo}" not found!`);
+        let app = appDb.get('application').findOne([
+            {repo: new RegExp(query, 'i')},
+            {name: new RegExp(query, 'i')},
+            {title: new RegExp(query, 'i')}
+        ]);
+        if (!app) throw new Error(`Application "${query}" not found!`);
 
         return new Application(app);
     }
@@ -290,11 +294,11 @@ export default class Application {
     /**
      * Get a current commit hash of user' application by repo
      * @param session
-     * @param repo
+     * @param query
      */
-    static async currentCommit(session: Session, repo: string) {
+    static async currentCommit(session: Session, query: string) {
         // Find app by repo
-        let app = await Application.findByRepo(session, repo);
+        let app = await Application.find(session, query);
 
         // Get and return current commit hash
         const {stdout} = await Exec(`cd "${new Application(app).path}" && git rev-parse --verify HEAD`);
@@ -306,12 +310,12 @@ export default class Application {
     /**
      * Update privileges for application.
      * @param session
-     * @param repo
+     * @param query
      * @param access
      */
-    static async updatePrivileges(session: Session, repo: string, access:string) {
+    static async updatePrivileges(session: Session, query: string, access:string) {
         // Find app by repo
-        let app = await Application.findByRepo(session, repo);
+        let app = await Application.find(session, query);
 
         // Set new access
         app.access = access.split(',');

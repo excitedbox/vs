@@ -1,3 +1,4 @@
+import * as Formidable from "express-formidable";
 import Application from "../app/Application";
 import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
@@ -9,9 +10,11 @@ export default class AppServer {
 
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
+        RestApp.use(Formidable());
 
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
+            'Application': Application,
             'FileSystem': FileSystem
         }, 'application');
 

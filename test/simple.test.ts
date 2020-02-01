@@ -79,7 +79,7 @@ describe('Base', function () {
 
         // Pull update
         await Chai.expect(Application.pullUpdate(null, 'http://maldan.ru:3569/root/test-app.git'), 'Null session').to.be.rejectedWith(Error, /session/i);
-        await Chai.expect(Application.pullUpdate(session, null), 'Null repo').to.be.rejectedWith(Error, /repo/i);
+        await Chai.expect(Application.pullUpdate(session, null), 'Null repo').to.be.rejectedWith(Error, /query/i);
         await Chai.expect(Application.pullUpdate(session, 'sdass fsdf'), 'Invalid repo').to.be.rejectedWith(Error, /application/i);
 
         // Install & update correct with session
@@ -101,7 +101,7 @@ describe('Base', function () {
     it('run app', async function () {
         // Run incorrect
         await Chai.expect(Application.run(null, 'http://maldan.ru:3569/root/test-app.git'), 'Null session').to.be.rejectedWith(Error, /session/i);
-        await Chai.expect(Application.run(session, null), 'Null repo').to.be.rejectedWith(Error, /repo/i);
+        await Chai.expect(Application.run(session, null), 'Null repo').to.be.rejectedWith(Error, /query/i);
         await Chai.expect(Application.run(session, 'f sdf sdf sdd'), 'Invalid repo').to.be.rejectedWith(Error, /application/i);
 
         // Run correct

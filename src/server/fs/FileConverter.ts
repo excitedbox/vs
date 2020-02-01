@@ -22,8 +22,35 @@ export default class FileConverter {
         return false;
     }
 
+    private static async resolveTypeScriptFiles(rootDir:string, path: string, fileList: Set<string> = null) {
+        if (!fileList) fileList = new Set<string>();
+        if (fileList.has(Path.resolve(rootDir + '/' + path))) return fileList;
+        fileList.add(Path.resolve(rootDir + '/' + path));
+
+        let fileContent = await ReadFile(Path.resolve(rootDir + '/' + path), 'utf-8');
+        let localFileList: any = new Set<string>();
+        fileContent.replace(/\/\/\/ <reference path="(.*?)" \/>/g, (r1, r2) => {
+            localFileList.add(r2);
+            return '';
+        });
+
+        localFileList = Array.from(localFileList);
+
+        for (let i = 0; i < localFileList.length; i++)
+            await FileConverter.resolveTypeScriptFiles(rootDir, localFileList[i], fileList);
+
+        return fileList;
+    }
+
     static async convertTypeScript(path: string, params: any) {
-        let fileContent = await ReadFile(path, 'utf-8');
+        let fileContent = '';
+        let fileList = Array.from(await FileConverter.resolveTypeScriptFiles(Path.dirname(path), Path.basename(path)));
+        fileList = fileList.reverse();
+
+        for (let i = 0; i < fileList.length; i++) {
+            fileContent += await ReadFile(fileList[i], 'utf-8');
+            fileContent += '\n\n';
+        }
 
         // Remove nodejs specific code
         fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');

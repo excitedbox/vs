@@ -41,7 +41,7 @@ describe('Http', function () {
 
         // Install & run
         await Axios.get(`${osServer}api?m=Application.silentInstall&repo=http://maldan.ru:3569/root/test-app.git`);
-        appAccessToken = (await Axios.get(`${osServer}api?m=Application.run&repo=http://maldan.ru:3569/root/test-app.git`)).data.key;
+        appAccessToken = (await Axios.get(`${osServer}api?m=Application.run&query=http://maldan.ru:3569/root/test-app.git`)).data.key;
 
         // Get main app page
         await Axios.get(`${appServer()}index.html?access_token=${appAccessToken}`);
@@ -51,7 +51,7 @@ describe('Http', function () {
 
         // Close and remove
         await Axios.get(`${osServer}api?m=Application.close&key=${appAccessToken}`);
-        await Axios.get(`${osServer}api?m=Application.remove&repo=http://maldan.ru:3569/root/test-app.git`);
+        await Axios.get(`${osServer}api?m=Application.remove&query=http://maldan.ru:3569/root/test-app.git`);
     });
 
     it('app fs test', async function () {
@@ -59,7 +59,7 @@ describe('Http', function () {
 
         // Install & run
         await Axios.get(`${osServer}api?m=Application.silentInstall&repo=http://maldan.ru:3569/root/test-app.git`);
-        appAccessToken = (await Axios.get(`${osServer}api?m=Application.run&repo=http://maldan.ru:3569/root/test-app.git`)).data.key;
+        appAccessToken = (await Axios.get(`${osServer}api?m=Application.run&query=http://maldan.ru:3569/root/test-app.git`)).data.key;
 
         // Check is exists
         Chai.expect((await Axios.get(`${appServer()}$api?m=FileSystem.exists&path=/index.html&access_token=${appAccessToken}`)).data.status).eq(true);
