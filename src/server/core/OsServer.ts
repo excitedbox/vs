@@ -27,7 +27,7 @@ export default class OsServer {
                 // Auth user and return access token
                 let session = await User.auth(req.query.name, req.query.password);
                 res.setHeader('Content-Type', 'application/json');
-                res.send({ key: session.key });
+                res.send({ ...session });
             }
             catch (e) {
                 res.status(e.httpStatusCode || 500);
@@ -39,7 +39,7 @@ export default class OsServer {
         });
 
         // Rest api
-        BaseServerApi.baseApiWithSessionControl(RestApp, '^/api', {
+        BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application
         });
 

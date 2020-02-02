@@ -42,6 +42,6 @@ export default class Session {
             && (this.application.hasAccess('user-readonly') || this.application.hasAccess('user')))
             return true;
 
-        return false;
+        return this.application.hasAccess(access);
     }
 }

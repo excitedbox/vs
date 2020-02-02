@@ -101,17 +101,17 @@ export default class FileConverter {
         let script = '';
         let style = '';
 
-        fileContent = fileContent.replace(/<template>(.*?)<\/template>/gsm, (r1, r2) => {
+        fileContent = fileContent.replace(/<template>(.*?)<\/template>/gs, (r1, r2) => {
             template = r2;
             return '';
         });
 
-        fileContent = fileContent.replace(/<script.*>(.*?)<\/script>/gsm, (r1, r2) => {
+        fileContent = fileContent.replace(/<script.*?>(.*?)<\/script>/gsu, (r1, r2) => {
             script = r2.replace('export default {', '(() => { return {') + '})()';
             return '';
         });
 
-        fileContent = fileContent.replace(/<style.*>(.*?)<\/style>/gsm, (r1, r2) => {
+        fileContent = fileContent.replace(/<style.*?>(.*?)<\/style>/gsu, (r1, r2) => {
             style = r2;
             return '';
         });

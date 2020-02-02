@@ -6,10 +6,12 @@ import Session from "./Session";
 export default class User {
     public id: number;
     public name: string;
+    public defaultApp: string;
 
-    constructor({ id, name }) {
+    constructor({ id, name, defaultApp }) {
         this.id = id;
         this.name = name;
+        this.defaultApp = defaultApp;
     }
 
     get homeDir() {

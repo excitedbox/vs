@@ -1,6 +1,12 @@
 declare var Vue;
 
 class VueHelper {
+    static async getStandardUIComponents() {
+        await VueHelper.getComponents([
+            '/$public/ui/vde.button.vue',
+        ]);
+    }
+
     static async getComponents(list: Array<string>) {
         for (let i = 0; i < list.length; i++) {
             // Download converted component

@@ -1,4 +1,5 @@
 import * as Fs from 'fs';
+import * as CopyDir from 'copy-dir';
 import AppServer from "./core/AppServer";
 import OsServer from "./core/OsServer";
 import ShellApi from "./system/ShellApi";
@@ -56,6 +57,9 @@ export default class Main {
             Fs.mkdirSync(`./user/${x}/docs`, {recursive: true});
         });
 
+        // Copy dir
+        CopyDir.sync('./resource', './bin/public');
+
         // Create default user list
         if (!Fs.existsSync('./user/list.json')) {
             Fs.writeFileSync('./user/list.json', JSON.stringify({
@@ -63,12 +67,14 @@ export default class Main {
                     {
                         id: 1,
                         name: 'root',
-                        password: process.env.DEFAULT_ROOT_PASSWORD || 'root'
+                        password: process.env.DEFAULT_ROOT_PASSWORD || 'root',
+                        defaultApp: "https://github.com/maldan/vde-standard-wm.git"
                     },
                     {
                         id: 2,
                         name: 'test',
-                        password: 'test123'
+                        password: 'test123',
+                        defaultApp: "https://github.com/maldan/vde-standard-wm.git"
                     }
                 ]
             }, null, 4));

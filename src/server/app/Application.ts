@@ -77,6 +77,10 @@ export default class Application {
         // Find app by repo
         let app = await Application.find(session, query);
 
+        // Check access to run application
+        if (session.isApplicationLevel && !session.checkAccess('run-application'))
+            throw new Error(`Application "${app.name}" doesn't have access to run another application!`);
+
         // Generate new session
         let newKey = Helper.randomKey;
         let newSession = new Session(newKey, session.user, app);
@@ -112,14 +116,13 @@ export default class Application {
      * @param session
      * @param repo
      */
-    static async silentInstall(session: Session, repo: string):Promise<any> {
+    static async silentInstall(session: Session, repo: string): Promise<any> {
         try {
             await Application.install(session, repo);
+        } catch {
+            return {status: false};
         }
-        catch {
-            return { status: false };
-        }
-        return { status: true };
+        return {status: true};
     }
 
     /**
@@ -144,7 +147,7 @@ export default class Application {
         let folderName = domain + '/' + repo.split('/')
             .slice(-2)
             .map(x => x.replace('.git', '')
-            .replace('.', '_'))
+                .replace('.', '_'))
             .join('/');
 
         // Final app path in user app folder
@@ -192,14 +195,13 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async silentRemove(session: Session, query: string):Promise<any> {
+    static async silentRemove(session: Session, query: string): Promise<any> {
         try {
             await Application.remove(session, query);
+        } catch {
+            return {status: false};
         }
-        catch {
-            return { status: false };
-        }
-        return { status: true };
+        return {status: true};
     }
 
     /**
@@ -313,7 +315,7 @@ export default class Application {
      * @param query
      * @param access
      */
-    static async updatePrivileges(session: Session, query: string, access:string) {
+    static async updatePrivileges(session: Session, query: string, access: string) {
         // Find app by repo
         let app = await Application.find(session, query);
 
@@ -322,7 +324,7 @@ export default class Application {
 
         // Update db
         let appDb = await Application.getApplicationDb(session.user.name);
-        await appDb.get('application').update({ access: app.access }, { repo: app.repo }).write();
+        await appDb.get('application').update({access: app.access}, {repo: app.repo}).write();
     }
 
     /**
