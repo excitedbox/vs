@@ -48,6 +48,7 @@ export default class Main {
     static defaultInit() {
         ['root', 'test'].forEach(x => {
             // Create default folders
+            // Fs.mkdirSync('./static', {recursive: true});
             Fs.mkdirSync('./logs', {recursive: true});
             Fs.mkdirSync('./bin/lib', {recursive: true});
             Fs.mkdirSync('./bin/public', {recursive: true});
@@ -56,9 +57,6 @@ export default class Main {
             Fs.mkdirSync(`./user/${x}/data`, {recursive: true});
             Fs.mkdirSync(`./user/${x}/docs`, {recursive: true});
         });
-
-        // Copy dir
-        CopyDir.sync('./resource', './bin/public');
 
         // Create default user list
         if (!Fs.existsSync('./user/list.json')) {

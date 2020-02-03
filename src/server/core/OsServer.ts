@@ -15,7 +15,7 @@ export default class OsServer {
         RestApp.use(Express.static('./bin/public'));
 
         // Auth entry point
-        RestApp.get('^/auth', async (req, res) => {
+        /*RestApp.get('^/auth', async (req, res) => {
             try {
                 // Get user from db by session key
                 let accessToken = req.query.access_token || req.headers['access_token'];
@@ -36,11 +36,16 @@ export default class OsServer {
                     message: e.message
                 });
             }
-        });
+        });*/
 
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application
+        });
+
+        // Default app
+        RestApp.get('^/', async (req, res) => {
+            res.redirect(`http://auth.${process.env.DOMAIN}:${+process.env.OS_PORT + 1}`);
         });
 
         return new Promise<void>((resolve => {

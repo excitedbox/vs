@@ -41,8 +41,8 @@ export default class BaseServerApi {
             // Session response, remove critical information
             if (responseType === 'session') {
                 response = Object.assign({}, response);
-                delete response.user;
-                delete response.application;
+                // delete response.user;
+                // delete response.application;
                 responseType = 'json';
             }
 

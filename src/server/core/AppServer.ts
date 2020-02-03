@@ -1,5 +1,7 @@
 import * as Formidable from "express-formidable";
+import * as Cors from "cors";
 import Application from "../app/Application";
+import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
 import BaseServerApi from "./BaseServerApi";
@@ -11,11 +13,18 @@ export default class AppServer {
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
         RestApp.use(Formidable());
+        RestApp.use(Cors());
+
+        let corsOptions = {
+            origin: ['localhost', '.localhost'],
+            optionsSuccessStatus: 200
+        };
 
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application,
-            'FileSystem': FileSystem
+            'FileSystem': FileSystem,
+            'User': User
         }, 'application');
 
         // Get file from file system api
@@ -48,7 +57,9 @@ export default class AppServer {
         });
 
         // Get file from file system api
-        RestApp.get('^/:path(*)', async (req, res) => {
+        RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
+            if (!req.params.path) req.params.path = 'index.html';
+
             try {
                 // Get application session by session key
                 let subdomainKey = req.headers.host.split('.')[0];

@@ -2,8 +2,11 @@ declare var Vue;
 
 class VueHelper {
     static async getStandardUIComponents() {
+        let domainUrl = ['ui', ...window.location.host.split('.').slice(1)].join('.');
+        domainUrl = window.location.protocol + '//' + domainUrl;
+
         await VueHelper.getComponents([
-            '/$public/ui/vde.button.vue',
+            domainUrl + '/ui/vde.button.vue',
         ]);
     }
 

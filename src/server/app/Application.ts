@@ -21,6 +21,8 @@ export default class Application {
     public name: string;
     public repo: string;
     public path: string;
+    public domain: string;
+    public isStatic: boolean;
     public storage: string;
     public access: Array<string>;
 
@@ -50,10 +52,12 @@ export default class Application {
      * Create application info from data
      * @param data
      */
-    constructor({id, name, path, storage, repo, access = []}) {
+    constructor({id, name, path, isStatic, domain, storage, repo, access = []}) {
         this.id = +id;
         this.name = name;
         this.path = path;
+        this.domain = domain;
+        this.isStatic = isStatic;
         this.storage = storage;
         this.repo = repo;
         this.access = access;
@@ -81,8 +85,22 @@ export default class Application {
         if (session.isApplicationLevel && !session.checkAccess('run-application'))
             throw new Error(`Application "${app.name}" doesn't have access to run another application!`);
 
+        // Application with lower rights can't run application with higher.
+        if (session.isApplicationLevel)
+            for (let i = 0; i < app.access.length; i++)
+                if (!session.application.access.includes(app.access[i]))
+                    throw new Error(`Application "${session.application.name}" can't run another application "${app.name}"`);
+
+        // Check if static
+        if (app.isStatic && session.user.name !== 'root')
+            throw new Error(`Only root can run static application!`);
+
+        // Check if already run
+        if (Application.runningApplications.has(app.domain))
+            throw new Error(`Static application "${app.domain}.${app.name}" already running!`);
+
         // Generate new session
-        let newKey = Helper.randomKey;
+        let newKey = app.isStatic ?app.domain :Helper.randomKey;
         let newSession = new Session(newKey, session.user, app);
 
         // Save application session
@@ -169,6 +187,13 @@ export default class Application {
         let appJson;
         try {
             appJson = JSON.parse(await ReadFile(`${finalAppPath}/application.json`, 'utf-8'));
+            if (appJson.isStatic) {
+                if (session.user.name !== 'root') throw new Error(`Only root can install static application!`);
+                if (appJson.domain !== "") {
+                    if (!(appJson.domain.match(/^[0-9a-z_\-]+$/g) && appJson.domain.length < 24))
+                        throw new Error(`Incorrect domain name!`);
+                }
+            }
         } catch {
             await RemoveFolder(finalAppPath);
             throw new Error(`Application "${repo}" doesn't contain application.json file`);
@@ -179,7 +204,8 @@ export default class Application {
             name: folderName,
             path: finalAppPath,
             storage: `./user/${session.user.name}/data/${folderName}`,
-            repo: repo
+            repo: repo,
+            access: []
         });
 
         // Save application to db

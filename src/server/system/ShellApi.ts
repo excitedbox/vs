@@ -24,6 +24,14 @@ export default class ShellApi {
         this._tmpSession = await User.auth(process.env.SHELL_LOGIN, process.env.SHELL_PASSWORD);
         console.log(`You are log in as "${process.env.SHELL_LOGIN}"`);
 
+        let appDb = await Application.getApplicationDb('root');
+        let apps = appDb.get('application').find({ isStatic: true });
+
+        for (let i = 0; i < apps.length; i++) {
+            await this._processCommand(`run ${apps[i].repo}`);
+            console.log();
+        }
+
         // Dummy
         this._processCommand('');
     }
@@ -74,6 +82,9 @@ export default class ShellApi {
                 if (restCmd === 'last') session = this._runningApplicationList.pop();
                 if (session) Application.close(this._tmpSession, session.key);
                 else console.log('Session not found');
+            }
+            if (mainCmd === 'remove') {
+                await Application.remove(this._tmpSession, cmdParsed.join(' '));
             }
 
             if (mainCmd === 'help') {
