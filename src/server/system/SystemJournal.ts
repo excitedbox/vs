@@ -9,7 +9,7 @@ const WriteFile = Util.promisify(Fs.writeFile);
 
 export default class SystemJournal {
     private static _logs: any = 1;
-    private static _interval:any;
+    private static _interval: any;
 
     static async init() {
         SystemJournal._logs = await JsonDb.db('./logs/logs.json', {logs: []});

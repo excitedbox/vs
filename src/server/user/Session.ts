@@ -11,7 +11,7 @@ export default class Session {
         this.key = key;
         this.user = user;
         this.application = application;
-        this.url = `http://${key}.localhost:${+process.env.OS_PORT + 1}/`;
+        this.url = `http://${key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/`;
     }
 
     get isUserLevel(): boolean {

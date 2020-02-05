@@ -1,7 +1,7 @@
 import * as Fs from 'fs';
 import * as CopyDir from 'copy-dir';
 import AppServer from "./core/AppServer";
-import OsServer from "./core/OsServer";
+import EntryServer from "./core/EntryServer";
 import ShellApi from "./system/ShellApi";
 import SystemJournal from "./system/SystemJournal";
 import Application from "./app/Application";
@@ -20,10 +20,10 @@ export default class Main {
         await SystemJournal.init();
 
         // Run os server
-        await OsServer.run(+process.env.OS_PORT + (isDebug ? 100 : 0));
+        await EntryServer.run(+process.env.PORT + (isDebug ? 100 : 0));
 
         // Run app server
-        await AppServer.run(+process.env.OS_PORT + 1 + (isDebug ? 100 : 0));
+        await AppServer.run(+process.env.PORT + 1 + (isDebug ? 100 : 0));
 
         // Run shell api for command input from terminal
         await ShellApi.run();
@@ -35,7 +35,7 @@ export default class Main {
         });
         Application.runningApplications.clear();
         Service.runningServices.clear();
-        OsServer.stop();
+        EntryServer.stop();
         AppServer.stop();
         SystemJournal.stop();
         ShellApi.stop();
@@ -65,7 +65,7 @@ export default class Main {
                     {
                         id: 1,
                         name: 'root',
-                        password: process.env.DEFAULT_ROOT_PASSWORD || 'root',
+                        password: '1234',
                         defaultApp: "https://github.com/maldan/vde-standard-wm.git"
                     },
                     {

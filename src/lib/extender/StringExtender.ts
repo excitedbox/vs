@@ -59,6 +59,11 @@ declare global {
         snakeToCamel(): string;
 
         /**
+         * Convert kebab to camel. Example sex-rock to sexRock
+         */
+        kebabToCamel(): string;
+
+        /**
          * Calculate max match length. For example "hello".maxCharsMatch("hell") will be 4.
          * Because "hello" contains a word "hell". If we call "hello".maxCharsMatch("123") we will
          * get 0 because there is no "123" in "hello" word.
@@ -67,14 +72,6 @@ declare global {
         maxCharsMatch(str: string): number;
     }
 }
-
-String.prototype.maxCharsMatch = function (str: string): number {
-    for (let i = 0; i < str.length; i++) {
-        let part = str.slice(0, -i) || str;
-        if (this.match(part)) return part.length;
-    }
-    return 0;
-};
 
 String.prototype.toDate = function () {
     let date = this;
@@ -119,23 +116,23 @@ String.prototype.YMDToDMY = function () {
 String.prototype.HMToInt = function () {
     let hms = this + ':00';
     let a = hms.split(':');
-    if (a.length === 1) return 0;
-    return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
+    // if (a.length === 1) return 0;
+    return (~~a[0]) * 60 * 60 + (~~a[1]) * 60 + (~~a[2]);
 };
 
 String.prototype.humanTime = function () {
     let tuple = this.split(':');
-    tuple[0] *= 1;
-    tuple[1] *= 1;
-    if (tuple[2]) tuple[2] *= 1;
+    tuple[0] = ~~tuple[0];
+    tuple[1] = ~~tuple[1];
+    if (tuple.length === 3) tuple[2] = ~~tuple[2];
 
-    if (tuple[0] === 0 && tuple[1] === 0) return tuple[2] + ' sec';
-    if (tuple[0] === 0) return tuple[1] + ' min';
-    return tuple[0] + ' h ' + tuple[1] + ' min';
+    if (tuple.length === 3) return `${tuple[0]} h ${tuple[1]} min ${tuple[2]} sec`;
+    if (tuple.length === 2) return `${tuple[0]} h ${tuple[1]} min`;
 };
 
 String.prototype.between = function (first: string, last: string) {
     let f1 = this.indexOf(first), f2 = this.indexOf(last);
+    if (f1 === -1 || f2 === -1) return this;
     if (first === last)
         f2 = this.indexOf(last, 1);
     return this.substr(f1 + first.length, f2 - f1 - last.length);
@@ -149,9 +146,19 @@ String.prototype.count = function (char: string) {
 };
 
 String.prototype.snakeToCamel = function () {
-    return this.replace(/(_\w)/g, function (m: string) {
-        return m[1].toUpperCase();
-    });
+    return this.replace(/(_\w)/g, x => x[1].toUpperCase());
+};
+
+String.prototype.kebabToCamel = function () {
+    return this.replace(/(-\w)/g, x => x[1].toUpperCase());
+};
+
+String.prototype.maxCharsMatch = function (str: string): number {
+    for (let i = 0; i < str.length; i++) {
+        let part = str.slice(0, -i) || str;
+        if (this.match(part)) return part.length;
+    }
+    return 0;
 };
 
 // #ifdef nodejs

@@ -5,7 +5,7 @@ import Helper from "../system/Helper";
 import Session from "../user/Session";
 import BaseServerApi from "./BaseServerApi";
 
-export default class OsServer {
+export default class EntryServer {
     private static _server:any;
 
     static async run(port: number) {
@@ -39,18 +39,18 @@ export default class OsServer {
         });*/
 
         // Rest api
-        BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
+        /*BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application
-        });
+        });*/
 
         // Default app
         RestApp.get('^/', async (req, res) => {
-            res.redirect(`http://auth.${process.env.DOMAIN}:${+process.env.OS_PORT + 1}`);
+            res.redirect(`http://auth.${process.env.DOMAIN}:${+process.env.PORT + 1}`);
         });
 
         return new Promise<void>((resolve => {
-            OsServer._server = RestApp.listen(port, () => {
-                console.log(`OS Server starts at :${port}`);
+            EntryServer._server = RestApp.listen(port, () => {
+                console.log(`Entry Server starts at :${port}`);
                 resolve();
             });
         }));

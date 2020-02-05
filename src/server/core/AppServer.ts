@@ -16,7 +16,7 @@ export default class AppServer {
         RestApp.use(Cors());
 
         let corsOptions = {
-            origin: ['localhost', '.localhost'],
+            origin: [`${process.env.DOMAIN}`, `.${process.env.DOMAIN}`],
             optionsSuccessStatus: 200
         };
 
