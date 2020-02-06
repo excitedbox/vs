@@ -1,5 +1,7 @@
+// #ifdef nodejs
 import "./NumberExtender"
 import "./StringExtender"
+// #endif
 
 declare global {
     interface Date {

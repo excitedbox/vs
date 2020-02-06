@@ -8,6 +8,8 @@ import * as PostCSS from 'postcss';
 import * as ChildProcess from 'child_process';
 import * as Os from 'os';
 import * as Glob from 'glob';
+import {Type} from "typedoc/dist/lib/models";
+import TypeScriptConverter from "../util/ts/TypeScriptConverter";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const TranspileSCSS = Util.promisify(SASS.render);
@@ -20,6 +22,8 @@ export default class FileConverter {
         if (extension === '.ts') return await this.convertTypeScript(path, params);
         if (extension === '.scss' || extension === '.sass') return await this.convertSCSS(path, params);
         if (extension === '.vue') return await this.convertVue(path, params);
+        if (extension === '.png' || extension === '.gif' || extension === '.jpeg' || extension === '.jpg')
+            return await this.convertImage(path, params);
         return false;
     }
 
@@ -44,7 +48,7 @@ export default class FileConverter {
     }
 
     static async convertTypeScript(path: string, params: any) {
-        let fileContent = '';
+        /*let fileContent = '';
         let fileList = Array.from(await FileConverter.resolveTypeScriptFiles(Path.dirname(path), Path.basename(path)));
         fileList = fileList.reverse();
 
@@ -54,7 +58,13 @@ export default class FileConverter {
         }
 
         // Remove nodejs specific code
-        fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');
+        fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');*/
+
+        // let g = TypeScriptConverter.compileInSingleFile(path);
+
+        //let moduleList = Array.from(await TypeScriptConverter.resolveTypeScriptModules(Path.dirname(path), Path.basename(path)));
+        //console.log(moduleList);
+        let fileContent = await TypeScriptConverter.compileInSingleFile(path); //await ReadFile(path, 'utf-8');
 
         let targetType = Tsc.ScriptTarget.ES2016;
         let sourceMap = false;
@@ -140,5 +150,9 @@ export default class FileConverter {
                 style: style
             }
         };
+    }
+
+    static async convertImage(path: string, params: any): Promise<any> {
+        return false;
     }
 }

@@ -1,7 +1,7 @@
-/// <reference path="./VdeApplicationApi.ts" />
-/// <reference path="./VdeFileSystemApi.ts" />
+import VdeApplicationApi from "./VdeApplicationApi"
+import VdeFileSystemApi from "./VdeFileSystemApi"
 
-class VDE {
+export default class VDE {
     static application: VdeApplicationApi = new VdeApplicationApi();
     static fs: VdeFileSystemApi = new VdeFileSystemApi();
 }

@@ -69,6 +69,7 @@ export default class Application {
      */
     hasAccess(access: string) {
         if (!Array.isArray(this.access)) return false;
+        if (this.access.includes('*')) return true;
         return this.access.includes(access);
     }
 
@@ -88,7 +89,7 @@ export default class Application {
         // Application with lower rights can't run application with higher.
         if (session.isApplicationLevel)
             for (let i = 0; i < app.access.length; i++)
-                if (!session.application.access.includes(app.access[i]))
+                if (!session.application.hasAccess(app.access[i]))
                     throw new Error(`Application "${session.application.name}" can't run another application "${app.name}"`);
 
         // Check if static

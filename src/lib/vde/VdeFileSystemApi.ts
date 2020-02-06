@@ -1,4 +1,4 @@
-class VdeFileSystemApi {
+export default class VdeFileSystemApi {
     async createDir(path: string) {
         let response = await fetch(`/$api?m=FileSystem.createDir&path=${path}`);
         return await response.json();

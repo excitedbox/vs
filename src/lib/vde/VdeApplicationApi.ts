@@ -1,4 +1,4 @@
-class VdeApplicationApi {
+export default class VdeApplicationApi {
     async run(query: string) {
         let response = await fetch(`/$api?m=Application.run&query=${query}`);
         if (response.status !== 200) throw new Error(await response.text());

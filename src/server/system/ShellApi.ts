@@ -61,7 +61,7 @@ export default class ShellApi {
 
                 let session = await Application.run(this._tmpSession, app.repo);
 
-                if (mainCmd === 'open') Opn(`http://${session.key}.localhost:${+process.env.OS_PORT + 1}/index.html`);
+                if (mainCmd === 'open') Opn(`http://${session.key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/index.html`);
                 console.log(`${app.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }
