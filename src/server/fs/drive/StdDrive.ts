@@ -30,8 +30,8 @@ export default class StdDrive implements IDrive {
     async readFile() {
         if (!this.exists()) throw new Error(`File "${this.path}" not found!`);
 
-        // If auto convert is enable
-        if (this.args.hasOwnProperty('convert')) {
+        // Try to convert by default
+        if (!this.args.hasOwnProperty('keep-original')) {
             let convertedFile = await FileConverter.convert(this.path, this.args);
             // If converted
             if (convertedFile) {
@@ -67,15 +67,27 @@ export default class StdDrive implements IDrive {
                 name: x,
                 isDir: stat.isDirectory(),
                 size: Fs.statSync(this.path + '/' + x)['size'],
-                created: Fs.statSync(this.path + '/' + x)['birthtime'],
+                created: Fs.statSync(this.path + '/' + x)['birthtime']
             }
         });
+
+        // Default folder
+        if (this.args.sourcePath === '/') {
+            list.push({
+                name: '$user',
+                isDir: true,
+                size: 0,
+                created: new Date()
+            });
+        }
 
         // Filter files
         list = list.filter(x => {
             if (x.isDir) return true;
             return x.name.match(new RegExp(filter));
         });
+
+        list = list.sort((a, b) => +b.isDir - +a.isDir);
 
         return list;
     }

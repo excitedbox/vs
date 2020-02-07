@@ -4,16 +4,16 @@ import Helper from "../system/Helper";
 import Application from "../app/Application";
 
 export default class BaseServerApi {
-    private static async requestLogic(classList: any, serverType: string = 'user', req, res) {
+    private static async requestLogic(classList: any, req, res) {
         try {
             let finalParams = Object.assign(req.query, req.body, req.files);
 
             // Get user from db by session key
             let subdomainKey = req.headers.host.split('.')[0];
             let accessToken = finalParams.access_token || req.headers['access_token'] || subdomainKey;
-            let session;
-            if (serverType === 'application') session = Application.runningApplications.get(accessToken);
-            else session = new Session(accessToken, await User.getBySession(accessToken));
+            let session = Application.runningApplications.get(accessToken);
+            /*if (serverType === 'application')
+            else session = new Session(accessToken, await User.getBySession(accessToken));*/
             if (!session) throw new Error(`Session not found!`);
 
             if (!finalParams.m) throw new Error(`Parameter "m" is required!`);
@@ -73,15 +73,15 @@ export default class BaseServerApi {
         }
     }
 
-    static baseApiWithSessionControl(restApp, path: string, classList: any, serverType: string = 'user') {
+    static baseApiWithSessionControl(restApp, path: string, classList: any) {
         // Rest api
         restApp.get(path, async (req, res) => {
-            return await BaseServerApi.requestLogic(classList, serverType, req, res);
+            return await BaseServerApi.requestLogic(classList, req, res);
         });
 
         // Rest api
         restApp.post(path, async (req, res) => {
-            return await BaseServerApi.requestLogic(classList, serverType, req, res);
+            return await BaseServerApi.requestLogic(classList, req, res);
         });
     }
 }

@@ -4,6 +4,7 @@ import * as Util from "util";
 import TypeScriptModule from "./TypeScriptModule";
 import TypeScriptImport from "./TypeScriptImport";
 import TypeScriptExport from "./TypeScriptExport";
+import * as MD5 from 'md5';
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -15,6 +16,7 @@ export default class TypeScriptConverter {
         // Transform paths
         rootDir = Path.resolve(rootDir.replace(/\\/g, '/')).replace(/\\/g, '/') + '/';
         path = path.replace(/\\/g, '/');
+
 
         // Get path of file
         let fullPath = Path.resolve(rootDir + '/' + path).replace(/\\/g, '/');
@@ -51,7 +53,7 @@ export default class TypeScriptConverter {
 
         // Create ts module
         let tsModule = new TypeScriptModule(
-            '__global__Module_' + Path.basename(fullPath).replace('.ts', ''),
+            '__global__Module_' + Path.basename(fullPath).replace('.ts', '') + '_' + MD5(Math.random()).slice(8),
             fullPath,
             importList,
             exportList,
@@ -60,9 +62,13 @@ export default class TypeScriptConverter {
         // Save to list
         moduleList.set(fullPath, tsModule);
 
-        for (let i = 0; i < importList.length; i++)
-            await TypeScriptConverter.resolveTypeScriptModules(rootDir, importList[i].fileName.replace(rootDir, ''), moduleList);
+        for (let i = 0; i < importList.length; i++) {
+            let relativePath = Path.relative(rootDir, importList[i].fileName);
+            let tempRootDir = Path.dirname(Path.resolve(rootDir, relativePath)).replace(/\\/g, '/') + '/';
+            let filePath = importList[i].fileName.replace(tempRootDir, '');
 
+            await TypeScriptConverter.resolveTypeScriptModules(tempRootDir, filePath, moduleList);
+        }
         return moduleList;
     }
 
@@ -103,8 +109,6 @@ export default class TypeScriptConverter {
 
         let baseName = Path.basename(path).replace('.ts', '');
         out += `let \n${baseName} = ${moduleList.get(Path.resolve(path).replace(/\\/g, '/')).id}().__$$default;`;
-
-        await WriteFile('./bin/test.ts', out);
 
         return out;
     }

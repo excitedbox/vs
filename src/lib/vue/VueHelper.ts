@@ -1,24 +1,16 @@
 declare var Vue;
+declare var VueRouter;
 
 export default class VueHelper {
-    static async loadStandardUIComponents() {
-        let domainUrl = ['ui', ...window.location.host.split('.').slice(1)].join('.');
-        domainUrl = window.location.protocol + '//' + domainUrl;
-
-        await VueHelper.loadComponents([
-            domainUrl + '/ui/vde.button.vue',
-        ]);
-    }
-
     static async loadComponent(path: string, componentName: string = null, script: any = null) {
         // Download converted component
-        let response = await fetch(`${path}?convert`);
+        let response = await fetch(`${path}`);
         let data = await response.json();
 
         // Calculate component name
         let tmpComponentName = componentName || path.split('/').pop()
             .replace(/\.vue$/, '')
-            .replace('.', '-');
+            .replace(/\./g, '-');
 
         // Register new component globally
         Vue.component(tmpComponentName, Object.assign({
@@ -35,12 +27,24 @@ export default class VueHelper {
     }
 
     static async loadComponents(list: Array<string>) {
+        let promiseAll = [];
         for (let i = 0; i < list.length; i++) {
-            await VueHelper.loadComponent(list[i]);
+            promiseAll.push(VueHelper.loadComponent(list[i]));
+        }
+        await Promise.all(promiseAll);
+    }
+
+    private static setMethodList(instance, methodList) {
+        let propList = Object.getOwnPropertyNames(instance.__proto__);
+        for (let i = 0; i < propList.length; i++) {
+            if (propList[i] === 'constructor') continue;
+            if (propList[i][0] === '$') continue;
+            if (typeof instance[propList[i]] !== 'function') continue;
+            methodList[propList[i]] = instance[propList[i]];
         }
     }
 
-    static async initApplication(app: any) {
+    static async initApplication(app: any, routes:Array<any>) {
         // Instantiate application
         let instance = new app();
         let appIsReady = () => {
@@ -53,16 +57,11 @@ export default class VueHelper {
         document.body.appendChild(appDiv);
 
         // Get all application methods
-        let methodList = {}, propList = Object.getOwnPropertyNames(instance.__proto__);
-        for (let i = 0; i < propList.length; i++) {
-            if (propList[i] === 'constructor') continue;
-            if (propList[i][0] === '$') continue;
-            if (typeof instance[propList[i]] !== 'function') continue;
-            methodList[propList[i]] = instance[propList[i]];
-        }
+        let methodList = {};
+        this.setMethodList(instance, methodList);
+        this.setMethodList(instance.__proto__, methodList);
 
         let data = {
-            //storage: instance.storage,
             ...instance.storage
         };
         data.storage = data;
@@ -75,14 +74,33 @@ export default class VueHelper {
             }
         });
 
+        let router;
+        try {
+            router = new VueRouter({ routes });
+        }
+        catch (e) {
+
+        }
+
         // Vue init
         new Vue({
+            router,
             el: '#app',
             mounted() {
                 if (instance.$start)
                     appIsReady = instance.$start.bind(this);
             },
             methods: methodList,
+            watch: {
+                '$route' (to, from) {
+                    try {
+                        instance.$event.bind(this)('routeChange', to, from);
+                    }
+                    catch (e) {
+
+                    }
+                }
+            },
             data: data
         });
 

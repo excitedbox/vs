@@ -67,9 +67,12 @@ export default class FileSystem {
         return await FileSystem.getDrive(session, path, 'w').remove();
     }
 
-    static getDrive(session: Session, path: string, access: string = 'rw', args:any = {}):IDrive {
+    static getDrive(session: Session, path: string, access: string = 'rw', args: any = {}): IDrive {
         if (!session) throw new Error(`Session is require!`);
         if (!session.isApplicationLevel) throw new Error(`Access denied for this session!`);
+
+        // Default args
+        args.sourcePath = path;
 
         // Make path safe
         path = FileSystem.safePath(path);

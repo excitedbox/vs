@@ -229,7 +229,6 @@ Date.prototype.getTimeWithTimezoneOffset = function () {
     return this.getTime() + (this.getTimezoneOffset() * 60000);
 };
 
-// #ifdef nodejs
 export default class DateExtender {
     static today(offsetDay) {
         let today = new Date();
@@ -244,4 +243,3 @@ export default class DateExtender {
         return [yyyy, mm, dd].join('-');
     }
 }
-// #endif

@@ -101,7 +101,7 @@ export default class Application {
             throw new Error(`Static application "${app.domain}.${app.name}" already running!`);
 
         // Generate new session
-        let newKey = app.isStatic ?app.domain :Helper.randomKey;
+        let newKey = app.isStatic ? app.domain : Helper.randomKey;
         let newSession = new Session(newKey, session.user, app);
 
         // Save application session
@@ -113,6 +113,12 @@ export default class Application {
         // Save current logs
         await SystemJournal.flushLogs();
 
+        // Save session to session list
+        if (!app.isStatic) {
+            let sessionDb = await Application.getSessionDb();
+            await sessionDb.get('session').push(newSession).write();
+        }
+
         // Return session
         return newSession;
     }
@@ -122,12 +128,16 @@ export default class Application {
      * @param session
      * @param key
      */
-    static close(session: Session, key: string) {
+    static async close(session: Session, key: string) {
         // Stop service if exists
         Service.stop(Application.runningApplications.get(key));
 
         // Remove app from list
         Application.runningApplications.delete(key);
+
+        // Remove session from session list
+        let sessionDb = await Application.getSessionDb();
+        await sessionDb.get('session').remove({ key }).write();
     }
 
     /**
@@ -361,5 +371,12 @@ export default class Application {
     static async getApplicationDb(user: string) {
         if (!user) throw new Error(`User name required!`);
         return await JsonDb.db(`./user/${user}/application.json`, {application: []});
+    }
+
+    /**
+     * Get DB of sessions for specific user
+     */
+    static async getSessionDb() {
+        return await JsonDb.db(`./user/session.json`, {session: []});
     }
 }

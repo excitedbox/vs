@@ -19,6 +19,7 @@ const GlobSearch = Util.promisify(Glob);
 export default class FileConverter {
     static async convert(path: string, params: any) {
         let extension = Path.extname(path);
+        if (extension === '.html') return await this.convertHtml(path, params);
         if (extension === '.ts') return await this.convertTypeScript(path, params);
         if (extension === '.scss' || extension === '.sass') return await this.convertSCSS(path, params);
         if (extension === '.vue') return await this.convertVue(path, params);
@@ -27,7 +28,7 @@ export default class FileConverter {
         return false;
     }
 
-    private static async resolveTypeScriptFiles(rootDir: string, path: string, fileList: Set<string> = null) {
+    /*private static async resolveTypeScriptFiles(rootDir: string, path: string, fileList: Set<string> = null) {
         if (!fileList) fileList = new Set<string>();
         if (fileList.has(Path.resolve(rootDir + '/' + path))) return fileList;
         fileList.add(Path.resolve(rootDir + '/' + path));
@@ -45,6 +46,18 @@ export default class FileConverter {
             await FileConverter.resolveTypeScriptFiles(rootDir, localFileList[i], fileList);
 
         return fileList;
+    }*/
+
+    static async convertHtml(path: string, params: any) {
+        let fileContent = await ReadFile(path, 'utf-8');
+
+        fileContent = fileContent.replace(/<!-- APP_DOMAIN -->/g, params.appDomain);
+        fileContent = fileContent.replace(/<!-- DOMAIN -->/g, params.domain);
+
+        return {
+            type: 'text/html',
+            output: fileContent
+        };
     }
 
     static async convertTypeScript(path: string, params: any) {

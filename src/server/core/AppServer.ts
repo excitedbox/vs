@@ -6,6 +6,7 @@ import AuthenticationError from "../error/AuthenticationError";
 import FileSystem from "../fs/FileSystem";
 import BaseServerApi from "./BaseServerApi";
 import Service from "../app/Service";
+import Session from "../user/Session";
 
 export default class AppServer {
     private static _server:any;
@@ -20,12 +21,20 @@ export default class AppServer {
             optionsSuccessStatus: 200
         };
 
+        let sessionDb = await Application.getSessionDb();
+        let sessionList = sessionDb.get('session').find();
+        for (let i = 0; i < sessionList.length; i++)
+            Application.runningApplications.set(
+                sessionList[i].key,
+                new Session(sessionList[i].key, new User(sessionList[i].user), new Application(sessionList[i].application))
+            );
+
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application,
             'FileSystem': FileSystem,
             'User': User
-        }, 'application');
+        });
 
         // Get file from file system api
         RestApp.get('^/\\$service/:path(*)', async (req, res) => {
@@ -59,6 +68,8 @@ export default class AppServer {
         // Get file from file system api
         RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
             if (!req.params.path) req.params.path = 'index.html';
+            req.query.appDomain = req.headers['host'];
+            req.query.domain = req.headers['host'].split('.').slice(1).join('.');
 
             try {
                 // Get application session by session key
