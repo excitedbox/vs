@@ -64,6 +64,16 @@ declare global {
         kebabToCamel(): string;
 
         /**
+         * Convert camel to kebab. Example sexRock to sex-rock
+         */
+        camelToKebab(): string;
+
+        /**
+         * Convert dot to camel. Example sex.rock to sexRock
+         */
+        dotToCamel(): string;
+
+        /**
          * Calculate max match length. For example "hello".maxCharsMatch("hell") will be 4.
          * Because "hello" contains a word "hell". If we call "hello".maxCharsMatch("123") we will
          * get 0 because there is no "123" in "hello" word.
@@ -151,6 +161,14 @@ String.prototype.snakeToCamel = function () {
 
 String.prototype.kebabToCamel = function () {
     return this.replace(/(-\w)/g, x => x[1].toUpperCase());
+};
+
+String.prototype.camelToKebab = function () {
+    return this.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+};
+
+String.prototype.dotToCamel = function () {
+    return this.replace(/(\.\w)/g, x => x[1].toUpperCase());
 };
 
 String.prototype.maxCharsMatch = function (str: string): number {

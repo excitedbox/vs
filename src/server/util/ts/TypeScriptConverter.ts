@@ -5,6 +5,7 @@ import TypeScriptModule from "./TypeScriptModule";
 import TypeScriptImport from "./TypeScriptImport";
 import TypeScriptExport from "./TypeScriptExport";
 import * as MD5 from 'md5';
+import StringExtender from "../../../lib/extender/StringExtender";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -47,13 +48,15 @@ export default class TypeScriptConverter {
         let exportList: Array<TypeScriptExport> = [];
         fileContent = fileContent.replace(/^export (.*?)$/gm, (r1, r2) => {
             let isDefault = r2.includes('default');
-            exportList.push(new TypeScriptExport(r2.replace(/(class|function|{|default)/g, ''), isDefault));
+            let whatExportName = r2.replace(/(class|function|{|default|const|let|=|\(.*?\))/g, '');
+            whatExportName = whatExportName.replace(/extends .+/, '');
+            exportList.push(new TypeScriptExport(whatExportName, isDefault));
             return r1.replace(/^export /, '').replace(/^default /, '');
         });
 
         // Create ts module
         let tsModule = new TypeScriptModule(
-            '__global__Module_' + Path.basename(fullPath).replace('.ts', '') + '_' + MD5(Math.random()).slice(8),
+            '__global__Module_' + Path.basename(fullPath).replace('.ts', '').dotToCamel() + '_' + MD5(Math.random()).slice(8),
             fullPath,
             importList,
             exportList,

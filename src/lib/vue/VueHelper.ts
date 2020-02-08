@@ -1,6 +1,8 @@
 declare var Vue;
 declare var VueRouter;
 
+import HTMLExtender from "../extender/HTMLExtender";
+
 export default class VueHelper {
     static async loadComponent(path: string, componentName: string = null, script: any = null) {
         // Download converted component
@@ -81,6 +83,23 @@ export default class VueHelper {
         catch (e) {
 
         }
+
+        /*Vue.directive('hold', {
+            acceptStatement: true,
+            bind(el, binding, vnode) {
+                el.on(`mousedown`, () => {
+                    setTimeout(() => {
+                        console.log(1);
+                    }, 300);
+                    // console.log(1);
+                });
+                /!*console.log(binding);
+                console.log(vnode);*!/
+            },
+            unbind: function () {
+                // this.el.off('mousedown', this.handler);
+            }
+        });*/
 
         // Vue init
         new Vue({
