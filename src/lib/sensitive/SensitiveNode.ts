@@ -1,12 +1,16 @@
 import StringExtender from "../extender/StringExtender";
+import SensitiveChange from "./SensitiveChange";
 
 export default class SensitiveNode {
     public app: any;
     public node: HTMLElement;
+    public whatChanged: SensitiveChange;
+    public pushCounter: number = 0;
 
-    constructor(app: any, node: HTMLElement) {
+    constructor(app: any, node: HTMLElement, whatChanged: SensitiveChange) {
         this.app = app;
         this.node = node;
+        this.whatChanged = whatChanged || new SensitiveChange();
     }
 
     watch(target, prop = null) {
@@ -45,20 +49,25 @@ export default class SensitiveNode {
         }
     }
 
-    push(x: any) {
-        this.app.buildTree(this.node, x);
+    push(x: any, keyId: number = 0) {
+        this.app.buildTree(this.node, x, keyId);
+        this.pushCounter = keyId;
     }
 
-    pushIf(x: any, condition: boolean) {
-        if (condition) this.push(x);
+    pushIf(x: any, condition: boolean, keyId: number = 0) {
+        if (condition) this.push(x, keyId);
     }
 
     loop(target: any, fn: Function) {
         if (typeof target === "number") {
             for (let i = 0; i < target; i++) {
-                this.push(fn(i));
+                this.push(fn(i), i);
             }
         }
+    }
+
+    trim(maxNodes: number) {
+        this.app.clearNodes(this.node, maxNodes);
     }
 
     on(event: string, fn: any) {
