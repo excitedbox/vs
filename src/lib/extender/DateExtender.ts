@@ -1,3 +1,4 @@
+// global
 // #ifdef nodejs
 import "./NumberExtender"
 import "./StringExtender"

@@ -28,19 +28,26 @@ export default class TypeScriptConverter {
         // Read file
         let fileContent = await ReadFile(fullPath, 'utf-8');
 
+        let moduleIsGlobal = !!fileContent.match(/\/\/ global/);
+
         // Remove nodejs specific code
         fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');
 
         // Handle all imports
         let importList: Array<TypeScriptImport> = [];
         fileContent = fileContent.replace(/^import (.*?) from (.*?)$/gm, (r1, r2, r3) => {
+            // Check options
+            let isDefault = !r2.includes('{');
+            let isDeferred = !!r3.match('// deferred');
+            r3 = r3.replace(/\/\/.*/, '').trim();
+
             // Full path of module
             r3 = Path.resolve(rootDir + '/' + r3.replace(/[";]/g, ''))
                 .replace(/\\/g, '/') + '.ts';
 
+
             // Save to import list
-            let isDefault = !r2.includes('{');
-            importList.push(new TypeScriptImport(r3, r2.split(','), isDefault));
+            importList.push(new TypeScriptImport(r3, r2.split(','), isDefault, isDeferred));
             return '';
         });
 
@@ -56,11 +63,12 @@ export default class TypeScriptConverter {
 
         // Create ts module
         let tsModule = new TypeScriptModule(
-            '__global__Module_' + Path.basename(fullPath).replace('.ts', '').dotToCamel() + '_' + MD5(Math.random()).slice(8),
+            '__' + Path.basename(fullPath).replace('.ts', '').dotToCamel() + '_' + MD5(fullPath + ' ' + fileContent).slice(0, 8),
             fullPath,
             importList,
             exportList,
-            fileContent);
+            fileContent,
+            moduleIsGlobal);
 
         // Save to list
         moduleList.set(fullPath, tsModule);
@@ -77,41 +85,90 @@ export default class TypeScriptConverter {
 
     static async compileInSingleFile(path: string) {
         let moduleList = await TypeScriptConverter.resolveTypeScriptModules(Path.dirname(path), Path.basename(path));
+        let instanceMap = `const __instanceMap = {\n`;
         let out = ``;
+        let globalModules = ``;
+        let globalImports = ``;
 
         moduleList.forEach(x => {
             let imports = ``;
 
             for (let i = 0; i < x.importList.length; i++) {
                 let module = moduleList.get(x.importList[i].fileName);
-                if (x.importList[i].isDefault) imports += `const ${x.importList[i].importItem} = ${module.id}().__$$default;\n`;
-                else imports += `const ${x.importList[i].importItem} = ${module.id}();\n`;
+                if (!module.isGlobal) {
+                    imports += `let ${x.importList[i].importItem} = `;
+
+                    if (x.importList[i].isDeferred) imports += `__instanceMap.${module.id}`;
+                    else imports += `${module.id}()`;
+
+                    if (x.importList[i].isDefault) imports += `.__$$default`;
+                    imports += `;\n`;
+                }
+
+                // if (x.importList[i].isDefault) imports += `${x.importList[i].importItem} = ${module.id}().__$$default;\n`;
+                // else imports += `${x.importList[i].importItem} = ${module.id}();\n`;
+
+                // Huimports
+                /*if (x.importList[i].isDefault) huImports += `let ${x.importList[i].importItem} = __fromModule === '${module.id}' ?(__instanceMap['${module.id}'] ?__instanceMap['${module.id}'].__$$default :null) :${module.id}('${x.id}').__$$default;\n`;
+                else huImports += `let ${x.importList[i].importItem} = __fromModule === '${module.id}' ?__instanceMap['${module.id}'] :${module.id}('${x.id}');\n`;*/
+
+                // Huimports
+                //if (x.importList[i].isDefault) huImports += `let ${x.importList[i].importItem} = __fromModule === '${module.id}' ?(__instanceMap['${module.id}'] ?__instanceMap['${module.id}'].__$$default :null) :${module.id}('${x.id}').__$$default;\n`;
+                //else huImports += `let ${x.importList[i].importItem} = __fromModule === '${module.id}' ?(__instanceMap['${module.id}'] ?__instanceMap['${module.id}'] :null) :${module.id}('${x.id}');\n`;
+                //huImports += `huilo.push(${x.importList[i].importItem});`;
+                //declareImports += `${x.importList[i].importItem},`;
+                //defferedImports += `if (sasuin[i] === '${module.id}') ${x.importList[i].importItem} = __instanceMap[sasuin[i]];\n`;
+            }
+
+            instanceMap += `${x.id}: null,\n`;
+            //let ${x.id}_instance = null;
+
+            if (x.isGlobal) {
+                globalImports += imports;
+                globalModules += x.code + '\n';
+                return;
             }
 
             out += `
-                let ${x.id}_instance = null;
-                const ${x.id} = (function () {
-                    if (${x.id}_instance) return ${x.id}_instance;
-                    ${x.id}_instance = (() => {
-                        ${imports}
+                // ${x.fileName}
+                const ${x.id} = (function (__fromModule, __isInit) {
+                    if (!__isInit && __instanceMap.${x.id}) return __instanceMap.${x.id};
                     
+                     ${imports}
+                     
+                    __instanceMap.${x.id} = new (function() {
+                        console.log('Module "${x.id}" init!');
                         ${x.code}
                         
                         return {
                             ${x.exportList.map(y => {
-                if (y.isDefault) return '__$$default: ' + y.name + ', \n' + y.name + ': ' + y.name + ', \n';
-                return y.name + ': ' + y.name + ', \n';
-            })}
+                                if (y.isDefault) {
+                                    return `
+                                        __$$default: ${y.name},
+                                        ${y.name}: ${y.name}
+                                    `;
+                                } else {
+                                    return `${y.name}: ${y.name}`;
+                                }
+                            })}
                         }
                     })();
                     
-                    return ${x.id}_instance;
+                    return __instanceMap.${x.id};
                 });
             `;
         });
+        instanceMap += `};\n`;
 
         let baseName = Path.basename(path).replace('.ts', '');
-        out += `let \n${baseName} = ${moduleList.get(Path.resolve(path).replace(/\\/g, '/')).id}().__$$default;`;
+        let mainModule = moduleList.get(Path.resolve(path).replace(/\\/g, '/'));
+        let returnModule = `${mainModule.exportList[0].name}`;
+        if (!mainModule.isGlobal) returnModule = `${mainModule.id}().__$$default;`;
+
+        out = `let ${baseName} = (() => { ${instanceMap}\n ${globalModules}\n ${out}\n ${globalImports}\n return ${returnModule}; })()`;
+
+        // if (mainModule.isGlobal) out += `let \n${baseName} = ${mainModule.exportList[0].name};`;
+        // else out += `let \n${baseName} = ${mainModule.id}().__$$default;`;
 
         return out;
     }

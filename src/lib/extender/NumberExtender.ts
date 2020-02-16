@@ -1,3 +1,4 @@
+// global
 declare global {
     interface Number {
         /**

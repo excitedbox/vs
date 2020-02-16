@@ -1,3 +1,4 @@
+// global
 declare global {
     interface HTMLElement {
         on(eventList, fn, params?);
@@ -13,8 +14,19 @@ declare global {
 
 Document.prototype.on = HTMLElement.prototype.on = function (eventList, fn, params?) {
     let list = eventList.split(' ');
-    for (let i = 0; i < list.length; i++)
-        this.addEventListener(list[i], fn, params);
+    for (let i = 0; i < list.length; i++) {
+        if (list[i] === `hold`) {
+            let holdTimer;
+            this.on('mousedown touchstart', (e) => {
+                holdTimer = setTimeout(fn, 500);
+            });
+            document.on('mouseup touchend', (e) => {
+                clearTimeout(holdTimer);
+            });
+        } else {
+            this.addEventListener(list[i], fn, params);
+        }
+    }
 
     return fn;
 };

@@ -77,8 +77,8 @@ export default class FileConverter {
 
         //let moduleList = Array.from(await TypeScriptConverter.resolveTypeScriptModules(Path.dirname(path), Path.basename(path)));
         //console.log(moduleList);
-        let fileContent = await TypeScriptConverter.compileInSingleFile(path); //await ReadFile(path, 'utf-8');
 
+        let fileContent = await TypeScriptConverter.compileInSingleFile(path);
         let targetType = Tsc.ScriptTarget.ES2016;
         let sourceMap = false;
 
@@ -89,7 +89,7 @@ export default class FileConverter {
         let tmpResult = Tsc.transpileModule(fileContent, {
             reportDiagnostics: true,
             compilerOptions: {
-                removeComments: true,
+                // removeComments: true,
                 target: targetType,
                 inlineSourceMap: sourceMap
             }
