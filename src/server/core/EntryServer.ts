@@ -45,6 +45,7 @@ export default class EntryServer {
 
         // Default app
         RestApp.get('^/', async (req, res) => {
+            console.log(req.headers.host);
             let host = req.headers.host.split(':');
             res.redirect(`http://auth.${host[0]}:${+host[1] + 1}`);
         });

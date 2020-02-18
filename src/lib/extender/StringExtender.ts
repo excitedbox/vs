@@ -1,4 +1,3 @@
-// global
 declare global {
     interface String {
         /**
@@ -180,7 +179,5 @@ String.prototype.maxCharsMatch = function (str: string): number {
     return 0;
 };
 
-// #ifdef nodejs
 export default class StringExtender {
 }
-// #endif

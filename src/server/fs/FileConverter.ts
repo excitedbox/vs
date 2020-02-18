@@ -2,13 +2,12 @@ import * as Fs from 'fs';
 import * as Util from 'util';
 import * as Path from 'path';
 import * as Tsc from 'typescript';
+import {JsxEmit} from 'typescript';
 import * as SASS from 'node-sass';
 import * as AutoPrefixer from 'autoprefixer';
 import * as PostCSS from 'postcss';
 import * as ChildProcess from 'child_process';
-import * as Os from 'os';
 import * as Glob from 'glob';
-import {Type} from "typedoc/dist/lib/models";
 import TypeScriptConverter from "../util/ts/TypeScriptConverter";
 
 const ReadFile = Util.promisify(Fs.readFile);
@@ -61,6 +60,106 @@ export default class FileConverter {
     }
 
     static async convertTypeScript(path: string, params: any) {
+        let modules = {};
+
+        function createCompilerHost(): Tsc.CompilerHost {
+            return {
+                getSourceFile,
+                getDefaultLibFileName: () => "lib.d.ts",
+                writeFile: (fileName, content) => {
+                    // fileName = Path.relative(Path.dirname(path), fileName).replace(/\.js$/, '').replace(/\\/g, '/');
+                    fileName = fileName.replace(/\.js$/, '').replace(/\\/g, '/');
+                    modules[fileName] = content;
+                },
+                getCurrentDirectory: () => Tsc.sys.getCurrentDirectory(),
+                getDirectories: path => Tsc.sys.getDirectories(path),
+                getCanonicalFileName: fileName =>
+                    Tsc.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+                getNewLine: () => Tsc.sys.newLine,
+                useCaseSensitiveFileNames: () => Tsc.sys.useCaseSensitiveFileNames,
+                fileExists,
+                readFile
+            };
+
+            function fileExists(fileName: string): boolean {
+                return Tsc.sys.fileExists(fileName);
+            }
+
+            function readFile(fileName: string): string | undefined {
+                return Tsc.sys.readFile(fileName);
+            }
+
+            function getSourceFile(fileName: string, languageVersion: Tsc.ScriptTarget, onError?: (message: string) => void) {
+                const sourceText = Tsc.sys.readFile(fileName);
+                return sourceText !== undefined
+                    ? Tsc.createSourceFile(fileName, sourceText, languageVersion)
+                    : undefined;
+            }
+        }
+
+        // Generated outputs
+        const host = createCompilerHost();
+        const options: Tsc.CompilerOptions = {
+            module: Tsc.ModuleKind.CommonJS,
+            target: Tsc.ScriptTarget.ES2016
+        };
+        let program = Tsc.createProgram([
+            path
+        ], options, host);
+
+        let emitResult = program.emit();
+
+        let out = `
+        let sex_map = [];
+        let eblja_require = (rootDir) => {
+            return function(path) {
+                let p1 = rootDir.split('/');
+                p1.pop();
+                let p2 = path.split('/');
+                for (let i = 0; i < p2.length; i++) {
+                    if (p2[i] === '.') {
+                        p2.shift();
+                        i--;
+                    }
+                    if (p2[i] === '..') {
+                        p1.pop();
+                        p2.shift();
+                        i--;
+                    }
+                }
+                
+                let finalPath = p1.concat(p2).join('/');
+                if (!program[finalPath]) throw new Error('Module "' + path + '" not found!');
+                if (sex_map.includes(finalPath)) return program[finalPath].__cache;
+                sex_map.push(finalPath);
+                return program[finalPath].execute();
+            }
+        }
+        let program = {`;
+        for (let m in modules) {
+            out += `
+                '${m}': {
+                    __cache: {},
+                    execute() {
+                        let exports = this.__cache;
+                        let require = eblja_require('${m}');
+                        ${modules[m]}
+                        // this.__cache = exports;
+                        return exports;
+                    }
+                },
+            `;
+        }
+        out += `}\n`;
+        out += `let ${Path.basename(path).replace('.ts', '')} = program['${path.replace(/\.ts$/, '')}'].execute().default`;
+
+        return {
+            type: 'application/javascript',
+            output: out
+        }
+    }
+
+    static async old__convertTypeScript(path: string, params: any) {
         /*let fileContent = '';
         let fileList = Array.from(await FileConverter.resolveTypeScriptFiles(Path.dirname(path), Path.basename(path)));
         fileList = fileList.reverse();
@@ -91,7 +190,8 @@ export default class FileConverter {
             compilerOptions: {
                 // removeComments: true,
                 target: targetType,
-                inlineSourceMap: sourceMap
+                inlineSourceMap: sourceMap,
+                jsx: JsxEmit.Preserve
             }
         });
 

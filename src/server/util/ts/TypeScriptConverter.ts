@@ -18,7 +18,6 @@ export default class TypeScriptConverter {
         rootDir = Path.resolve(rootDir.replace(/\\/g, '/')).replace(/\\/g, '/') + '/';
         path = path.replace(/\\/g, '/');
 
-
         // Get path of file
         let fullPath = Path.resolve(rootDir + '/' + path).replace(/\\/g, '/');
 
@@ -163,7 +162,7 @@ export default class TypeScriptConverter {
         let baseName = Path.basename(path).replace('.ts', '');
         let mainModule = moduleList.get(Path.resolve(path).replace(/\\/g, '/'));
         let returnModule = `${mainModule.exportList[0].name}`;
-        if (!mainModule.isGlobal) returnModule = `${mainModule.id}().__$$default;`;
+        if (!mainModule.isGlobal) returnModule = `${mainModule.id}().__$$default`;
 
         out = `let ${baseName} = (() => { ${instanceMap}\n ${globalModules}\n ${out}\n ${globalImports}\n return ${returnModule}; })()`;
 
