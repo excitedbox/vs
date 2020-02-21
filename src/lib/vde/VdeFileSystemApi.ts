@@ -19,8 +19,10 @@ export default class VdeFileSystemApi {
         return await response.json();
     }
 
-    async readFile(path: string): Promise<string> {
+    async readFile(path: string, type: string = 'text'): Promise<string> {
         let response = await fetch(`/$api?m=FileSystem.readFile&path=${path}`);
+        if (response.status !== 200) throw new Error((await response.json()).message);
+        if (type === 'json') return await response.json();
         return await response.text();
     }
 
