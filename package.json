@@ -47,6 +47,7 @@
         "@typescript-eslint/parser": "^2.18.0",
         "autoprefixer": "^9.7.4",
         "axios": "^0.19.2",
+        "body-parser": "^1.19.0",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "copy-dir": "^1.2.0",

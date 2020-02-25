@@ -65,6 +65,7 @@ export default class StdDrive implements IDrive {
             const stat = Fs.lstatSync(this.path + '/' + x);
             return {
                 name: x,
+                path: (this.args.sourcePath + '/' + x).replace(/\/\//g, '/'),
                 isDir: stat.isDirectory(),
                 size: Fs.statSync(this.path + '/' + x)['size'],
                 created: Fs.statSync(this.path + '/' + x)['birthtime']
@@ -75,6 +76,7 @@ export default class StdDrive implements IDrive {
         if (this.args.sourcePath === '/') {
             list.push({
                 name: '$user',
+                path: '/$user',
                 isDir: true,
                 size: 0,
                 created: new Date()

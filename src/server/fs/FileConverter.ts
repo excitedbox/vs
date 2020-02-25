@@ -110,8 +110,9 @@ export default class FileConverter {
         let emitResult = program.emit();
 
         let out = `
-        let sex_map = [];
-        let eblja_require = (rootDir) => {
+        let ${Path.basename(path).replace('.ts', '')} = (() => {
+        let module_map = [];
+        let __require = (rootDir) => {
             return function(path) {
                 let p1 = rootDir.split('/');
                 p1.pop();
@@ -130,8 +131,8 @@ export default class FileConverter {
                 
                 let finalPath = p1.concat(p2).join('/');
                 if (!program[finalPath]) throw new Error('Module "' + path + '" not found!');
-                if (sex_map.includes(finalPath)) return program[finalPath].__cache;
-                sex_map.push(finalPath);
+                if (module_map.includes(finalPath)) return program[finalPath].__cache;
+                module_map.push(finalPath);
                 return program[finalPath].execute();
             }
         }
@@ -142,16 +143,16 @@ export default class FileConverter {
                     __cache: {},
                     execute() {
                         let exports = this.__cache;
-                        let require = eblja_require('${m}');
+                        let require = __require('${m}');
                         ${modules[m]}
-                        // this.__cache = exports;
                         return exports;
                     }
                 },
             `;
         }
         out += `}\n`;
-        out += `let ${Path.basename(path).replace('.ts', '')} = program['${path.replace(/\.ts$/, '')}'].execute().default`;
+        out += `return program['${path.replace(/\\/g, '/').replace(/\.ts$/, '')}'].execute().default;\n`;
+        out += `})()\n`;
 
         return {
             type: 'application/javascript',
