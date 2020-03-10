@@ -5,3 +5,4 @@ user
 node_modules
 .nyc_output
 logs
+backup

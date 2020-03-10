@@ -66,6 +66,7 @@
         "opn": "^6.0.0",
         "postcss": "^7.0.26",
         "recursive-readdir": "^2.2.2",
+        "request": "^2.88.2",
         "rimraf": "^3.0.0",
         "ts-node": "^8.6.2",
         "typedoc": "^0.16.9",

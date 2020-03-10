@@ -1,5 +1,6 @@
 import * as Formidable from "express-formidable";
 import * as Cors from "cors";
+import * as Request from "request";
 import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
@@ -36,6 +37,64 @@ export default class AppServer {
             'User': User
         });
 
+        // Remote
+        RestApp.get('^/\\$remote/:path(*)', async (req, res) => {
+            try {
+                Request({
+                    method: 'GET',
+                    url: req.params.path,
+                    encoding: null
+                }, function (error, response, body) {
+                    if (!error && response.statusCode === 200) {
+                        res.set('Content-Type', response.headers['content-type']);
+                        res.set('Content-Length', response.headers['content-length']);
+                        res.send(body);
+                    } else {
+                        res.status(404);
+                        res.send({
+                            status: false,
+                            message: 'Not found'
+                        });
+                    }
+                });
+            }
+            catch (e) {
+                res.status(e.httpStatusCode || 500);
+                res.send({
+                    status: false,
+                    message: e.message
+                });
+            }
+        });
+        RestApp.post('^/\\$remote', async (req, res) => {
+            try {
+                Request({
+                    method: 'GET',
+                    url: req.fields.url,
+                    encoding: null
+                }, function (error, response, body) {
+                    if (!error && response.statusCode === 200) {
+                        res.set('Content-Type', response.headers['content-type']);
+                        res.set('Content-Length', response.headers['content-length']);
+                        res.send(body);
+                    } else {
+                        res.status(404);
+                        res.send({
+                            status: false,
+                            message: 'Not found post'
+                        });
+                    }
+                });
+            }
+            catch (e) {
+                res.status(e.httpStatusCode || 500);
+                res.send({
+                    status: false,
+                    message: e.message
+                });
+            }
+        });
+
         // Get file from file system api
         RestApp.get('^/\\$service/:path(*)', async (req, res) => {
             try {
@@ -56,7 +115,8 @@ export default class AppServer {
 
                 res.setHeader('Content-Type', 'application/json');
                 res.send(response);
-            } catch (e) {
+            }
+            catch (e) {
                 res.status(e.httpStatusCode || 500);
                 res.send({
                     status: false,

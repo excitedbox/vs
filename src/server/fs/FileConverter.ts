@@ -2,13 +2,11 @@ import * as Fs from 'fs';
 import * as Util from 'util';
 import * as Path from 'path';
 import * as Tsc from 'typescript';
-import {JsxEmit} from 'typescript';
 import * as SASS from 'node-sass';
 import * as AutoPrefixer from 'autoprefixer';
 import * as PostCSS from 'postcss';
 import * as ChildProcess from 'child_process';
 import * as Glob from 'glob';
-import TypeScriptConverter from "../util/ts/TypeScriptConverter";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const TranspileSCSS = Util.promisify(SASS.render);
@@ -26,26 +24,6 @@ export default class FileConverter {
             return await this.convertImage(path, params);
         return false;
     }
-
-    /*private static async resolveTypeScriptFiles(rootDir: string, path: string, fileList: Set<string> = null) {
-        if (!fileList) fileList = new Set<string>();
-        if (fileList.has(Path.resolve(rootDir + '/' + path))) return fileList;
-        fileList.add(Path.resolve(rootDir + '/' + path));
-
-        let fileContent = await ReadFile(Path.resolve(rootDir + '/' + path), 'utf-8');
-        let localFileList: any = new Set<string>();
-        fileContent.replace(/\/\/\/ <reference path="(.*?)" \/>/g, (r1, r2) => {
-            localFileList.add(r2);
-            return '';
-        });
-
-        localFileList = Array.from(localFileList);
-
-        for (let i = 0; i < localFileList.length; i++)
-            await FileConverter.resolveTypeScriptFiles(rootDir, localFileList[i], fileList);
-
-        return fileList;
-    }*/
 
     static async convertHtml(path: string, params: any) {
         let fileContent = await ReadFile(path, 'utf-8');
@@ -78,7 +56,8 @@ export default class FileConverter {
                 getNewLine: () => Tsc.sys.newLine,
                 useCaseSensitiveFileNames: () => Tsc.sys.useCaseSensitiveFileNames,
                 fileExists,
-                readFile
+                readFile,
+                resolveModuleNames
             };
 
             function fileExists(fileName: string): boolean {
@@ -95,6 +74,34 @@ export default class FileConverter {
                     ? Tsc.createSourceFile(fileName, sourceText, languageVersion)
                     : undefined;
             }
+
+            function resolveModuleNames(
+                moduleNames: string[],
+                containingFile: string
+            ): Tsc.ResolvedModule[] {
+                const resolvedModules: Tsc.ResolvedModule[] = [];
+                for (const moduleName of moduleNames) {
+                    let result = Tsc.resolveModuleName(moduleName, containingFile, options, {
+                        fileExists,
+                        readFile
+                    });
+                    if (result.resolvedModule) {
+                        // console.log(result.resolvedModule);
+                        resolvedModules.push(result.resolvedModule);
+                    } else {
+                        // check fallback locations, for simplicity assume that module at location
+                        // should be represented by '.d.ts' file
+                        /*for (const location of moduleSearchLocations) {
+                            const modulePath = Path.join(location, moduleName + ".d.ts");
+                            if (fileExists(modulePath)) {
+                                resolvedModules.push({ resolvedFileName: modulePath });
+                            }
+                        }*/
+                    }
+                }
+                return resolvedModules;
+            }
+
         }
 
         // Generated outputs
@@ -157,48 +164,6 @@ export default class FileConverter {
         return {
             type: 'application/javascript',
             output: out
-        }
-    }
-
-    static async old__convertTypeScript(path: string, params: any) {
-        /*let fileContent = '';
-        let fileList = Array.from(await FileConverter.resolveTypeScriptFiles(Path.dirname(path), Path.basename(path)));
-        fileList = fileList.reverse();
-
-        for (let i = 0; i < fileList.length; i++) {
-            fileContent += await ReadFile(fileList[i], 'utf-8');
-            fileContent += '\n\n';
-        }
-
-        // Remove nodejs specific code
-        fileContent = fileContent.replace(/\/\/ #ifdef nodejs.*?\/\/ #endif/gsm, '');*/
-
-        // let g = TypeScriptConverter.compileInSingleFile(path);
-
-        //let moduleList = Array.from(await TypeScriptConverter.resolveTypeScriptModules(Path.dirname(path), Path.basename(path)));
-        //console.log(moduleList);
-
-        let fileContent = await TypeScriptConverter.compileInSingleFile(path);
-        let targetType = Tsc.ScriptTarget.ES2016;
-        let sourceMap = false;
-
-        if (params.target === 'es5') targetType = Tsc.ScriptTarget.ES5;
-        if (params.hasOwnProperty('source-map')) sourceMap = true;
-
-        // Compile ts to js
-        let tmpResult = Tsc.transpileModule(fileContent, {
-            reportDiagnostics: true,
-            compilerOptions: {
-                // removeComments: true,
-                target: targetType,
-                inlineSourceMap: sourceMap,
-                jsx: JsxEmit.Preserve
-            }
-        });
-
-        return {
-            type: 'application/javascript',
-            output: tmpResult.outputText
         }
     }
 

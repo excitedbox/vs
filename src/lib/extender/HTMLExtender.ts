@@ -1,5 +1,9 @@
 // global
 declare global {
+    interface HTMLImageElement {
+        toJPEG();
+    }
+
     interface HTMLElement {
         on(eventList, fn, params?);
         off(eventList, fn);
@@ -90,6 +94,25 @@ HTMLElement.prototype.setDraggable = function () {
         isDrag = false;
         return false;
     });
+};
+
+HTMLImageElement.prototype.toJPEG = function () {
+    return new Promise((resolve => {
+        let canvas = document.createElement('canvas');
+        canvas.setAttribute("width", this.width);
+        canvas.setAttribute("height", this.height);
+        canvas.style.position = 'absolute';
+        canvas.style.visibility = 'hidden';
+        document.querySelector('body').appendChild(canvas);
+
+        let ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(this, 0, 0, this.width, this.height);
+        canvas.toBlob((blob) => {
+            document.querySelector('body').removeChild(canvas);
+            resolve(blob);
+        }, 'image/jpeg');
+    }));
 };
 
 export default class HTMLExtender {
