@@ -14,7 +14,7 @@ export default class VdeFileSystemApi {
         return await response.json();
     }
 
-    async list(path: string, filter: string = '') {
+    async list(path: string, filter: string = ''): Promise<any> {
         let response = await fetch(`/$api?m=FileSystem.list&path=${path}&filter=${filter}`);
         return await response.json();
     }

@@ -36,8 +36,8 @@ describe('Base', function () {
         Chai.expect(user.homeDir).to.be.eq( './user/test');
         Chai.expect(user.docsDir).to.be.eq( './user/test/docs');
 
-        await Chai.expect(User.getBySession(null)).to.be.rejectedWith(AuthenticationError, /incorrect/i);
-        await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(AuthenticationError, /session/i);
+        // await Chai.expect(User.getBySession(null)).to.be.rejectedWith(AuthenticationError, /incorrect/i);
+        // await Chai.expect(User.getBySession('sasi')).to.be.rejectedWith(AuthenticationError, /session/i);
     });
 
     it('install app', async function () {

@@ -1,6 +1,7 @@
 import * as Formidable from "express-formidable";
 import * as Cors from "cors";
 import * as Request from "request";
+import * as MimeTypes from 'mime-types';
 import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
@@ -8,6 +9,7 @@ import FileSystem from "../fs/FileSystem";
 import BaseServerApi from "./BaseServerApi";
 import Service from "../app/Service";
 import Session from "../user/Session";
+import * as Path from "path";
 
 export default class AppServer {
     private static _server:any;
@@ -127,7 +129,7 @@ export default class AppServer {
 
         // Get file from file system api
         RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
-            if (!req.params.path) req.params.path = 'index.html';
+            if (!req.params.path) req.params.path = '/';
             req.query.appDomain = req.headers['host'];
             req.query.domain = req.headers['host'].split('.').slice(1).join('.');
 
@@ -138,11 +140,44 @@ export default class AppServer {
                 let session = Application.runningApplications.get(accessToken);
                 if (!session) throw new AuthenticationError(`Session not found!`);
 
-                // Resolve path
-                let drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
-                let fileData = await drive.readFile();
-                res.setHeader('Content-Type', drive.contentType);
-                res.send(fileData);
+                // If root of application
+                if (req.params.path === '/') {
+                    // Try to get index.ts
+                    let drive = FileSystem.getDrive(session, 'index.ts', 'r', req.query);
+                    if (!await drive.exists()) {
+                        // If there is no index.ts then load index.html
+                        drive = FileSystem.getDrive(session, 'index.html', 'r', req.query);
+                        let fileData = await drive.readFile();
+                        res.setHeader('Content-Type', drive.contentType);
+                        res.send(fileData);
+                    } else {
+                        // Inject html for index.ts
+                        res.setHeader('Content-Type', 'text/html');
+                        res.send(`<!doctype html>
+                            <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+                                <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                                <title>Document</title>
+                            </head>
+                            <body></body>
+                            <script src="index.ts"></script>
+                        </html>`);
+                    }
+                } else {
+                    // Resolve path
+                    let drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
+
+                    // Return original or converted file
+                    if (req.query.hasOwnProperty('keep-original')) {
+                        res.sendFile(drive.path);
+                    } else {
+                        let fileData = await drive.readFile();
+                        res.setHeader('Content-Type', drive.contentType);
+                        res.send(fileData);
+                    }
+                }
             }
             catch (e) {
                 res.status(e.httpStatusCode || 500);

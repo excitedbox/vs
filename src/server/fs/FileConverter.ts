@@ -7,6 +7,7 @@ import * as AutoPrefixer from 'autoprefixer';
 import * as PostCSS from 'postcss';
 import * as ChildProcess from 'child_process';
 import * as Glob from 'glob';
+import * as OS from "os";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const TranspileSCSS = Util.promisify(SASS.render);
@@ -16,12 +17,15 @@ const GlobSearch = Util.promisify(Glob);
 export default class FileConverter {
     static async convert(path: string, params: any) {
         let extension = Path.extname(path);
+
         if (extension === '.html') return await this.convertHtml(path, params);
         if (extension === '.ts') return await this.convertTypeScript(path, params);
         if (extension === '.scss' || extension === '.sass') return await this.convertSCSS(path, params);
         if (extension === '.vue') return await this.convertVue(path, params);
         if (extension === '.png' || extension === '.gif' || extension === '.jpeg' || extension === '.jpg')
             return await this.convertImage(path, params);
+        if (extension === '.mp4' && (params.frame || params.time || params.offset))
+            return await this.getVideoThumbnail(path, params);
         return false;
     }
 
@@ -233,5 +237,27 @@ export default class FileConverter {
 
     static async convertImage(path: string, params: any): Promise<any> {
         return false;
+    }
+
+    static async getVideoThumbnail(path: string, params: any): Promise<any> {
+        let tmpFrameName = OS.tmpdir() + '/' + Math.random() + '.jpg';
+        let scale = '';
+        if (params.size) scale = `-s ${params.size}`;
+
+        if (params.offset) {
+            let {stdout} = await Exec(`ffprobe -i "${path}" -show_entries format=duration -v quiet -of csv="p=0"`);
+            params.time = (Number.parseFloat(stdout) * params.offset).intToHMS();
+        }
+
+        if (params.frame)
+            await Exec(`ffmpeg -i "${path}" -vf "select=eq(n\\,${params.frame})" -frames:v 1 ${scale} "${tmpFrameName}"`);
+        else if (params.time)
+            await Exec(`ffmpeg -ss ${params.time} -i "${path}" -vframes:v 1 ${scale} "${tmpFrameName}"`);
+
+        // Auto prefix
+        return {
+            type: 'image/jpeg',
+            output: await ReadFile(tmpFrameName)
+        };
     }
 }

@@ -3,7 +3,6 @@ import * as Path from 'path';
 import User from "../src/server/user/User";
 import Application from "../src/server/app/Application";
 import Session from "../src/server/user/Session";
-import AuthenticationError from "../src/server/error/AuthenticationError";
 import FileSystem from "../src/server/fs/FileSystem";
 import Main from "../src/server/Main";
 

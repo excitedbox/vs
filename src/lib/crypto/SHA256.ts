@@ -1,5 +1,7 @@
 export default class SHA256 {
-    static encode(input: Uint8Array) {
+    static encode(input: Array<number> | string) {
+        if (typeof input === "string") input = Array.from(new TextEncoder().encode(input));
+
         let rightRotate = (value, amount) => (value >>> amount) | (value << (32 - amount));
         let mathPow = Math.pow;
         let maxWord = mathPow(2, 32);
@@ -17,16 +19,13 @@ export default class SHA256 {
             if (!isComposite[candidate]) {
                 for (i = 0; i < 313; i += candidate)
                     isComposite[i] = candidate;
-                hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
                 k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
             }
         }
 
-        /*let padding = 1;
-        while (input[lengthProperty] % 64 - 56) padding++; // += '\x00' // More zero padding
-        let copy = new Uint8Array(input, 0, input.length + padding);
-        copy[input.length] = 0x80; // Append Ƈ' bit (plus zero padding)
-        console.log(2);*/
+        input.push(0x80);
+        while (input[lengthProperty] % 64 - 56) input.push(0);
 
         for (i = 0; i < input[lengthProperty]; i++) {
             j = input[i];
@@ -43,7 +42,6 @@ export default class SHA256 {
             hash = hash.slice(0, 8);
 
             for (i = 0; i < 64; i++) {
-                let i2 = i + j;
                 let w15 = w[i - 15], w2 = w[i - 2];
 
                 let a = hash[0], e = hash[4];

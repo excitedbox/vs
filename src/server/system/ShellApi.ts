@@ -50,32 +50,17 @@ export default class ShellApi {
             if (mainCmd === 'install') {
                 await Application.install(this._tmpSession, cmdParsed.join(' '));
             }
+
+            // Run application
             if (mainCmd === 'run' || mainCmd === 'open') {
-                let appName = cmdParsed.join(' ');
-                let db = await Application.getApplicationDb(this._tmpSession.user.name);
-                let app = db.get('application').findOne([
-                    {repo: new RegExp(appName, 'i')},
-                    {name: new RegExp(appName, 'i')},
-                    {title: new RegExp(appName, 'i')}
-                ]);
-
-                let session = await Application.run(this._tmpSession, app.repo);
-
+                let session = await Application.run(this._tmpSession,  cmdParsed.join(' '));
                 if (mainCmd === 'open') Opn(`http://${session.key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/index.html`);
-                console.log(`${app.name}: ${session.key}`);
+                console.log(`${session.application.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }
             if (mainCmd === 'update') {
-                let appName = cmdParsed.join(' ');
-                let db = await Application.getApplicationDb(this._tmpSession.user.name);
-                let app = db.get('application').findOne([
-                    {repo: new RegExp(appName, 'i')},
-                    {name: new RegExp(appName, 'i')},
-                    {title: new RegExp(appName, 'i')}
-                ]);
-
                 // Update this app
-                await Application.pullUpdate(this._tmpSession, app.repo);
+                await Application.pullUpdate(this._tmpSession, cmdParsed.join(' '));
             }
             if (mainCmd === 'close') {
                 let session = null;
@@ -98,7 +83,6 @@ export default class ShellApi {
             if (mainCmd === 'auth') {
                 this._tmpSession = await User.auth(cmdParsed[0], cmdParsed[1]);
                 console.log(`You logged as ${this._tmpSession.user.name}`);
-                // console.log(this._runningApplicationList.map(x => x.application.name + ': ' + x.key));
             }
         } catch (e) {
             console.log(e.message);

@@ -21,7 +21,7 @@ export default class StdDrive implements IDrive {
     public readonly args: any;
     public contentType: string = "text/plain";
 
-    constructor(path: string, args:any = {}) {
+    constructor(path: string, args: any = {}) {
         this.path = FileSystem.safePath(Path.resolve(__dirname + '/../../../../', path)
             .replace(/\\/g, '/'));
         this.args = args;
@@ -30,8 +30,17 @@ export default class StdDrive implements IDrive {
     async readFile() {
         if (!this.exists()) throw new Error(`File "${this.path}" not found!`);
 
+        let convertedFile = await FileConverter.convert(this.path, this.args);
+        if (convertedFile) {
+            this.contentType = convertedFile.type;
+            return convertedFile.output;
+        }
+
+        this.contentType = await MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
+        return await ReadFile(this.path);
+
         // Try to convert by default
-        if (!this.args.hasOwnProperty('keep-original')) {
+        /*if (!this.args.hasOwnProperty('keep-original')) {
             let convertedFile = await FileConverter.convert(this.path, this.args);
             // If converted
             if (convertedFile) {
@@ -40,8 +49,8 @@ export default class StdDrive implements IDrive {
             }
         }
 
-        this.contentType = MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
-        return await ReadFile(this.path);
+        this.contentType = await MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
+        return await ReadFile(this.path);*/
     }
 
     async createDir() {

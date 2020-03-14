@@ -2,7 +2,6 @@ import * as Chai from 'chai';
 import "../src/lib/extender/StringExtender";
 
 describe('Base', function () {
-
     it('string extender', async function () {
         Chai.expect('2019-01-02 00:00:00.000Z'.toDate().getTime()).eq(new Date('2019-01-02T00:00:00.000Z').getTime());
         Chai.expect('2019-01-02T00:00:00.000Z'.toDate().getTime()).eq(new Date('2019-01-02T00:00:00.000Z').getTime());
