@@ -1,4 +1,5 @@
-// global
+import ByteHelper from "../helper/ByteHelper";
+
 declare global {
     interface Array<T> {
         /**
@@ -45,6 +46,13 @@ declare global {
          * Remove non unique values from array
          */
         unique(field: string): Array<T>;
+    }
+
+    interface Uint8Array {
+        toBase64(): string;
+        append(v: Uint8Array): Uint8Array;
+        prepend(v: Uint8Array): Uint8Array;
+        toUTF8(): string;
     }
 }
 
@@ -132,7 +140,27 @@ Array.prototype.unique = function (field) {
     });
 };
 
-// #ifdef nodejs
+Uint8Array.prototype.toBase64 = function () {
+    return ByteHelper.base64encode(this);
+};
+
+Uint8Array.prototype.append = function (v: Uint8Array) {
+    let c = new Uint8Array(this.length + v.length);
+    c.set(this, 0);
+    c.set(v, this.length);
+    return c;
+};
+
+Uint8Array.prototype.prepend = function (v: Uint8Array) {
+    let c = new Uint8Array(this.length + v.length);
+    c.set(v, 0);
+    c.set(this, v.length);
+    return c;
+};
+
+Uint8Array.prototype.toUTF8 = function () {
+    return new TextDecoder().decode(this);
+};
+
 export default class ArrayExtender {
 }
-// #endif
