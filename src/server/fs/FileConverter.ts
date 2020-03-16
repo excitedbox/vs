@@ -8,6 +8,7 @@ import * as PostCSS from 'postcss';
 import * as ChildProcess from 'child_process';
 import * as Glob from 'glob';
 import * as OS from "os";
+import TSModuleCompiler from "../util/TSModuleCompiler";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const TranspileSCSS = Util.promisify(SASS.render);
@@ -42,128 +43,7 @@ export default class FileConverter {
     }
 
     static async convertTypeScript(path: string, params: any) {
-        let modules = {};
-
-        function createCompilerHost(): Tsc.CompilerHost {
-            return {
-                getSourceFile,
-                getDefaultLibFileName: () => "lib.d.ts",
-                writeFile: (fileName, content) => {
-                    // fileName = Path.relative(Path.dirname(path), fileName).replace(/\.js$/, '').replace(/\\/g, '/');
-                    fileName = fileName.replace(/\.js$/, '').replace(/\\/g, '/');
-                    modules[fileName] = content;
-                },
-                getCurrentDirectory: () => Tsc.sys.getCurrentDirectory(),
-                getDirectories: path => Tsc.sys.getDirectories(path),
-                getCanonicalFileName: fileName =>
-                    Tsc.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
-                getNewLine: () => Tsc.sys.newLine,
-                useCaseSensitiveFileNames: () => Tsc.sys.useCaseSensitiveFileNames,
-                fileExists,
-                readFile,
-                resolveModuleNames
-            };
-
-            function fileExists(fileName: string): boolean {
-                return Tsc.sys.fileExists(fileName);
-            }
-
-            function readFile(fileName: string): string | undefined {
-                return Tsc.sys.readFile(fileName);
-            }
-
-            function getSourceFile(fileName: string, languageVersion: Tsc.ScriptTarget, onError?: (message: string) => void) {
-                const sourceText = Tsc.sys.readFile(fileName);
-                return sourceText !== undefined
-                    ? Tsc.createSourceFile(fileName, sourceText, languageVersion)
-                    : undefined;
-            }
-
-            function resolveModuleNames(
-                moduleNames: string[],
-                containingFile: string
-            ): Tsc.ResolvedModule[] {
-                const resolvedModules: Tsc.ResolvedModule[] = [];
-                for (const moduleName of moduleNames) {
-                    let result = Tsc.resolveModuleName(moduleName, containingFile, options, {
-                        fileExists,
-                        readFile
-                    });
-                    if (result.resolvedModule) {
-                        // console.log(result.resolvedModule);
-                        resolvedModules.push(result.resolvedModule);
-                    } else {
-                        // check fallback locations, for simplicity assume that module at location
-                        // should be represented by '.d.ts' file
-                        /*for (const location of moduleSearchLocations) {
-                            const modulePath = Path.join(location, moduleName + ".d.ts");
-                            if (fileExists(modulePath)) {
-                                resolvedModules.push({ resolvedFileName: modulePath });
-                            }
-                        }*/
-                    }
-                }
-                return resolvedModules;
-            }
-
-        }
-
-        // Generated outputs
-        const host = createCompilerHost();
-        const options: Tsc.CompilerOptions = {
-            module: Tsc.ModuleKind.CommonJS,
-            target: Tsc.ScriptTarget.ES2016
-        };
-        let program = Tsc.createProgram([
-            path
-        ], options, host);
-
-        let emitResult = program.emit();
-
-        let out = `
-        let ${Path.basename(path).replace('.ts', '')} = (() => {
-        let module_map = [];
-        let __require = (rootDir) => {
-            return function(path) {
-                let p1 = rootDir.split('/');
-                p1.pop();
-                let p2 = path.split('/');
-                for (let i = 0; i < p2.length; i++) {
-                    if (p2[i] === '.') {
-                        p2.shift();
-                        i--;
-                    }
-                    if (p2[i] === '..') {
-                        p1.pop();
-                        p2.shift();
-                        i--;
-                    }
-                }
-                
-                let finalPath = p1.concat(p2).join('/');
-                if (!program[finalPath]) throw new Error('Module "' + path + '" not found!');
-                if (module_map.includes(finalPath)) return program[finalPath].__cache;
-                module_map.push(finalPath);
-                return program[finalPath].execute();
-            }
-        }
-        let program = {`;
-        for (let m in modules) {
-            out += `
-                '${m}': {
-                    __cache: {},
-                    execute() {
-                        let exports = this.__cache;
-                        let require = __require('${m}');
-                        ${modules[m]}
-                        return exports;
-                    }
-                },
-            `;
-        }
-        out += `}\n`;
-        out += `return program['${path.replace(/\\/g, '/').replace(/\.ts$/, '')}'].execute().default;\n`;
-        out += `})()\n`;
+        let out = await TSModuleCompiler.compileBundle(path, params);
 
         return {
             type: 'application/javascript',

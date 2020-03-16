@@ -162,7 +162,7 @@ export default class AppServer {
                                 <title>Document</title>
                             </head>
                             <body></body>
-                            <script src="index.ts"></script>
+                            <script src="index.ts?node_modules"></script>
                         </html>`);
                     }
                 } else {

@@ -20,17 +20,15 @@ export default class ShellApi {
             await this._processCommand(line);
         });
 
-        // Auth as root
+        // Auth
         this._tmpSession = await User.auth(process.env.SHELL_LOGIN, process.env.SHELL_PASSWORD);
         console.log(`You are log in as "${process.env.SHELL_LOGIN}"`);
 
+        // Run static applications
         let appDb = await Application.getApplicationDb('root');
         let apps = appDb.get('application').find({ isStatic: true });
-
-        for (let i = 0; i < apps.length; i++) {
+        for (let i = 0; i < apps.length; i++)
             await this._processCommand(`run ${apps[i].repo}`);
-            console.log();
-        }
 
         // Dummy
         this._processCommand('');
@@ -47,6 +45,19 @@ export default class ShellApi {
         let restCmd = cmdParsed.join(' ');
 
         try {
+            // Init system
+            if (mainCmd === 'init') {
+                // Install basic application
+                await Application.silentInstall(this._tmpSession, 'https://github.com/maldan/vs-auth.git');
+                await Application.silentInstall(this._tmpSession, 'https://github.com/maldan/vs-standard-wm.git');
+
+                // Set full access
+                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-auth.git', '*');
+                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-standard-wm.git', '*');
+                console.log('You need to restart virtual system to apply changes');
+            }
+
+            // Install application
             if (mainCmd === 'install') {
                 await Application.install(this._tmpSession, cmdParsed.join(' '));
             }
@@ -58,16 +69,22 @@ export default class ShellApi {
                 console.log(`${session.application.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }
+
+            // Update application
             if (mainCmd === 'update') {
                 // Update this app
                 await Application.pullUpdate(this._tmpSession, cmdParsed.join(' '));
             }
+
+            // Close application
             if (mainCmd === 'close') {
                 let session = null;
                 if (restCmd === 'last') session = this._runningApplicationList.pop();
                 if (session) Application.close(this._tmpSession, session.key);
                 else console.log('Session not found');
             }
+
+            // Remove application
             if (mainCmd === 'remove') {
                 await Application.remove(this._tmpSession, cmdParsed.join(' '));
             }
@@ -76,10 +93,14 @@ export default class ShellApi {
                 console.log('sas');
             }
 
+            // Show running applications
             if (mainCmd === 'htop') {
-                console.log(this._runningApplicationList.map(x => x.application.name + ': ' + x.key));
+                Application.runningApplications.forEach(x => {
+                    console.log(x.application.name + ': ' + x.key);
+                });
             }
 
+            // Auth as other user
             if (mainCmd === 'auth') {
                 this._tmpSession = await User.auth(cmdParsed[0], cmdParsed[1]);
                 console.log(`You logged as ${this._tmpSession.user.name}`);
@@ -88,6 +109,6 @@ export default class ShellApi {
             console.log(e.message);
         }
 
-        process.stdout.write('> ');
+        process.stdout.write(`${this._tmpSession.user.name}:~# `);
     }
 }

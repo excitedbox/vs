@@ -1,8 +1,6 @@
-// global
-// #ifdef nodejs
 import "./NumberExtender"
 import "./StringExtender"
-// #endif
+import DateHelper from "../helper/DateHelper";
 
 declare global {
     interface Date {
@@ -211,11 +209,11 @@ Date.prototype.humanDate = function () {
         return delta.intToHMS().humanTime() + ' назад';
     }
 
-    if (this.date() === DateExtender.today(-2)) return 'Позавчера в ' + this.time(true);
-    if (this.date() === DateExtender.today(-1)) return 'Вчера в ' + this.time(true);
-    if (this.date() === DateExtender.today(0)) return 'Сегодня в ' + this.time(true);
-    if (this.date() === DateExtender.today(1)) return 'Завтра в ' + this.time(true);
-    if (this.date() === DateExtender.today(2)) return 'Послезавтра в ' + this.time(true);
+    if (this.date() === DateHelper.today(-2)) return 'Позавчера в ' + this.time(true);
+    if (this.date() === DateHelper.today(-1)) return 'Вчера в ' + this.time(true);
+    if (this.date() === DateHelper.today(0)) return 'Сегодня в ' + this.time(true);
+    if (this.date() === DateHelper.today(1)) return 'Завтра в ' + this.time(true);
+    if (this.date() === DateHelper.today(2)) return 'Послезавтра в ' + this.time(true);
 
     return this.format();
 };
@@ -229,18 +227,3 @@ Date.prototype.readableDate = function () {
 Date.prototype.getTimeWithTimezoneOffset = function () {
     return this.getTime() + (this.getTimezoneOffset() * 60000);
 };
-
-export default class DateExtender {
-    static today(offsetDay) {
-        let today = new Date();
-        today.setDate(today.getDate() + ~~offsetDay);
-        let dd: any = today.getDate();
-        let mm: any = today.getMonth() + 1;
-        let yyyy = today.getFullYear();
-
-        if (dd < 10) dd = '0' + dd;
-        if (mm < 10) mm = '0' + mm;
-
-        return [yyyy, mm, dd].join('-');
-    }
-}

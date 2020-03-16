@@ -187,7 +187,9 @@ export default class Application {
 
         // Clone and fetch repo
         try {
+            console.log(`git clone "${repo}"`);
             await Exec(`git clone "${repo}" "${finalAppPath}"`);
+            console.log(`git fetch`);
             await Exec(`cd ${finalAppPath} && git fetch && git fetch --tags`);
         } catch {
             await RemoveFolder(finalAppPath);
@@ -222,9 +224,11 @@ export default class Application {
         // Save application to db
         let appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').push(appInfo).write();
+        console.log('application saved to db');
 
         // Create data folder
         await MkDir(`${session.user.dataDir}/${folderName}`, {recursive: true});
+        console.log('data folder created');
     }
 
     /**
@@ -362,6 +366,7 @@ export default class Application {
         // Update db
         let appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').update({access: app.access}, {repo: app.repo}).write();
+        console.log(`set privileges "${access}" for app ${app.repo}`);
     }
 
     /**
