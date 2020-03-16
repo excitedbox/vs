@@ -41,6 +41,12 @@ class JsonTable {
             for (let key in query) {
                 if (!query.hasOwnProperty(key)) continue;
 
+                // Date test, check if date (without time) is matching
+                if (query[key] instanceof Date) {
+                    let d = new Date(this._collection[i][key]);
+                    if (d.toDateString() === query[key].toDateString()) continue;
+                }
+
                 // Regexp test
                 if (query[key] instanceof RegExp && query[key].test(this._collection[i][key])) continue;
 
@@ -51,7 +57,7 @@ class JsonTable {
                 break;
             }
             if (allMatch) {
-                result.push(this._collection[i]);
+                result.push(Object.assign({}, this._collection[i]));
                 if (maxAmount-- <= 0) break;
             }
         }

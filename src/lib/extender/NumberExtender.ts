@@ -55,7 +55,7 @@ Number.prototype.toDate = function () {
 };
 
 Number.prototype.intToHM = function () {
-    let sec_num = Math.abs(this);
+    let sec_num = Math.abs(~~this);
     let hours: any = Math.floor(sec_num / 3600);
     let minutes: any = Math.floor((sec_num - (hours * 3600)) / 60);
 
@@ -66,7 +66,7 @@ Number.prototype.intToHM = function () {
 };
 
 Number.prototype.intToHMS = function () {
-    let sec_num = Math.abs(this);
+    let sec_num = Math.abs(~~this);
     let hours: any = Math.floor(sec_num / 3600);
     let minutes: any = Math.floor((sec_num - (hours * 3600)) / 60);
     let sec: any = sec_num % 60;
@@ -79,7 +79,7 @@ Number.prototype.intToHMS = function () {
 };
 
 Number.prototype.intToHMSM = function () {
-    let sec_num = Math.abs(this);
+    let sec_num = Math.abs(~~this);
     let hours: any = ~~(sec_num / 1000 / 3600) % 24;
     let minutes: any = ~~(sec_num / 1000 / 60) % 60;
     let sec: any = ~~(sec_num / 1000) % 60;

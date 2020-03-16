@@ -98,7 +98,7 @@ declare global {
         /**
          * Get current time with time zone offset
          */
-        getTimeWithTimezoneOffset(): number;
+        //getTimeWithTimezoneOffset(): number;
     }
 }
 
@@ -110,7 +110,7 @@ Date.prototype.startOfWeek = function (offset: number = 0) {
 
 Date.prototype.startOfMonth = function (offset: number = 0) {
     let d = new Date(this);
-    d.setUTCDate(1 + offset);
+    d.setDate(1 + offset);
     return d;
 };
 
@@ -124,7 +124,7 @@ Date.prototype.getMonthRange = function () {
     let out = [];
     for (let i = 0; i < 32; i++) {
         let d = new Date(this);
-        d.setUTCDate(1 + i);
+        d.setDate(1 + i);
         if (d.getMonth() !== this.getMonth()) break;
         out.push(d);
     }
@@ -143,24 +143,25 @@ Date.prototype.dayName = function () {
 
 Date.prototype.start = function () {
     let d = new Date(this);
-    d.setUTCHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
     return d;
 };
 
 Date.prototype.end = function () {
     let d = new Date(this);
-    d.setUTCHours(23, 59, 59, 999);
+    d.setHours(23, 59, 59, 999);
     return d;
 };
 
 Date.prototype.offset = function (offsetDay: number = 0) {
-    let today = new Date();
-    today.setDate(today.getDate() + ~~offsetDay);
-    return today;
+    let date = new Date(this);
+    date.setDate(date.getDate() + ~~offsetDay);
+    return date;
 };
 
 Date.prototype.secondsFromStartOfDay = function () {
     return (this.getTime() - this.start().getTime()) / 1000 | 0;
+    // return withTimeZoneOffset ? (x - new Date().getTimezoneOffset() * 60) : x;
 };
 
 Date.prototype.date = function (isDMY: boolean = false) {
@@ -190,9 +191,9 @@ Date.prototype.toYMD = function () {
 
 Date.prototype.getWeek = function () {
     let d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
-    let dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    let yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    let dayNum = d.getDay() || 7;
+    d.setDate(d.getDate() + 4 - dayNum);
+    let yearStart = new Date(Date.UTC(d.getFullYear(), 0, 1));
     return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 };
 
@@ -224,6 +225,9 @@ Date.prototype.readableDate = function () {
     return day[this.getDay() - 1] + ' ' + ('0' + this.getDate()).slice(-2) + ' ' + month[this.getMonth()] + ' ' + this.getFullYear();
 };
 
-Date.prototype.getTimeWithTimezoneOffset = function () {
-    return this.getTime() + (this.getTimezoneOffset() * 60000);
-};
+/*Date.prototype.getTimeWithTimezoneOffset = function () {
+    return this.getTime() - (this.getTimezoneOffset() * 60000);
+};*/
+
+export default class DateExtender {
+}

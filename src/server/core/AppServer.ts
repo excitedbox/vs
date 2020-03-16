@@ -161,7 +161,7 @@ export default class AppServer {
                                 <meta http-equiv="X-UA-Compatible" content="ie=edge">
                                 <title>Document</title>
                             </head>
-                            <body></body>
+                            <body class="scroll-mini"></body>
                             <script src="index.ts?node_modules"></script>
                         </html>`);
                     }
