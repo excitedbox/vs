@@ -22,8 +22,9 @@ class JsonTable {
      * Find records in table
      * @param query
      * @param limit
+     * @param isCopyOfData
      */
-    find(query: any = {}, limit: number = 0) {
+    find(query: any = {}, limit: number = 0, isCopyOfData: boolean = true) {
         // If or query, for example [{ id: 1 }, { id: 2 }] means find id = 1 or id = 2
         if (Array.isArray(query)) {
             let orResult = [];
@@ -44,7 +45,10 @@ class JsonTable {
                 // Date test, check if date (without time) is matching
                 if (query[key] instanceof Date) {
                     let d = new Date(this._collection[i][key]);
-                    if (d.toDateString() === query[key].toDateString()) continue;
+                    // if (d.toDateString() === query[key].toDateString()) continue;
+                    if (d.getDay() === query[key].getDay()
+                    && d.getMonth() === query[key].getMonth()
+                    && d.getFullYear() === query[key].getFullYear()) continue;
                 }
 
                 // Regexp test
@@ -57,7 +61,8 @@ class JsonTable {
                 break;
             }
             if (allMatch) {
-                result.push(Object.assign({}, this._collection[i]));
+                if (isCopyOfData) result.push(Object.assign({}, this._collection[i]));
+                else result.push(this._collection[i]);
                 if (maxAmount-- <= 0) break;
             }
         }
@@ -88,7 +93,7 @@ class JsonTable {
      * @param query
      */
     remove(query: any = {}) {
-        let results = this.find(query);
+        let results = this.find(query, 0, false);
         for (let i = 0; i < results.length; i++)
             this._collection.splice(this._collection.indexOf(results[i]), 1);
         return this;
@@ -100,9 +105,10 @@ class JsonTable {
      * @param query
      */
     update(setData: any, query: any = {}) {
-        let found = this.find(query);
+        let found = this.find(query, 0, false);
         let indexArray = found.map(x => this._collection.indexOf(x));
         indexArray.forEach(x => {
+            if (x < 0) return;
             this._collection[x] = Object.assign(this._collection[x], setData);
         });
         return this;

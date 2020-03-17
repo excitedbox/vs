@@ -64,6 +64,8 @@ declare global {
          */
         date(isDMY?: boolean): string;
 
+        jsonDate(): string;
+
         /**
          * Get current time without date
          * @param isShort
@@ -172,6 +174,10 @@ Date.prototype.date = function (isDMY: boolean = false) {
 Date.prototype.time = function (isShort: boolean = false) {
     if (isShort) return ('0' + this.getHours()).slice(-2) + ':' + ('0' + this.getMinutes()).slice(-2);
     return ('0' + this.getHours()).slice(-2) + ':' + ('0' + this.getMinutes()).slice(-2) + ':' + ('0' + this.getSeconds()).slice(-2);
+};
+
+Date.prototype.jsonDate = function() {
+    return JSON.stringify(this).replace(/"/g, '');
 };
 
 Date.prototype.toYMD = function () {

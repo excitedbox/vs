@@ -34,7 +34,7 @@ let __MODULE__NAME__ = (() => {
     };
 
     let program = {
-        // __MODULE__BUNDLE__
+        /** __MODULE__BUNDLE__ */
     };
 
     return program['__MODULE__PATH'].execute().default;

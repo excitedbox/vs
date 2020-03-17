@@ -85,23 +85,21 @@ declare global {
 
 String.prototype.toDate = function () {
     let date = this;
-    if (date.indexOf(' ') !== -1) date = date.replace(' ', 'T');
-
     let d;
-    if (date.indexOf('T') !== -1) {
-        d = new Date(date);
-    } else {
-        let t = date.split('-');
-        if (t.length === 1) t = date.split('.');
+    if (date.indexOf(' ') !== -1) date = date.replace(' ', 'T');
+    if (date.indexOf('T') !== -1) d = new Date(date);
 
-        if (t[2] * 1 > 1000)
-            d = new Date(Date.UTC(t[2] * 1, t[1] * 1 - 1, t[0] * 1));
-        else
-            d = new Date(Date.UTC(t[0] * 1, t[1] * 1 - 1, t[2] * 1));
+    if (isNaN(d.getTime())) return null;
 
-        d.setUTCHours(0, 0, 0, 0);
-    }
+    /*let t = date.split('-');
+    if (t.length === 1) t = date.split('.');
 
+    if (t[2] * 1 > 1000)
+        d = new Date(Date.UTC(t[2] * 1, t[1] * 1 - 1, t[0] * 1));
+    else
+        d = new Date(Date.UTC(t[0] * 1, t[1] * 1 - 1, t[2] * 1));
+
+    d.setHours(0, 0, 0, 0);*/
     return d;
 };
 

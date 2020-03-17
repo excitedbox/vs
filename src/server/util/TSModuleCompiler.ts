@@ -133,10 +133,9 @@ export default class TSModuleCompiler {
 
         // Load template and change
         let out = await ReadFile('./src/server/util/node/module.template.ts', 'utf-8');
-        out = out
-            .replace('__MODULE__NAME__', Path.basename(path).replace('.ts', ''))
-            .replace('// __MODULE__BUNDLE__', bundle)
-            .replace('__MODULE__PATH', path.replace(/\\/g, '/').replace(/\.ts$/, ''));
+        out = out.replace('__MODULE__NAME__', Path.basename(path).replace('.ts', ''));
+        out = out.replace('__MODULE__PATH', path.replace(/\\/g, '/').replace(/\.ts$/, ''));
+        out = out.replace("/** __MODULE__BUNDLE__ */", () => bundle);
 
         return out;
     }
