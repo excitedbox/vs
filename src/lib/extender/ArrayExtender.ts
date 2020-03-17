@@ -46,6 +46,8 @@ declare global {
          * Remove non unique values from array
          */
         unique(field: string): Array<T>;
+
+        intersection(arr: Array<T>): Array<T>;
     }
 
     interface Uint8Array {
@@ -138,6 +140,17 @@ Array.prototype.unique = function (field) {
     return this.filter(function (value, index, self) {
         return self.indexOf(value) === index;
     });
+};
+
+Array.prototype.intersection = function(arr: Array<any>) {
+    let out = [];
+    let maxArr = this.length > arr.length ?this: arr;
+    let minArr = this.length > arr.length ?arr: this;
+
+    for (let i = 0; i < maxArr.length; i++)
+        if (minArr.includes(maxArr[i])) out.push(maxArr[i]);
+
+    return out;
 };
 
 Uint8Array.prototype.toBase64 = function () {

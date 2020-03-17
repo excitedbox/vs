@@ -26,6 +26,8 @@ declare global {
          */
         getMonthRange(): Array<Date>;
 
+        getYearRange(): Array<Date>;
+
         /**
          * Add hours to current date
          * @param h
@@ -50,8 +52,10 @@ declare global {
         /**
          * Offset current date with days
          * @param offsetDay
+         * @param offsetMonth
+         * @param offsetYear
          */
-        offset(offsetDay?: number): Date;
+        offset(offsetDay?: number, offsetMonth?: number, offsetYear?: number): Date;
 
         /**
          * Offset current date with days
@@ -134,6 +138,19 @@ Date.prototype.getMonthRange = function () {
     return out;
 };
 
+Date.prototype.getYearRange = function () {
+    let out = [];
+    for (let i = 0; i < 12; i++) {
+        let d = new Date(this);
+        d.setDate(1);
+        d.setMonth(i);
+        d.setHours(0, 0, 0, 0);
+        out.push(d);
+    }
+
+    return out;
+};
+
 Date.prototype.addHours = function (h: number = 0) {
     this.setTime(this.getTime() + (h * 60 * 60 * 1000));
     return this;
@@ -155,9 +172,11 @@ Date.prototype.end = function () {
     return d;
 };
 
-Date.prototype.offset = function (offsetDay: number = 0) {
+Date.prototype.offset = function (offsetDay: number = 0, offsetMonth: number = 0, offsetYear?: number) {
     let date = new Date(this);
     date.setDate(date.getDate() + ~~offsetDay);
+    date.setMonth(date.getMonth() + ~~offsetMonth);
+    date.setFullYear(date.getFullYear() + ~~offsetYear);
     return date;
 };
 

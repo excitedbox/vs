@@ -1,5 +1,6 @@
 import * as Chai from 'chai';
 import "../src/lib/extender/StringExtender";
+import "../src/lib/extender/ArrayExtender";
 
 describe('Base', function () {
     it('string extender', async function () {
@@ -39,5 +40,10 @@ describe('Base', function () {
         Chai.expect('hello world'.maxCharsMatch('hell')).eq(4);
         Chai.expect('hello world'.maxCharsMatch('he')).eq(2);
         Chai.expect('hello world'.maxCharsMatch('abcd')).eq(0);
+    });
+
+    it('array extender', async function () {
+        Chai.expect(JSON.stringify([1, 2, 3, 4].intersection([6, 2]))).eq(JSON.stringify([2]));
+        Chai.expect(JSON.stringify([6, 2].intersection([1, 2, 3, 4]))).eq(JSON.stringify([2]));
     });
 });
