@@ -45,15 +45,18 @@ declare global {
         /**
          * Remove non unique values from array
          */
-        unique(field: string): Array<T>;
+        unique(field?: string): Array<T>;
 
         intersection(arr: Array<T>): Array<T>;
     }
 
     interface Uint8Array {
         toBase64(): string;
+
         append(v: Uint8Array): Uint8Array;
+
         prepend(v: Uint8Array): Uint8Array;
+
         toUTF8(): string;
     }
 }
@@ -121,7 +124,7 @@ Array.prototype.clone = function () {
     return [].concat(this);
 };
 
-Array.prototype.unique = function (field) {
+Array.prototype.unique = function (field: string = null) {
     if (field) {
         let out = [];
         for (let i = 0; i < this.length; i++) {
@@ -142,10 +145,10 @@ Array.prototype.unique = function (field) {
     });
 };
 
-Array.prototype.intersection = function(arr: Array<any>) {
+Array.prototype.intersection = function (arr: Array<any>) {
     let out = [];
-    let maxArr = this.length > arr.length ?this: arr;
-    let minArr = this.length > arr.length ?arr: this;
+    let maxArr = this.length > arr.length ? this : arr;
+    let minArr = this.length > arr.length ? arr : this;
 
     for (let i = 0; i < maxArr.length; i++)
         if (minArr.includes(maxArr[i])) out.push(maxArr[i]);

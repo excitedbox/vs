@@ -75,7 +75,7 @@ export default class StdDrive implements IDrive {
             return {
                 name: x,
                 path: (this.args.sourcePath + '/' + x).replace(/\/\//g, '/'),
-                isDir: stat.isDirectory(),
+                isDir: stat.isDirectory() || stat.isSymbolicLink(),
                 size: Fs.statSync(this.path + '/' + x)['size'],
                 created: Fs.statSync(this.path + '/' + x)['birthtime']
             }

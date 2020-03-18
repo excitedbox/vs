@@ -4,7 +4,7 @@ declare global {
         toJPEG();
     }
 
-    interface HTMLElement {
+    interface Element {
         on(eventList, fn, params?);
         off(eventList, fn);
         setDraggable();
@@ -16,7 +16,7 @@ declare global {
     }
 }
 
-Document.prototype.on = HTMLElement.prototype.on = function (eventList, fn, params?) {
+Document.prototype.on = Element.prototype.on = function (eventList, fn, params?) {
     let list = eventList.split(' ');
     for (let i = 0; i < list.length; i++) {
         if (list[i] === `hold`) {
@@ -35,7 +35,7 @@ Document.prototype.on = HTMLElement.prototype.on = function (eventList, fn, para
     return fn;
 };
 
-Document.prototype.off = HTMLElement.prototype.off = function (eventList, fn) {
+Document.prototype.off = Element.prototype.off = function (eventList, fn) {
     let list = eventList.split(' ');
     for (let i = 0; i < list.length; i++)
         this.removeEventListener(list[i], fn);

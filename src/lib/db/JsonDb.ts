@@ -4,6 +4,26 @@ import * as Util from "util";
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
 
+class JsonTableComparator {
+    static compare(a: any, b: any, operator: string = '==='): boolean {
+        switch (operator) {
+            case '==':
+                return a == b;
+            case '===':
+                return a === b;
+            case '>':
+                return a > b;
+            case '<':
+                return a < b;
+            case '>=':
+                return a >= b;
+            case '<=':
+                return a <= b;
+        }
+        return false;
+    }
+}
+
 /**
  * JsonTable is just an array of records with methods
  */
@@ -66,31 +86,57 @@ class JsonTable {
         for (let key in query) {
             if (!query.hasOwnProperty(key)) continue;
 
+            // Detect operators
+            let operator = '===';
+            let collectionKey = key;
+            if (key.includes('>=')) {
+                operator = '>=';
+                collectionKey = key.replace('>=', '').trim();
+            } else
+            if (key.includes('<=')) {
+                operator = '<=';
+                collectionKey = key.replace('<=', '').trim();
+            } else
+            if (key.includes('>')) {
+                operator = '>';
+                collectionKey = key.replace('>', '').trim();
+            } else
+            if (key.includes('<')) {
+                operator = '<';
+                collectionKey = key.replace('<', '').trim();
+            }
+
             // Go through all records from collection
             for (let i = 0; i < collection.length; i++) {
                 if (skipRecord[i] === 1) continue;
-                // if (this._collection[i][skipRecord]) continue;
 
                 // Date test, check if date (without time) is matching
-                if (query[key] instanceof Date && collection[i][key] instanceof Date) {
-                    let d = collection[i][key];
+                if (query[key] instanceof Date && collection[i][collectionKey] instanceof Date) {
+                    let d = collection[i][collectionKey];
 
-                    if ((d.getDay() === query[key].getDay()
-                        && d.getMonth() === query[key].getMonth()
-                        && d.getFullYear() === query[key].getFullYear())) {
-                        counter[i]++;
-                        continue;
+                    if (operator !== '===') {
+                        if (JsonTableComparator.compare(d.getTime(), query[key].getTime(), operator)) {
+                            counter[i]++;
+                        }
+                    } else {
+                        if ((d.getDay() === query[key].getDay()
+                            && d.getMonth() === query[key].getMonth()
+                            && d.getFullYear() === query[key].getFullYear())) {
+                            counter[i]++;
+                        }
                     }
+
+                    continue;
                 }
 
                 // Regexp test
-                if (query[key] instanceof RegExp && query[key].test(collection[i][key])) {
-                    counter[i]++;
+                if (query[key] instanceof RegExp) {
+                    if (query[key].test(collection[i][collectionKey])) counter[i]++;
                     continue;
                 }
 
                 // Other matching
-                if (collection[i][key] === query[key]) {
+                if (JsonTableComparator.compare(query[key], collection[i][collectionKey], operator)) {
                     counter[i]++;
                     continue;
                 }
@@ -105,45 +151,7 @@ class JsonTable {
                 else result.push(collection[i]);
                 if (maxAmount-- <= 0) break;
             }
-            /*if (this._collection[i][counterIndex] === fieldAmount) {
-                delete this._collection[i][counterIndex];
-                if (isCopyOfData) result.push(Object.assign({}, this._collection[i]));
-                else result.push(this._collection[i]);
-                if (maxAmount-- <= 0) break;
-            } else delete this._collection[i][counterIndex];*/
         }
-
-        /*for (let i = 0; i < this._collection.length; i++) {
-            let allMatch = true;
-            for (let key in query) {
-                if (!query.hasOwnProperty(key)) continue;
-
-                // Date test, check if date (without time) is matching
-                if (query[key] instanceof Date && this._collection[i][key] instanceof Date) {
-                    let d = this._collection[i][key];
-
-                    if (d.getDay() === query[key].getDay()
-                    && d.getMonth() === query[key].getMonth()
-                    && d.getFullYear() === query[key].getFullYear()) {
-                        continue;
-                    }
-                }
-
-                // Regexp test
-                if (query[key] instanceof RegExp && query[key].test(this._collection[i][key])) continue;
-
-                // Other matching
-                if (this._collection[i][key] === query[key]) continue;
-
-                allMatch = false;
-                break;
-            }
-            if (allMatch) {
-                if (isCopyOfData) result.push(Object.assign({}, this._collection[i]));
-                else result.push(this._collection[i]);
-                if (maxAmount-- <= 0) break;
-            }
-        }*/
 
         return result;
     }

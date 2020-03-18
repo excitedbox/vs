@@ -1,5 +1,6 @@
 import * as Chai from 'chai';
 import JsonDb from "../src/lib/db/JsonDb";
+import "../src/lib/extender/DateExtender";
 
 describe('JsonDB', function () {
     it('basic', async function () {
@@ -29,5 +30,22 @@ describe('JsonDB', function () {
         let s = table.find([{id: 1}, {id: 5}]);
         Chai.expect(s[0]).to.have.property('id', 1);
         Chai.expect(s[1]).to.have.property('id', 5);
+    });
+
+    it('condition', async function () {
+        let db = await JsonDb.db(null, {sas: []});
+        let table = db.get('sas');
+
+        table.push({ title: 'one', created: new Date() });
+        table.push({ title: 'prev', created: new Date().offset(-2) });
+        table.push({ title: 'next', created: new Date().offset(2) });
+
+        Chai.expect(table.find({created: new Date()})).to.have.property('length', 1);
+        Chai.expect(table.findOne({created: new Date()})).to.have.property('title', 'one');
+
+        Chai.expect(table.find({'created >': new Date()})).to.have.property('length', 1);
+        Chai.expect(table.findOne({'created >': new Date()})).to.have.property('title', 'next');
+
+        Chai.expect(table.find({'created >=': new Date()})).to.have.property('length', 1);
     });
 });
