@@ -46,6 +46,7 @@ export default class Application {
         'commitList': 'json',
         'find': 'json',
         'currentCommit': 'json',
+        'updatePrivileges': 'json'
     };
 
     /**
@@ -356,12 +357,20 @@ export default class Application {
      * @param query
      * @param access
      */
-    static async updatePrivileges(session: Session, query: string, access: string) {
+    static async updatePrivileges(session: Session, query: string, access: Array<string>) {
+        // Check access to run application
+        if (session.isApplicationLevel && !session.checkAccess('set-access'))
+            throw new Error(`Application doesn't allow setting access to other applications`);
+
         // Find app by repo
         let app = await Application.find(session, query);
 
         // Set new access
-        app.access = access.split(',');
+        app.access = access.filter(x => [
+            '*', 'root', 'root-readonly', 'data',
+            'user', 'user-readonly', 'run-application',
+            'set-access'
+        ].includes(x));
 
         // Update db
         let appDb = await Application.getApplicationDb(session.user.name);

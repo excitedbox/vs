@@ -25,7 +25,7 @@ export default class FileConverter {
         if (extension === '.vue') return await this.convertVue(path, params);
         if (extension === '.png' || extension === '.gif' || extension === '.jpeg' || extension === '.jpg')
             return await this.convertImage(path, params);
-        if (extension === '.mp4' && (params.frame || params.time || params.offset))
+        if ((extension === '.mp4' || extension === '.mkv') && (params.frame || params.time || params.offset))
             return await this.getVideoThumbnail(path, params);
         return false;
     }

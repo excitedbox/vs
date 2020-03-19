@@ -52,8 +52,8 @@ export default class ShellApi {
                 await Application.silentInstall(this._tmpSession, 'https://github.com/maldan/vs-standard-wm.git');
 
                 // Set full access
-                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-auth.git', '*');
-                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-standard-wm.git', '*');
+                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-auth.git', ['*']);
+                await Application.updatePrivileges(this._tmpSession, 'https://github.com/maldan/vs-standard-wm.git', ['*']);
                 console.log('You need to restart virtual system to apply changes');
             }
 

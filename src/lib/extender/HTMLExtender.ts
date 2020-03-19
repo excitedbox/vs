@@ -5,16 +5,39 @@ declare global {
     }
 
     interface Element {
+        once(eventList, fn, params?);
+
         on(eventList, fn, params?);
+
         off(eventList, fn);
+
         setDraggable();
     }
 
     interface Document {
+        once(eventList, fn, params?);
+
         on(eventList, fn, params?);
+
         off(eventList, fn);
     }
 }
+
+let __onceCheckMap: Map<any, Array<string>> = new Map<any, Array<string>>();
+
+Document.prototype.once = Element.prototype.once = function (eventList, fn, params?) {
+    if (!__onceCheckMap.has(this)) __onceCheckMap.set(this, []);
+    eventList = eventList.split(' ');
+
+    for (let i = 0; i < eventList.length; i++) {
+        // Check if event already exists
+        if (__onceCheckMap.get(this).includes(eventList[i])) continue;
+        __onceCheckMap.get(this).push(eventList[i]);
+
+        // Add event once
+        this.on(eventList[i], fn, params);
+    }
+};
 
 Document.prototype.on = Element.prototype.on = function (eventList, fn, params?) {
     let list = eventList.split(' ');

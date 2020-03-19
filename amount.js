@@ -5,7 +5,7 @@ const Fs = require('fs');
     let c = [
         ...await RecursiveReaddir('./src'),
         // ...await RecursiveReaddir('./resource'),
-        // ...await RecursiveReaddir('./user/root/bin/github.com/maldan/vs-time-tracker'),
+        ...await RecursiveReaddir('./user/root/bin/github.com/maldan'),
     ].filter(x => {
         // if (!x.match(/draw-studio/)) return false;
         //if (x.match(/vue\.js/) || x.match(/vue\.prod\.js/) || x.match(/\.min\.js/)) return false;

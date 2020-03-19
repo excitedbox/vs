@@ -1,12 +1,10 @@
-import User from "../user/User";
-import Session from "../user/Session";
 import Helper from "../system/Helper";
 import Application from "../app/Application";
 
 export default class BaseServerApi {
     private static async requestLogic(classList: any, req, res) {
         try {
-            let finalParams = Object.assign(req.query, req.body, req.files);
+            let finalParams = Object.assign(req.query, req.body, req.fields, req.files);
 
             // Get user from db by session key
             let subdomainKey = req.headers.host.split('.')[0];

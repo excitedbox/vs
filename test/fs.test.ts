@@ -39,7 +39,7 @@ describe('Base', function () {
         await Application.silentInstall(session, 'http://maldan.ru:3569/root/test-app.git');
 
         // Grant privileges
-        await Application.updatePrivileges(session, 'http://maldan.ru:3569/root/test-app.git', 'data');
+        await Application.updatePrivileges(session, 'http://maldan.ru:3569/root/test-app.git', ['data']);
 
         // Run
         appSession = await Application.run(session, 'http://maldan.ru:3569/root/test-app.git');

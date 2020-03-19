@@ -48,6 +48,8 @@ declare global {
         unique(field?: string): Array<T>;
 
         intersection(arr: Array<T>): Array<T>;
+
+        remove(value: any): boolean;
     }
 
     interface Uint8Array {
@@ -143,6 +145,15 @@ Array.prototype.unique = function (field: string = null) {
     return this.filter(function (value, index, self) {
         return self.indexOf(value) === index;
     });
+};
+
+Array.prototype.remove = function (value: any): boolean {
+    let index = this.indexOf(value);
+    if (index !== -1) {
+        this.splice(index, 1);
+        return true;
+    }
+    return false;
 };
 
 Array.prototype.intersection = function (arr: Array<any>) {

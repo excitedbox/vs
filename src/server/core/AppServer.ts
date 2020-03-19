@@ -151,7 +151,7 @@ export default class AppServer {
                         res.setHeader('Content-Type', drive.contentType);
                         res.send(fileData);
                     } else {
-                        // Inject html for index.ts
+                        // Inject a html for an index.ts
                         res.setHeader('Content-Type', 'text/html');
                         res.send(`<!doctype html>
                             <html lang="en">
@@ -174,6 +174,9 @@ export default class AppServer {
                         res.sendFile(drive.path);
                     } else {
                         let fileData = await drive.readFile();
+                        if (drive.contentType.match('image/')) {
+                            res.setHeader('Cache-Control', 60);
+                        }
                         res.setHeader('Content-Type', drive.contentType);
                         res.send(fileData);
                     }
