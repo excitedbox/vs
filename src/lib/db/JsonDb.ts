@@ -176,6 +176,14 @@ class JsonTable {
         return this;
     }
 
+    pushOrUpdate(setData: any, query: any = {}) {
+        // If there is at least one record
+        if (this.findOne(query)) {
+            this.update(setData, query);
+        } else this.push(setData);
+        return this;
+    }
+
     /**
      * Remove data from the table
      * @param query
