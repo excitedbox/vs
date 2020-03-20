@@ -192,6 +192,7 @@ class JsonTable {
         let results = this.find(query, 0, false);
         for (let i = 0; i < results.length; i++)
             this._collection.splice(this._collection.indexOf(results[i]), 1);
+        this.calculateIndex();
         return this;
     }
 
@@ -299,10 +300,17 @@ export default class JsonDb {
     /**
      * Get table from DB
      * @param table
+     * @param createIfNotExists
      */
-    get(table: string): JsonTable {
-        if (!this._json[table] || !Array.isArray(this._json[table]))
-            throw new Error(`Table "${table}" not found in "${this._path}" db!`);
+    get(table: string, createIfNotExists: boolean = false): JsonTable {
+        if (!this._json[table] || !Array.isArray(this._json[table])) {
+            if (createIfNotExists) {
+                this._json[table] = [];
+                this._json.$sys[table] = {lastId: 1};
+            } else {
+                throw new Error(`Table "${table}" not found in "${this._path}" db!`);
+            }
+        }
 
         if (this._tableCache[table]) return this._tableCache[table];
         this._tableCache[table] = new JsonTable(this, this._json.$sys[table], this._json[table]);

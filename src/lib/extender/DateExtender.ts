@@ -132,8 +132,10 @@ Date.prototype.getMonthRange = function () {
         let d = new Date(this);
         d.setDate(1 + i);
         if (d.getMonth() !== this.getMonth()) break;
+        d.setHours(0, 0, 0, 0);
         out.push(d);
     }
+
 
     return out;
 };

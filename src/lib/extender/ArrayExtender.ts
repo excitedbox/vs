@@ -30,7 +30,7 @@ declare global {
         /**
          * Sort array by specific field
          */
-        sortBy(field: string, isReverse: boolean): Array<T>;
+        sortBy(field: string, isReverse?: boolean): Array<T>;
 
         /**
          * Cut off array if it more than specified length
@@ -109,11 +109,12 @@ Array.prototype.clean = function (deleteValue: any) {
     return this;
 };
 
-Array.prototype.sortBy = function (field: string, isReverse: boolean) {
+Array.prototype.sortBy = function (field: string, isReverse: boolean = false) {
     this.sort(function (a, b) {
-        if (isReverse) return (a[field] > b[field]) ? -1 : ((b[field] > a[field]) ? 1 : 0);
+        if (typeof a[field] === "string") return a[field].localeCompare(b[field]);
         return (a[field] > b[field]) ? 1 : ((b[field] > a[field]) ? -1 : 0);
     });
+    if (isReverse) return this.reverse();
     return this;
 };
 
