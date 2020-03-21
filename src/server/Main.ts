@@ -1,5 +1,4 @@
 import * as Fs from 'fs';
-import * as CopyDir from 'copy-dir';
 import AppServer from "./core/AppServer";
 import EntryServer from "./core/EntryServer";
 import ShellApi from "./system/ShellApi";
@@ -10,7 +9,7 @@ import "../lib/extender/NumberExtender";
 import "../lib/extender/StringExtender";
 
 export default class Main {
-    static async run(isDebug: boolean = false) {
+    static async run(isDebug = false): Promise<void> {
         // Import .env config
         require('dotenv').config();
 
@@ -30,7 +29,7 @@ export default class Main {
         await ShellApi.run();
     }
 
-    static async stop() {
+    static async stop(): Promise<void> {
         Application.runningApplications.forEach(x => {
             Service.stop(x);
         });
@@ -46,10 +45,9 @@ export default class Main {
      * Init default files and directories. When you run server for the first time
      * it will create default files, config, directories and other stuff for server work.
      */
-    static defaultInit() {
+    static defaultInit(): void {
         ['root', 'test'].forEach(x => {
             // Create default folders
-            // Fs.mkdirSync('./static', {recursive: true});
             Fs.mkdirSync('./logs', {recursive: true});
             Fs.mkdirSync('./bin/lib', {recursive: true});
             Fs.mkdirSync('./bin/public', {recursive: true});
@@ -80,6 +78,3 @@ export default class Main {
         }
     }
 }
-
-// Start server
-// Main.run();
