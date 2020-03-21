@@ -8,7 +8,7 @@ import Service from "../app/Service";
 export default class ShellApi {
     private static _tmpSession: Session;
     private static _runningApplicationList: Array<Session> = [];
-    private static _lineReader:any;
+    private static _lineReader: any;
 
     static async run() {
         // Listen command line
@@ -26,7 +26,7 @@ export default class ShellApi {
 
         // Run static applications
         let appDb = await Application.getApplicationDb('root');
-        let apps = appDb.get('application').find({ isStatic: true });
+        let apps = appDb.get('application').find({isStatic: true});
         for (let i = 0; i < apps.length; i++)
             await this._processCommand(`run ${apps[i].repo}`);
 
@@ -64,7 +64,7 @@ export default class ShellApi {
 
             // Run application
             if (mainCmd === 'run' || mainCmd === 'open') {
-                let session = await Application.run(this._tmpSession,  cmdParsed.join(' '));
+                let session = await Application.run(this._tmpSession, cmdParsed.join(' '));
                 if (mainCmd === 'open') Opn(`http://${session.key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/index.html`);
                 console.log(`${session.application.name}: ${session.key}`);
                 this._runningApplicationList.push(session);

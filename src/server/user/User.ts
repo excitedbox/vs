@@ -1,7 +1,8 @@
 import JsonDb from "../../lib/db/JsonDb";
-import Helper from "../system/Helper";
 import AuthenticationError from "../error/AuthenticationError";
 import Session from "./Session";
+import SHA256 from "../../lib/crypto/SHA256";
+import StringHelper from "../../lib/helper/StringHelper";
 
 export default class User {
     public id: number;
@@ -11,29 +12,29 @@ export default class User {
     /**
      * Response types for http server for each method. Method forbidden to call if it's not listed here.
      */
-    public static readonly methodResponseType: any = {
+    public static readonly methodResponseType: {} = {
         'auth': 'session'
     };
 
-    constructor({ id, name, defaultApp }) {
+    constructor({id, name, defaultApp}) {
         this.id = id;
         this.name = name;
         this.defaultApp = defaultApp;
     }
 
-    get homeDir() {
+    get homeDir(): string {
         return `./user/${this.name}`;
     }
 
-    get appDir() {
+    get appDir(): string {
         return `./user/${this.name}/bin`;
     }
 
-    get dataDir() {
+    get dataDir(): string {
         return `./user/${this.name}/data`;
     }
 
-    get docsDir() {
+    get docsDir(): string {
         return `./user/${this.name}/docs`;
     }
 
@@ -44,49 +45,27 @@ export default class User {
      */
     static async auth(name: string, password: string): Promise<Session> {
         // Get user and session data bases
-        let userDb = await User.getUserDb(); //, sessionDb = await User.getSessionDb();
+        const userDb = await User.getUserDb(); //, sessionDb = await User.getSessionDb();
 
         // Find user with this login and password
-        let user = userDb.get('user').findOne({name, password});
+        const user = userDb.get('user').findOne({
+            name,
+            password: SHA256.encode(password)
+        });
 
         // If ok
         if (user) {
-            let sessionKey = Helper.randomKey;
+            const sessionKey = StringHelper.generateRandomKey();
 
             // Save session to session data base
-            // await sessionDb.get('session').push({userId: user.id, key: sessionKey}).write();
             return new Session(sessionKey, new User(user));
         } else {
             // Incorrect auth
-            // return false;
             throw new AuthenticationError('Incorrect a login or password');
         }
     }
 
-    /**
-     * Get user from db by accessToken.
-     * @param key
-     */
-    /*static async getBySession(key: string): Promise<User> {
-        if (!key) throw new AuthenticationError('Incorrect access token');
-
-        // Get user and session data bases
-        let userDb = await User.getUserDb(), sessionDb = await User.getSessionDb();
-
-        // Find user with this login and password
-        let session = sessionDb.get('session').findOne({key});
-        if (!session) throw new AuthenticationError('Session not found!');
-
-        let user = userDb.get('user').findOne({id: session.userId});
-        if (!user) throw new AuthenticationError('User not found!');
-        return new User(user);
-    }*/
-
-    static async getUserDb() {
+    static async getUserDb(): Promise<JsonDb> {
         return await JsonDb.db('./user/list.json', {user: []});
     }
-
-    /*static async getSessionDb() {
-        return await JsonDb.db('./user/session.json', {session: []});
-    }*/
 }

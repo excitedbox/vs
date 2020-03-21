@@ -4,6 +4,7 @@ import Session from "../user/Session";
 import FileSystem from "../fs/FileSystem";
 import SystemJournal from "../system/SystemJournal";
 import Helper from "../system/Helper";
+import FunctionHelper from "../../lib/helper/FunctionHelper";
 
 const {NodeVM} = require('vm2');
 
@@ -113,7 +114,7 @@ export default class Service {
 
     async execute(path: string, args: any) {
         if (!this.bindingPath.has(path)) return;
-        return await Helper.callFunctionWithArgumentNames(this.bindingPath.get(path), args);
+        return await FunctionHelper.callFunctionWithArgumentNames(this.bindingPath.get(path), args);
     }
 
     private static async _fsReadFile(session: Session, path: string, options: any, callback: Function) {

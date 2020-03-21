@@ -12,7 +12,7 @@ import Session from "../user/Session";
 import * as Path from "path";
 
 export default class AppServer {
-    private static _server:any;
+    private static _server: any;
 
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();
@@ -59,8 +59,7 @@ export default class AppServer {
                         });
                     }
                 });
-            }
-            catch (e) {
+            } catch (e) {
                 res.status(e.httpStatusCode || 500);
                 res.send({
                     status: false,
@@ -87,8 +86,7 @@ export default class AppServer {
                         });
                     }
                 });
-            }
-            catch (e) {
+            } catch (e) {
                 res.status(e.httpStatusCode || 500);
                 res.send({
                     status: false,
@@ -117,8 +115,7 @@ export default class AppServer {
 
                 res.setHeader('Content-Type', 'application/json');
                 res.send(response);
-            }
-            catch (e) {
+            } catch (e) {
                 res.status(e.httpStatusCode || 500);
                 res.send({
                     status: false,
@@ -129,16 +126,20 @@ export default class AppServer {
 
         // Get file from file system api
         RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
-            if (!req.params.path) req.params.path = '/';
+            if (!req.params.path) {
+                req.params.path = '/';
+            }
             req.query.appDomain = req.headers['host'];
             req.query.domain = req.headers['host'].split('.').slice(1).join('.');
 
             try {
                 // Get application session by session key
-                let subdomainKey = req.headers.host.split('.')[0];
-                let accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
-                let session = Application.runningApplications.get(accessToken);
-                if (!session) throw new AuthenticationError(`Session not found!`);
+                const subdomainKey = req.headers.host.split('.')[0];
+                const accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                const session = Application.runningApplications.get(accessToken);
+                if (!session) {
+                    throw new AuthenticationError(`Session not found!`);
+                }
 
                 // If root of application
                 if (req.params.path === '/') {
@@ -147,7 +148,7 @@ export default class AppServer {
                     if (!await drive.exists()) {
                         // If there is no index.ts then load index.html
                         drive = FileSystem.getDrive(session, 'index.html', 'r', req.query);
-                        let fileData = await drive.readFile();
+                        const fileData = await drive.readFile();
                         res.setHeader('Content-Type', drive.contentType);
                         res.send(fileData);
                     } else {
@@ -167,22 +168,23 @@ export default class AppServer {
                     }
                 } else {
                     // Resolve path
-                    let drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
+                    const drive = FileSystem.getDrive(session, req.params.path, 'r', req.query);
 
                     // Return original or converted file
                     if (req.query.hasOwnProperty('keep-original')) {
                         res.sendFile(drive.path);
                     } else {
-                        let fileData = await drive.readFile();
+                        const fileData = await drive.readFile();
+
                         if (drive.contentType.match('image/')) {
                             res.setHeader('Cache-Control', 60);
                         }
+
                         res.setHeader('Content-Type', drive.contentType);
                         res.send(fileData);
                     }
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 res.status(e.httpStatusCode || 500);
                 res.send({
                     status: false,

@@ -27,8 +27,8 @@ export default class FileSystem {
         return await FileSystem.getDrive(session, path, 'r').info();
     }
 
-    static async readFile(session: Session, path: string) {
-        return await FileSystem.getDrive(session, path, 'r').readFile();
+    static async readFile(session: Session, path: string, args: {} = {}) {
+        return await FileSystem.getDrive(session, path, 'r', args).readFile();
     }
 
     static async list(session: Session, path: string, filter: string = '') {
@@ -67,19 +67,25 @@ export default class FileSystem {
         return await FileSystem.getDrive(session, path, 'w').remove();
     }
 
-    static getDrive(session: Session, path: string, access: string = 'rw', args: any = {}): IDrive {
-        if (!session) throw new Error(`Session is require!`);
-        if (!session.isApplicationLevel) throw new Error(`Access denied for this session!`);
+    static getDrive(session: Session, path: string, access: string = 'rw', args: { [key: string]: {} } = {}): IDrive {
+        if (!session) {
+            throw new Error(`Session is require!`);
+        }
+        if (!session.isApplicationLevel) {
+            throw new Error(`Access denied for this session!`);
+        }
 
         // Default args
         args.sourcePath = path;
 
         // Make path safe
         path = FileSystem.safePath(path);
-        if (path[0] !== '/') path = '/' + path;
+        if (path[0] !== '/') {
+            path = '/' + path;
+        }
 
         let drive: IDrive;
-        let redirect = [
+        const redirect = [
             {
                 route: '/$lib',
                 access: 'r',
@@ -128,19 +134,22 @@ export default class FileSystem {
         ];
 
         // Convert special path folder
-        for (let item of redirect) {
+        for (const item of redirect) {
             if (path.startsWith(item.route)) {
                 // Check base access
-                if (access.match('w') && !item.access.match('w'))
+                if (access.match('w') && !item.access.match('w')) {
                     throw new Error(`Application "${session.application.path}" can't write to "${path}"`);
+                }
 
                 // Check app access to write
-                if (item.privilege && access.match('r') && !(session.checkAccess(item.privilege.r) || session.checkAccess(item.privilege.w)))
+                if (item.privilege && access.match('r') && !(session.checkAccess(item.privilege.r) || session.checkAccess(item.privilege.w))) {
                     throw new Error(`Application "${session.application.name}" doesn't have access to read from "${path}".`);
+                }
 
                 // Check app access to write
-                if (item.privilege && access.match('w') && !session.checkAccess(item.privilege.w))
+                if (item.privilege && access.match('w') && !session.checkAccess(item.privilege.w)) {
                     throw new Error(`Application "${session.application.name}" doesn't have access to write to "${path}".`);
+                }
 
                 drive = new item.drive(path.replace(item.route, item.path), args);
                 break;
@@ -154,8 +163,10 @@ export default class FileSystem {
      * Remove unsafe chars from the path.
      * @param path
      */
-    static safePath(path: string) {
-        if (!path) return;
+    static safePath(path: string): string {
+        if (!path) {
+            return;
+        }
         return path.replace(/\\/g, '/')
             .replace(/\.\.|\.\//g, '')
             .replace(/\/+/g, '/');

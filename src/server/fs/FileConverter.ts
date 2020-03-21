@@ -16,21 +16,32 @@ const Exec = Util.promisify(ChildProcess.exec);
 const GlobSearch = Util.promisify(Glob);
 
 export default class FileConverter {
-    static async convert(path: string, params: any) {
-        let extension = Path.extname(path);
+    static async convert(path: string, params: { [key: string]: {} }): Promise<{ type: string; output: string }> {
+        const extension = Path.extname(path);
 
-        if (extension === '.html') return await this.convertHtml(path, params);
-        if (extension === '.ts') return await this.convertTypeScript(path, params);
-        if (extension === '.scss' || extension === '.sass') return await this.convertSCSS(path, params);
-        if (extension === '.vue') return await this.convertVue(path, params);
-        if (extension === '.png' || extension === '.gif' || extension === '.jpeg' || extension === '.jpg')
+        if (extension === '.html') {
+            return await this.convertHtml(path, params);
+        }
+        if (extension === '.ts') {
+            return await this.convertTypeScript(path, params);
+        }
+        if (extension === '.scss' || extension === '.sass') {
+            return await this.convertSCSS(path, params);
+        }
+        /*if (extension === '.vue') {
+            return await this.convertVue(path, params);
+        }*/
+        if (extension === '.png' || extension === '.gif' || extension === '.jpeg' || extension === '.jpg') {
             return await this.convertImage(path, params);
-        if ((extension === '.mp4' || extension === '.mkv') && (params.frame || params.time || params.offset))
+        }
+        if ((extension === '.mp4' || extension === '.mkv') && (params.frame || params.time || params.offset)) {
             return await this.getVideoThumbnail(path, params);
-        return false;
+        }
+
+        return null;
     }
 
-    static async convertHtml(path: string, params: any) {
+    static async convertHtml(path: string, params: any): Promise<{ type: string; output: string }> {
         let fileContent = await ReadFile(path, 'utf-8');
 
         fileContent = fileContent.replace(/<!-- APP_DOMAIN -->/g, params.appDomain);
@@ -43,19 +54,19 @@ export default class FileConverter {
     }
 
     static async convertTypeScript(path: string, params: any) {
-        let out = await TSModuleCompiler.compileBundle(path, params);
+        const out = await TSModuleCompiler.compileBundle(path, params);
 
         return {
             type: 'application/javascript',
             output: out
-        }
+        };
     }
 
     static async convertSCSS(path: string, params: any) {
-        let fileContent = await ReadFile(path, 'utf-8');
+        const fileContent = await ReadFile(path, 'utf-8');
 
         // Transpile
-        let result = await TranspileSCSS({
+        const result = await TranspileSCSS({
             data: fileContent,
             includePaths: [path.split("/").slice(0, -1).join("/")]
         });
@@ -67,7 +78,7 @@ export default class FileConverter {
         };
     }
 
-    static async convertVue(path: string, params: any) {
+    /*static async convertVue(path: string, params: any) {
         let fileContent = await ReadFile(path, 'utf-8');
 
         let template = '';
@@ -90,20 +101,10 @@ export default class FileConverter {
         });
 
         // Transpile
-        let result = await TranspileSCSS({
+        const result = await TranspileSCSS({
             data: style
         });
         style = PostCSS([AutoPrefixer]).process(result.css).css;
-
-        /*let template = fileContent.substring(
-            fileContent.lastIndexOf("<template>") + 10,
-            fileContent.lastIndexOf("</template>")
-        );
-
-        let script = fileContent.substring(
-            fileContent.lastIndexOf("<script>") + 8,
-            fileContent.lastIndexOf("</script>")
-        ).replace('export default {', '(() => { return {') + '})()';*/
 
         return {
             type: 'application/json',
@@ -113,26 +114,29 @@ export default class FileConverter {
                 style: style
             }
         };
-    }
+    }*/
 
     static async convertImage(path: string, params: any): Promise<any> {
-        return false;
+        return null;
     }
 
     static async getVideoThumbnail(path: string, params: any): Promise<any> {
-        let tmpFrameName = OS.tmpdir() + '/' + Math.random() + '.jpg';
+        const tmpFrameName = OS.tmpdir() + '/' + Math.random() + '.jpg';
         let scale = '';
-        if (params.size) scale = `-s ${params.size}`;
+        if (params.size) {
+            scale = `-s ${params.size}`;
+        }
 
         if (params.offset) {
-            let {stdout} = await Exec(`ffprobe -i "${path}" -show_entries format=duration -v quiet -of csv="p=0"`);
+            const {stdout} = await Exec(`ffprobe -i "${path}" -show_entries format=duration -v quiet -of csv="p=0"`);
             params.time = (Number.parseFloat(stdout) * params.offset).intToHMS();
         }
 
-        if (params.frame)
+        if (params.frame) {
             await Exec(`ffmpeg -i "${path}" -vf "select=eq(n\\,${params.frame})" -frames:v 1 ${scale} "${tmpFrameName}"`);
-        else if (params.time)
+        } else if (params.time) {
             await Exec(`ffmpeg -ss ${params.time} -i "${path}" -vframes:v 1 ${scale} "${tmpFrameName}"`);
+        }
 
         // Auto prefix
         return {

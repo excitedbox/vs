@@ -61,6 +61,7 @@ class JsonTable {
             for (let i = 0; i < query.length; i++) {
                 orResult.push(...this.find(query[i], limit));
             }
+            orResult = orResult.unique('id');
             return Array.from(new Set(orResult));
         }
 
@@ -92,16 +93,13 @@ class JsonTable {
             if (key.includes('>=')) {
                 operator = '>=';
                 collectionKey = key.replace('>=', '').trim();
-            } else
-            if (key.includes('<=')) {
+            } else if (key.includes('<=')) {
                 operator = '<=';
                 collectionKey = key.replace('<=', '').trim();
-            } else
-            if (key.includes('>')) {
+            } else if (key.includes('>')) {
                 operator = '>';
                 collectionKey = key.replace('>', '').trim();
-            } else
-            if (key.includes('<')) {
+            } else if (key.includes('<')) {
                 operator = '<';
                 collectionKey = key.replace('<', '').trim();
             }
@@ -160,8 +158,8 @@ class JsonTable {
      * Find one record in table
      * @param query
      */
-    findOne(query: any = {}) {
-        let data = this.find(query, 1);
+    findOne(query: {} = {}) {
+        const data = this.find(query, 1);
         return data[0] || null;
     }
 
@@ -169,10 +167,17 @@ class JsonTable {
      * Push some data to the table
      * @param data
      */
-    push(data: any) {
-        data.id = this._tableInfo.lastId++;
-        this._collection.push(data);
-        this.calculateIndex();
+    push(data: {} | Array<{}>): JsonTable {
+        if (Array.isArray(data)) {
+            for (let i = 0; i < data.length; i++) {
+                this.push(data[i]);
+            }
+        } else if (typeof data === "object") {
+            data['id'] = this._tableInfo.lastId++;
+            this._collection.push(data);
+            this.calculateIndex();
+        }
+
         return this;
     }
 
@@ -180,7 +185,9 @@ class JsonTable {
         // If there is at least one record
         if (this.findOne(query)) {
             this.update(setData, query);
-        } else this.push(setData);
+        } else {
+            this.push(setData);
+        }
         return this;
     }
 
@@ -215,7 +222,7 @@ class JsonTable {
     private calculateIndex() {
         if (!this._hasIndex) return null;
 
-        this._indexTable.forEach((map: Map<any, any[]>, field:string) => {
+        this._indexTable.forEach((map: Map<any, any[]>, field: string) => {
             map.clear();
             for (let i = 0; i < this._collection.length; i++) {
                 if (!map.has(this._collection[i][field]))

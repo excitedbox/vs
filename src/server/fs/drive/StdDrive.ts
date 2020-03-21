@@ -21,44 +21,37 @@ export default class StdDrive implements IDrive {
     public readonly args: any;
     public contentType: string = "text/plain";
 
-    constructor(path: string, args: any = {}) {
+    constructor(path: string, args: { [key: string]: {} } = {}) {
         this.path = FileSystem.safePath(Path.resolve(__dirname + '/../../../../', path)
             .replace(/\\/g, '/'));
         this.args = args;
     }
 
-    async readFile() {
-        if (!this.exists()) throw new Error(`File "${this.path}" not found!`);
-
-        let convertedFile = await FileConverter.convert(this.path, this.args);
-        if (convertedFile) {
-            this.contentType = convertedFile.type;
-            return convertedFile.output;
+    async readFile(): Promise<string | Buffer> {
+        if (!await this.exists()) {
+            throw new Error(`File "${this.path}" not found!`);
         }
 
-        this.contentType = await MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
-        return await ReadFile(this.path);
-
-        // Try to convert by default
-        /*if (!this.args.hasOwnProperty('keep-original')) {
-            let convertedFile = await FileConverter.convert(this.path, this.args);
-            // If converted
-            if (convertedFile) {
+        if (!this.args.hasOwnProperty('keep-original')) {
+            const convertedFile = await FileConverter.convert(this.path, this.args);
+            if (convertedFile !== null) {
                 this.contentType = convertedFile.type;
                 return convertedFile.output;
             }
         }
 
         this.contentType = await MimeTypes.lookup(Path.extname(this.path)) || 'application/octet-stream';
-        return await ReadFile(this.path);*/
+        return await ReadFile(this.path);
     }
 
-    async createDir() {
+    async createDir(): Promise<void> {
         await MkDir(this.path, {recursive: true});
-        if (!await this.exists()) throw new Error(`Can't create the directory "${this.path}"`);
+        if (!await this.exists()) {
+            throw new Error(`Can't create the directory "${this.path}"`);
+        }
     }
 
-    async exists() {
+    async exists(): Promise<boolean> {
         return await Exists(this.path);
     }
 
@@ -78,7 +71,7 @@ export default class StdDrive implements IDrive {
                 isDir: stat.isDirectory() || stat.isSymbolicLink(),
                 size: Fs.statSync(this.path + '/' + x)['size'],
                 created: Fs.statSync(this.path + '/' + x)['birthtime']
-            }
+            };
         });
 
         // Default folder
@@ -94,7 +87,9 @@ export default class StdDrive implements IDrive {
 
         // Filter files
         list = list.filter(x => {
-            if (x.isDir) return true;
+            if (x.isDir) {
+                return true;
+            }
             return x.name.match(new RegExp(filter));
         });
 
@@ -108,9 +103,13 @@ export default class StdDrive implements IDrive {
     }
 
     async rename(name: string) {
-        if (name.match(/\.{2,}|[\/\\]/g)) throw new Error('Incorrect name');
-        if (!await this.exists()) throw new Error(`Source path not found "${this.path}"`);
-        let dstPath = this.path.split('/').slice(0, -1).join('/') + '/' + name;
+        if (name.match(/\.{2,}|[\/\\]/g)) {
+            throw new Error('Incorrect name');
+        }
+        if (!await this.exists()) {
+            throw new Error(`Source path not found "${this.path}"`);
+        }
+        const dstPath = this.path.split('/').slice(0, -1).join('/') + '/' + name;
         await RenamePath(this.path, dstPath);
     }
 

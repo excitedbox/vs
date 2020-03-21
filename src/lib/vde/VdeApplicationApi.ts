@@ -6,8 +6,18 @@ export default class VdeApplicationApi {
     }
 
     async install(repo: string) {
-        let response = await fetch(`/$api?m=Application.install&query=${repo}`);
-        if (response.status !== 200) throw new Error(await response.text());
+        const response = await fetch(`/$api?m=Application.install&repo=${repo}`);
+        if (response.status !== 200) {
+            throw new Error(await response.text());
+        }
+        return await response.json();
+    }
+
+    async remove(query: string): Promise<{}> {
+        const response = await fetch(`/$api?m=Application.remove&query=${query}`);
+        if (response.status !== 200) {
+            throw new Error(await response.text());
+        }
         return await response.json();
     }
 

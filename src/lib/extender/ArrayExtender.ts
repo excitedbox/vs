@@ -50,6 +50,8 @@ declare global {
         intersection(arr: Array<T>): Array<T>;
 
         remove(value: any): boolean;
+
+        clear(): void;
     }
 
     interface Uint8Array {
@@ -129,7 +131,7 @@ Array.prototype.clone = function () {
 
 Array.prototype.unique = function (field: string = null) {
     if (field) {
-        let out = [];
+        const out = [];
         for (let i = 0; i < this.length; i++) {
             let isExist = false;
             for (let j = 0; j < out.length; j++) {
@@ -138,8 +140,9 @@ Array.prototype.unique = function (field: string = null) {
                     break;
                 }
             }
-            if (!isExist)
+            if (!isExist) {
                 out.push(this[i]);
+            }
         }
         return out;
     }
@@ -166,6 +169,10 @@ Array.prototype.intersection = function (arr: Array<any>) {
         if (minArr.includes(maxArr[i])) out.push(maxArr[i]);
 
     return out;
+};
+
+Array.prototype.clear = function (): void {
+    this.length = 0;
 };
 
 Uint8Array.prototype.toBase64 = function () {

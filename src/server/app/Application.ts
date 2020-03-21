@@ -7,6 +7,7 @@ import JsonDb from "../../lib/db/JsonDb";
 import Helper from "../system/Helper";
 import Service from "./Service";
 import SystemJournal from "../system/SystemJournal";
+import StringHelper from "../../lib/helper/StringHelper";
 
 const Exec = Util.promisify(ChildProcess.exec);
 const ReadFile = Util.promisify(Fs.readFile);
@@ -102,8 +103,8 @@ export default class Application {
             throw new Error(`Static application "${app.domain}.${app.name}" already running!`);
 
         // Generate new session
-        let newKey = app.isStatic ? app.domain : Helper.randomKey;
-        let newSession = new Session(newKey, session.user, app);
+        const newKey = app.isStatic ? app.domain : StringHelper.generateRandomKey();
+        const newSession = new Session(newKey, session.user, app);
 
         // Save application session
         Application.runningApplications.set(newKey, newSession);
@@ -138,7 +139,7 @@ export default class Application {
 
         // Remove session from session list
         let sessionDb = await Application.getSessionDb();
-        await sessionDb.get('session').remove({ key }).write();
+        await sessionDb.get('session').remove({key}).write();
     }
 
     /**
@@ -188,9 +189,9 @@ export default class Application {
 
         // Clone and fetch repo
         try {
-            console.log(`git clone "${repo}"`);
+            //console.log(`git clone "${repo}"`);
             await Exec(`git clone "${repo}" "${finalAppPath}"`);
-            console.log(`git fetch`);
+            //console.log(`git fetch`);
             await Exec(`cd ${finalAppPath} && git fetch && git fetch --tags`);
         } catch {
             await RemoveFolder(finalAppPath);
@@ -225,11 +226,11 @@ export default class Application {
         // Save application to db
         let appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').push(appInfo).write();
-        console.log('application saved to db');
+        //console.log('application saved to db');
 
         // Create data folder
         await MkDir(`${session.user.dataDir}/${folderName}`, {recursive: true});
-        console.log('data folder created');
+        //console.log('data folder created');
     }
 
     /**
@@ -252,19 +253,21 @@ export default class Application {
      * @param query
      */
     static async remove(session: Session, query: string) {
+        if (query.trim().length < 2) {
+            throw new Error(`Query is too short!`);
+        }
+
         // Find application by query
-        let appDb = await Application.getApplicationDb(session.user.name);
-        let app = await Application.find(session, query);
+        const appDb = await Application.getApplicationDb(session.user.name);
+        const app = await Application.find(session, query);
 
         // Remove folder
         await RemoveFolder(new Application(app).path);
 
         // Remove application from db
-        await appDb.get('application').remove([
-            {repo: new RegExp(query, 'i')},
-            {name: new RegExp(query, 'i')},
-            {title: new RegExp(query, 'i')}
-        ]).write();
+        await appDb.get('application').remove({
+            id: app.id
+        }).write();
     }
 
     /**
@@ -272,10 +275,12 @@ export default class Application {
      * @param session
      */
     static async list(session: Session): Promise<Array<any>> {
-        if (!session) throw new Error(`Session is require!`);
+        if (!session) {
+            throw new Error(`Session is require!`);
+        }
 
         // Get application db and return all applications
-        let appDb = await Application.getApplicationDb(session.user.name);
+        const appDb = await Application.getApplicationDb(session.user.name);
         return appDb.get('application').find();
     }
 
@@ -375,7 +380,7 @@ export default class Application {
         // Update db
         let appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').update({access: app.access}, {repo: app.repo}).write();
-        console.log(`set privileges "${access}" for app ${app.repo}`);
+        //console.log(`set privileges "${access}" for app ${app.repo}`);
     }
 
     /**

@@ -7,14 +7,19 @@ import Application from "./app/Application";
 import Service from "./app/Service";
 import "../lib/extender/NumberExtender";
 import "../lib/extender/StringExtender";
+import "../lib/extender/ArrayExtender";
+import "../lib/extender/DateExtender";
+import User from "./user/User";
+import SHA256 from "../lib/crypto/SHA256";
+import JsonDb from "../lib/db/JsonDb";
 
 export default class Main {
-    static async run(isDebug = false): Promise<void> {
+    static async run(isDebug: boolean = false): Promise<void> {
         // Import .env config
         require('dotenv').config();
 
         // Init directories and other stuff
-        Main.defaultInit();
+        await Main.defaultInit();
 
         // Init system journal for logs
         await SystemJournal.init();
@@ -26,7 +31,7 @@ export default class Main {
         await AppServer.run(+process.env.PORT + 1 + (isDebug ? 100 : 0));
 
         // Run shell api for command input from terminal
-        await ShellApi.run();
+        // await ShellApi.run();
     }
 
     static async stop(): Promise<void> {
@@ -45,7 +50,7 @@ export default class Main {
      * Init default files and directories. When you run server for the first time
      * it will create default files, config, directories and other stuff for server work.
      */
-    static defaultInit(): void {
+    static async defaultInit(): Promise<void> {
         ['root', 'test'].forEach(x => {
             // Create default folders
             Fs.mkdirSync('./logs', {recursive: true});
@@ -59,22 +64,43 @@ export default class Main {
 
         // Create default user list
         if (!Fs.existsSync('./user/list.json')) {
-            Fs.writeFileSync('./user/list.json', JSON.stringify({
-                user: [
-                    {
-                        id: 1,
-                        name: 'root',
-                        password: '1234',
-                        defaultApp: "https://github.com/maldan/vde-standard-wm.git"
-                    },
-                    {
-                        id: 2,
-                        name: 'test',
-                        password: 'test123',
-                        defaultApp: "https://github.com/maldan/vde-standard-wm.git"
-                    }
-                ]
-            }, null, 4));
+            const userDb = await JsonDb.db('./user/list.json');
+
+            // Need for auth
+            const realPassword = {
+                [SHA256.encode('1234')]: '1234',
+                [SHA256.encode('test1234')]: 'test1234',
+            };
+
+            // Push default user
+            userDb.get('user', true).push([
+                {
+                    name: 'root',
+                    password: SHA256.encode('1234'),
+                    defaultApp: "https://github.com/maldan/vde-standard-wm.git"
+                },
+                {
+                    name: 'test',
+                    password: SHA256.encode('test1234'),
+                    defaultApp: "https://github.com/maldan/vde-standard-wm.git"
+                }
+            ]);
+
+            // Store db
+            await userDb.write();
+
+            // Get user list and install default applications
+            const users = userDb.get('user').find();
+            for (let i = 0; i < users.length; i++) {
+                console.log(`Auth as ${users[i].name}`);
+                const tempSession = await User.auth(users[i].name, realPassword[users[i].password]);
+
+                // Install basic application
+                console.log(`Install default applications...`);
+                await Application.silentInstall(tempSession, 'https://github.com/maldan/vs-auth.git');
+                await Application.silentInstall(tempSession, 'https://github.com/maldan/vs-standard-wm.git');
+                await Application.silentInstall(tempSession, 'https://github.com/maldan/vs-terminal.git');
+            }
         }
     }
 }

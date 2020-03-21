@@ -80,6 +80,8 @@ declare global {
          * @param str
          */
         maxCharsMatch(str: string): number;
+
+        htmlSpecialChars(): string;
     }
 }
 
@@ -175,6 +177,14 @@ String.prototype.maxCharsMatch = function (str: string): number {
         if (this.match(part)) return part.length;
     }
     return 0;
+};
+
+String.prototype.htmlSpecialChars = function (): string {
+    return this.replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 };
 
 export default class StringExtender {
