@@ -1,5 +1,6 @@
 import Session from "../user/Session";
 import * as Fs from 'fs';
+import * as Os from 'os';
 import * as Util from "util";
 import * as ChildProcess from "child_process";
 import * as Rimraf from "rimraf";
@@ -10,6 +11,8 @@ import StringHelper from "../../lib/helper/StringHelper";
 
 const Exec = Util.promisify(ChildProcess.exec);
 const ReadFile = Util.promisify(Fs.readFile);
+const WriteFile = Util.promisify(Fs.writeFile);
+const Unlink = Util.promisify(Fs.unlink);
 const MkDir = Util.promisify(Fs.mkdir);
 const RemoveFolder = Util.promisify(Rimraf);
 
@@ -24,7 +27,7 @@ export default class Application {
     public domain: string;
     public isStatic: boolean;
     public storage: string;
-    public access: Array<string>;
+    public access: string[];
 
     /**
      * Current running applications for all users.
@@ -34,7 +37,7 @@ export default class Application {
     /**
      * Response types for http server for each method. Method forbidden to call if it's not listed here.
      */
-    public static readonly methodResponseType: any = {
+    public static readonly methodResponseType: {} = {
         'run': 'session',
         'close': 'json',
         'silentInstall': 'json',
@@ -44,6 +47,8 @@ export default class Application {
         'list': 'json',
         'pullUpdate': 'json',
         'commitList': 'json',
+        'status': 'json',
+        'uploadUpdate': 'json',
         'find': 'json',
         'currentCommit': 'json',
         'updatePrivileges': 'json'
@@ -53,7 +58,7 @@ export default class Application {
      * Create application info from data
      * @param data
      */
-    constructor({id, name, path, isStatic, domain, storage, repo, access = []}) {
+    constructor({id, name, path, isStatic, domain, storage, repo, access = []}: Application) {
         this.id = +id;
         this.name = name;
         this.path = path;
@@ -68,9 +73,13 @@ export default class Application {
      * Check if the application have specific access.
      * @param access
      */
-    hasAccess(access: string) {
-        if (!Array.isArray(this.access)) return false;
-        if (this.access.includes('*')) return true;
+    hasAccess(access: string): boolean {
+        if (!Array.isArray(this.access)) {
+            return false;
+        }
+        if (this.access.includes('*')) {
+            return true;
+        }
         return this.access.includes(access);
     }
 
@@ -81,25 +90,31 @@ export default class Application {
      */
     static async run(session: Session, query: string): Promise<Session> {
         // Find app by repo
-        let app = await Application.find(session, query);
+        const app = await Application.find(session, query);
 
         // Check access to run application
-        if (session.isApplicationLevel && !session.checkAccess('run-application'))
+        if (session.isApplicationLevel && !session.checkAccess('run-application')) {
             throw new Error(`Application "${app.name}" doesn't have access to run another application!`);
+        }
 
         // Application with lower rights can't run application with higher.
-        if (session.isApplicationLevel)
-            for (let i = 0; i < app.access.length; i++)
-                if (!session.application.hasAccess(app.access[i]))
+        if (session.isApplicationLevel) {
+            for (let i = 0; i < app.access.length; i++) {
+                if (!session.application.hasAccess(app.access[i])) {
                     throw new Error(`Application "${session.application.name}" can't run another application "${app.name}"`);
+                }
+            }
+        }
 
         // Check if static
-        if (app.isStatic && session.user.name !== 'root')
+        if (app.isStatic && session.user.name !== 'root') {
             throw new Error(`Only root can run static application!`);
+        }
 
         // Check if already run
-        if (Application.runningApplications.has(app.domain))
+        if (Application.runningApplications.has(app.domain)) {
             throw new Error(`Static application "${app.domain}.${app.name}" already running!`);
+        }
 
         // Generate new session
         const newKey = app.isStatic ? app.domain : StringHelper.generateRandomKey();
@@ -116,7 +131,7 @@ export default class Application {
 
         // Save session to session list
         if (!app.isStatic) {
-            let sessionDb = await Application.getSessionDb();
+            const sessionDb = await Application.getSessionDb();
             await sessionDb.get('session').push(newSession).write();
         }
 
@@ -129,7 +144,7 @@ export default class Application {
      * @param session
      * @param key
      */
-    static async close(session: Session, key: string) {
+    static async close(session: Session, key: string): Promise<void> {
         // Stop service if exists
         Service.stop(Application.runningApplications.get(key));
 
@@ -137,7 +152,7 @@ export default class Application {
         Application.runningApplications.delete(key);
 
         // Remove session from session list
-        let sessionDb = await Application.getSessionDb();
+        const sessionDb = await Application.getSessionDb();
         await sessionDb.get('session').remove({key}).write();
     }
 
@@ -146,7 +161,7 @@ export default class Application {
      * @param session
      * @param repo
      */
-    static async silentInstall(session: Session, repo: string): Promise<any> {
+    static async silentInstall(session: Session, repo: string): Promise<{ status: boolean }> {
         try {
             await Application.install(session, repo);
         } catch {
@@ -160,31 +175,39 @@ export default class Application {
      * @param session
      * @param repo
      */
-    static async install(session: Session, repo: string) {
-        if (!session) throw new Error(`Session is require!`);
+    static async install(session: Session, repo: string): Promise<void> {
+        if (!session) {
+            throw new Error(`Session is require!`);
+        }
 
         // Check url is correct
-        if (!repo) throw new Error(`Invalid repo url!`);
-        if (!(repo.startsWith('https://') || repo.startsWith('http://'))) throw new Error(`Invalid repo url!`);
+        if (!repo) {
+            throw new Error(`Invalid repo url!`);
+        }
+        if (!(repo.startsWith('https://') || repo.startsWith('http://'))) {
+            throw new Error(`Invalid repo url!`);
+        }
 
         // Get repo domain
-        let domain = repo.replace(/https?:\/\//, '')
+        const domain = repo.replace(/https?:\/\//, '')
             .split('/')
             .shift()
             .replace(':', '-');
 
         // Generate repo folder name
-        let folderName = domain + '/' + repo.split('/')
+        const folderName = domain + '/' + repo.split('/')
             .slice(-2)
-            .map(x => x.replace('.git', '')
+            .map((x: string) => x.replace('.git', '')
                 .replace('.', '_'))
             .join('/');
 
         // Final app path in user app folder
-        let finalAppPath = session.user.appDir + '/' + folderName;
+        const finalAppPath = session.user.appDir + '/' + folderName;
 
         // Check if already installed
-        if (Fs.existsSync(finalAppPath)) throw new Error(`Folder already exists!`);
+        if (Fs.existsSync(finalAppPath)) {
+            throw new Error(`Folder already exists!`);
+        }
 
         // Clone and fetch repo
         try {
@@ -202,10 +225,13 @@ export default class Application {
         try {
             appJson = JSON.parse(await ReadFile(`${finalAppPath}/application.json`, 'utf-8'));
             if (appJson.isStatic) {
-                if (session.user.name !== 'root') throw new Error(`Only root can install static application!`);
+                if (session.user.name !== 'root') {
+                    throw new Error(`Only root can install static application!`);
+                }
                 if (appJson.domain !== "") {
-                    if (!(appJson.domain.match(/^[0-9a-z_\-]+$/g) && appJson.domain.length < 24))
+                    if (!(appJson.domain.match(/^[0-9a-z_\-]+$/g) && appJson.domain.length < 24)) {
                         throw new Error(`Incorrect domain name!`);
+                    }
                 }
             }
         } catch {
@@ -214,7 +240,7 @@ export default class Application {
         }
 
         // Add new app
-        let appInfo = Object.assign(appJson, {
+        const appInfo = Object.assign(appJson, {
             name: folderName,
             path: finalAppPath,
             storage: `./user/${session.user.name}/data/${folderName}`,
@@ -223,7 +249,7 @@ export default class Application {
         });
 
         // Save application to db
-        let appDb = await Application.getApplicationDb(session.user.name);
+        const appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').push(appInfo).write();
         //console.log('application saved to db');
 
@@ -237,7 +263,7 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async silentRemove(session: Session, query: string): Promise<any> {
+    static async silentRemove(session: Session, query: string): Promise<{ status: boolean }> {
         try {
             await Application.remove(session, query);
         } catch {
@@ -251,7 +277,7 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async remove(session: Session, query: string) {
+    static async remove(session: Session, query: string): Promise<void> {
         if (query.trim().length < 2) {
             throw new Error(`Query is too short!`);
         }
@@ -273,7 +299,7 @@ export default class Application {
      * Get list of applications from session user
      * @param session
      */
-    static async list(session: Session): Promise<Array<any>> {
+    static async list(session: Session): Promise<Application[]> {
         if (!session) {
             throw new Error(`Session is require!`);
         }
@@ -288,9 +314,9 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async pullUpdate(session: Session, query: string) {
+    static async pullUpdate(session: Session, query: string): Promise<void> {
         // Find app by repo
-        let app = await Application.find(session, query);
+        const app = await Application.find(session, query);
 
         // Pull new commits
         await Exec(`cd "${new Application(app).path}" && git pull && git fetch --tags`);
@@ -301,20 +327,20 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async commitList(session: Session, query: string) {
+    static async commitList(session: Session, query: string): Promise<{ hash: string; author: string; date: Date; comment: string }[]> {
         // Find app by repo
-        let app = await Application.find(session, query);
+        const app = await Application.find(session, query);
 
         // Pull new commits
         const {stdout} = await Exec(`cd "${new Application(app).path}" && git log --pretty=format:"%H|%an|%ad|%s"`);
-        return stdout.split('\n').map(x => x.trim()).filter(Boolean).map(x => {
-            let info = x.split('|');
+        return stdout.split('\n').map((x: string) => x.trim()).filter(Boolean).map((x: string) => {
+            const info = x.split('|');
             return {
                 hash: info.shift(),
                 author: info.shift(),
                 date: new Date(info.shift()),
                 comment: info.shift()
-            }
+            };
         });
     }
 
@@ -324,17 +350,24 @@ export default class Application {
      * @param query
      */
     static async find(session: Session, query: string): Promise<Application> {
-        if (!session) throw new Error(`Session is require!`);
-        if (!query) throw new Error(`Invalid query!`);
+        if (!session) {
+            throw new Error(`Session is require!`);
+        }
+        if (!query) {
+            throw new Error(`Invalid query!`);
+        }
 
         // Get application db and find app
-        let appDb = await Application.getApplicationDb(session.user.name);
-        let app = appDb.get('application').findOne([
+        const appDb = await Application.getApplicationDb(session.user.name);
+        const app = appDb.get('application').findOne([
             {repo: new RegExp(query, 'i')},
             {name: new RegExp(query, 'i')},
+            {path: new RegExp(query, 'i')},
             {title: new RegExp(query, 'i')}
         ]);
-        if (!app) throw new Error(`Application "${query}" not found!`);
+        if (!app) {
+            throw new Error(`Application "${query}" not found!`);
+        }
 
         return new Application(app);
     }
@@ -344,9 +377,9 @@ export default class Application {
      * @param session
      * @param query
      */
-    static async currentCommit(session: Session, query: string) {
+    static async currentCommit(session: Session, query: string): Promise<{ hash: string }> {
         // Find app by repo
-        let app = await Application.find(session, query);
+        const app = await Application.find(session, query);
 
         // Get and return current commit hash
         const {stdout} = await Exec(`cd "${new Application(app).path}" && git rev-parse --verify HEAD`);
@@ -355,46 +388,72 @@ export default class Application {
         };
     }
 
+    static async status(session: Session, query: string): Promise<{ status: string; path: string }[]> {
+        // Find app by repo
+        const app = await Application.find(session, query);
+
+        // Get and return current commit hash
+        const {stdout} = await Exec(`cd "${new Application(app).path}" && git status -s -uall`);
+        return stdout.split('\n').map((x: string) => x.trim()).filter(Boolean).map((x: string) => {
+            return {
+                status: x.slice(0, 2).trim(),
+                path: x.slice(2).trim()
+            };
+        });
+    }
+
+    static async uploadUpdate(session: Session, query: string, message: string, username: string, password: string) {
+        // Find app by repo
+        const app = await Application.find(session, query);
+
+        const credentialUrl = app.repo.replace(`https://`, `https://${username}:${password}@`);
+
+        // Get and return current commit hash
+        const {stdout, stderr} = await Exec(`cd "${new Application(app).path}" && git add -u && git commit -m "${message}" && git push ${credentialUrl} master`);
+    }
+
     /**
      * Update privileges for application.
      * @param session
      * @param query
      * @param access
      */
-    static async updatePrivileges(session: Session, query: string, access: Array<string>) {
+    static async updatePrivileges(session: Session, query: string, access: string[]): Promise<void> {
         // Check access to run application
-        if (session.isApplicationLevel && !session.checkAccess('set-access'))
+        if (session.isApplicationLevel && !session.checkAccess('set-access')) {
             throw new Error(`Application doesn't allow setting access to other applications`);
+        }
 
         // Find app by repo
-        let app = await Application.find(session, query);
+        const app = await Application.find(session, query);
 
         // Set new access
-        app.access = access.filter(x => [
+        app.access = access.filter((x: string) => [
             '*', 'root', 'root-readonly', 'data',
             'user', 'user-readonly', 'run-application',
             'set-access'
         ].includes(x));
 
         // Update db
-        let appDb = await Application.getApplicationDb(session.user.name);
+        const appDb = await Application.getApplicationDb(session.user.name);
         await appDb.get('application').update({access: app.access}, {repo: app.repo}).write();
-        //console.log(`set privileges "${access}" for app ${app.repo}`);
     }
 
     /**
      * Get DB of applications for specific user
      * @param user
      */
-    static async getApplicationDb(user: string) {
-        if (!user) throw new Error(`User name required!`);
+    static async getApplicationDb(user: string): Promise<JsonDb> {
+        if (!user) {
+            throw new Error(`User name required!`);
+        }
         return await JsonDb.db(`./user/${user}/application.json`, {application: []});
     }
 
     /**
      * Get DB of sessions for specific user
      */
-    static async getSessionDb() {
+    static async getSessionDb(): Promise<JsonDb> {
         return await JsonDb.db(`./user/session.json`, {session: []});
     }
 }

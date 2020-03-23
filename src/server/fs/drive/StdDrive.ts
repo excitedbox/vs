@@ -21,7 +21,7 @@ const GlobSearch = Util.promisify(Glob);
 
 export default class StdDrive implements IDrive {
     public readonly path: string;
-    public readonly args: any;
+    public readonly args: {[key: string]: {}};
     public contentType: string = "text/plain";
 
     constructor(path: string, args: { [key: string]: {} } = {}) {
@@ -62,11 +62,8 @@ export default class StdDrive implements IDrive {
         return await StatFile(this.path);
     }
 
-    async list(filter: string = '') {
-        let list: any = await ReadDir(this.path);
-
-        // Transform data
-        list = list.map(x => {
+    async list(filter: string = ''): Promise<FileInfo[]> {
+        let list = (await ReadDir(this.path)).map((x: string) => {
             const stat = Fs.lstatSync(this.path + '/' + x);
             return {
                 name: x,
@@ -89,23 +86,23 @@ export default class StdDrive implements IDrive {
         }
 
         // Filter files
-        list = list.filter(x => {
+        list = list.filter((x: FileInfo) => {
             if (x.isDir) {
                 return true;
             }
             return x.name.match(new RegExp(filter));
         });
 
-        list = list.sort((a, b) => +b.isDir - +a.isDir);
+        list = list.sort((a: FileInfo, b: FileInfo) => +b.isDir - +a.isDir);
 
         return list;
     }
 
-    async remove() {
+    async remove(): Promise<void> {
         await RemoveFolder(this.path);
     }
 
-    async rename(name: string) {
+    async rename(name: string): Promise<void> {
         if (name.match(/\.{2,}|[\/\\]/g)) {
             throw new Error('Incorrect name');
         }
@@ -121,8 +118,6 @@ export default class StdDrive implements IDrive {
         if (path.slice(-1) !== '/') {
             path += '/';
         }
-
-        console.log(path);
 
         return (await GlobSearch(path + filter)).map((x: string) => {
             const stat = Fs.lstatSync(x);
@@ -140,7 +135,7 @@ export default class StdDrive implements IDrive {
         throw new Error('Not implemented!');
     }
 
-    async writeFile(data: Buffer | Uint8Array | string) {
+    async writeFile(data: Buffer | Uint8Array | string): Promise<void> {
         await WriteFile(this.path, data);
     }
 }
