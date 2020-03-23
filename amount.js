@@ -10,7 +10,7 @@ const Fs = require('fs');
         // if (!x.match(/draw-studio/)) return false;
         //if (x.match(/vue\.js/) || x.match(/vue\.prod\.js/) || x.match(/\.min\.js/)) return false;
         //if (x.match(/storage/) && x.match(/user/) && x.match(/bin/) && x.match(/lib/)) return false;
-        return x.match(/\.(vue|js|scss|ts|html)$/);
+        return x.match(/\.(ts)$/);
     });
     let x = c.map((x) => {
         let ff = Fs.readFileSync(x, 'utf-8');

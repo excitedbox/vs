@@ -12,6 +12,7 @@ import "../lib/extender/DateExtender";
 import User from "./user/User";
 import SHA256 from "../lib/crypto/SHA256";
 import JsonDb from "../lib/db/JsonDb";
+import SSHServer from "./core/SSHServer";
 
 export default class Main {
     static async run(isDebug: boolean = false): Promise<void> {
@@ -30,6 +31,9 @@ export default class Main {
         // Run app server
         await AppServer.run(+process.env.PORT + 1 + (isDebug ? 100 : 0));
 
+        // Run ssh server
+        await SSHServer.run(+process.env.PORT + 2 + (isDebug ? 100 : 0));
+
         // Run shell api for command input from terminal
         // await ShellApi.run();
     }
@@ -43,7 +47,8 @@ export default class Main {
         EntryServer.stop();
         AppServer.stop();
         SystemJournal.stop();
-        ShellApi.stop();
+        SSHServer.stop();
+        // ShellApi.stop();
     }
 
     /**
@@ -51,7 +56,7 @@ export default class Main {
      * it will create default files, config, directories and other stuff for server work.
      */
     static async defaultInit(): Promise<void> {
-        ['root', 'test'].forEach(x => {
+        ['root', 'test'].forEach((x: string) => {
             // Create default folders
             Fs.mkdirSync('./logs', {recursive: true});
             Fs.mkdirSync('./bin/lib', {recursive: true});

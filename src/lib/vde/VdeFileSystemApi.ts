@@ -1,3 +1,5 @@
+import FileInfo from "../../server/fs/FileInfo";
+
 export default class VdeFileSystemApi {
     async createDir(path: string) {
         const response = await fetch(`/$api?m=FileSystem.createDir&path=${path}`);
@@ -14,11 +16,9 @@ export default class VdeFileSystemApi {
         return await response.json();
     }
 
-    async list(path: string, filter: string = ''): Promise<Array<{
-        name: string; path: string;isDir: boolean; size: number; created: Date;
-    }>> {
+    async list(path: string, filter: string = ''): Promise<FileInfo[]> {
         const response = await fetch(`/$api?m=FileSystem.list&path=${path}&filter=${filter}`);
-        return (await response.json()).map(x => {
+        return (await response.json()).map((x: FileInfo) => {
             x.created = new Date(x.created);
             return x;
         });
@@ -56,7 +56,7 @@ export default class VdeFileSystemApi {
         return await response.json();
     }
 
-    async search(path: string, filter: string) {
+    async search(path: string, filter: string): Promise<FileInfo[]> {
         const response = await fetch(`/$api?m=FileSystem.search&path=${path}&filter=${filter}`);
         return await response.json();
     }

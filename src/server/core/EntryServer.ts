@@ -1,12 +1,11 @@
 import * as Util from 'util';
 import User from "../user/User";
 import Application from "../app/Application";
-import Helper from "../system/Helper";
 import Session from "../user/Session";
 import BaseServerApi from "./BaseServerApi";
 
 export default class EntryServer {
-    private static _server:any;
+    private static _server: any;
 
     static async run(port: number) {
         const Express = require('express'), RestApp = Express();

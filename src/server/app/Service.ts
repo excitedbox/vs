@@ -3,7 +3,6 @@ import * as Util from 'util';
 import Session from "../user/Session";
 import FileSystem from "../fs/FileSystem";
 import SystemJournal from "../system/SystemJournal";
-import Helper from "../system/Helper";
 import FunctionHelper from "../../lib/helper/FunctionHelper";
 
 const {NodeVM} = require('vm2');

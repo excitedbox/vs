@@ -30,7 +30,9 @@
             "curly": "error",
             "@typescript-eslint/no-inferrable-types": "off",
             "@typescript-eslint/camelcase": "off",
-            "@typescript-eslint/class-name-casing": "off"
+            "@typescript-eslint/class-name-casing": "off",
+            "@typescript-eslint/typedef": "error",
+            "@typescript-eslint/array-type": "error"
         }
     },
     "browserslist": [
@@ -47,6 +49,8 @@
         "@types/mocha": "^5.2.7",
         "@types/node": "^13.5.0",
         "@types/rimraf": "^2.0.3",
+        "@types/ssh2": "^0.5.41",
+        "@types/ws": "^7.2.3",
         "@typescript-eslint/eslint-plugin": "^2.18.0",
         "@typescript-eslint/parser": "^2.18.0",
         "autoprefixer": "^9.7.4",
@@ -72,12 +76,14 @@
         "recursive-readdir": "^2.2.2",
         "request": "^2.88.2",
         "rimraf": "^3.0.0",
+        "ssh2": "^0.8.9",
         "ts-node": "^8.6.2",
         "typedoc": "^0.16.9",
         "typescript": "^3.7.5",
         "typescript-eslint": "0.0.1-alpha.0",
         "vm2": "^3.8.4",
         "webpack": "^4.41.5",
-        "webpack-cli": "^3.3.10"
+        "webpack-cli": "^3.3.10",
+        "ws": "^7.2.3"
     }
 }

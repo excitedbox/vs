@@ -6,6 +6,8 @@ import * as Rimraf from "rimraf";
 import * as Path from "path";
 import FileSystem from "../FileSystem";
 import FileConverter from "../FileConverter";
+import * as Glob from "glob";
+import FileInfo from "../FileInfo";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -15,6 +17,7 @@ const StatFile = Util.promisify(Fs.stat);
 const Exists = Util.promisify(Fs.exists);
 const MkDir = Util.promisify(Fs.mkdir);
 const RemoveFolder = Util.promisify(Rimraf);
+const GlobSearch = Util.promisify(Glob);
 
 export default class StdDrive implements IDrive {
     public readonly path: string;
@@ -113,8 +116,24 @@ export default class StdDrive implements IDrive {
         await RenamePath(this.path, dstPath);
     }
 
-    search(filter: string) {
-        throw new Error('Not implemented!');
+    async search(filter: string): Promise<FileInfo[]> {
+        let path = this.path;
+        if (path.slice(-1) !== '/') {
+            path += '/';
+        }
+
+        console.log(path);
+
+        return (await GlobSearch(path + filter)).map((x: string) => {
+            const stat = Fs.lstatSync(x);
+            return {
+                name: Path.basename(x),
+                path: (this.args.sourcePath + x.replace(path, '')).replace(/\/\//g, '/'),
+                isDir: stat.isDirectory() || stat.isSymbolicLink(),
+                size: Fs.statSync(x)['size'],
+                created: Fs.statSync(x)['birthtime']
+            };
+        });
     }
 
     tree(filter: string) {

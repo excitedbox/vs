@@ -4,7 +4,6 @@ import * as Util from "util";
 import * as ChildProcess from "child_process";
 import * as Rimraf from "rimraf";
 import JsonDb from "../../lib/db/JsonDb";
-import Helper from "../system/Helper";
 import Service from "./Service";
 import SystemJournal from "../system/SystemJournal";
 import StringHelper from "../../lib/helper/StringHelper";

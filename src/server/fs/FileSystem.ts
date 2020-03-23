@@ -5,6 +5,7 @@ import StdDrive from "./drive/StdDrive";
 import IDrive from "./drive/IDrive";
 import LibDrive from "./drive/LibDrive";
 import {WriteStream} from "fs";
+import FileInfo from "./FileInfo";
 
 const ReadFile = Util.promisify(Fs.readFile);
 
@@ -17,6 +18,7 @@ export default class FileSystem {
         'list': 'json',
         'createDir': 'json',
         'rename': 'json',
+        'search': 'json',
         'remove': 'json',
         'exists': 'json',
         'writeFile': 'json',
@@ -35,7 +37,7 @@ export default class FileSystem {
         return await FileSystem.getDrive(session, path, 'r').list(filter);
     }
 
-    static async search(session: Session, path: string, filter: string = '') {
+    static async search(session: Session, path: string, filter: string = ''): Promise<FileInfo[]> {
         return await FileSystem.getDrive(session, path, 'r').search(filter);
     }
 
@@ -53,8 +55,9 @@ export default class FileSystem {
 
     static async writeFile(session: Session, path: string, data: Buffer | Uint8Array | string) {
         // Probably express File
-        if (data['_writeStream'] instanceof WriteStream)
+        if (data['_writeStream'] instanceof WriteStream) {
             data = await ReadFile(data['path']);
+        }
 
         return await FileSystem.getDrive(session, path, 'w').writeFile(data);
     }
