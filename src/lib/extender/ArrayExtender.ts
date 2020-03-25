@@ -180,7 +180,7 @@ Uint8Array.prototype.toBase64 = function () {
 };
 
 Uint8Array.prototype.append = function (v: Uint8Array) {
-    let c = new Uint8Array(this.length + v.length);
+    const c = new Uint8Array(this.length + v.length);
     c.set(this, 0);
     c.set(v, this.length);
     return c;

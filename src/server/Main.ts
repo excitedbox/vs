@@ -1,4 +1,5 @@
 import * as Fs from 'fs';
+import * as ChildProcess from 'child_process';
 import AppServer from "./core/AppServer";
 import EntryServer from "./core/EntryServer";
 import ShellApi from "./system/ShellApi";
@@ -13,6 +14,7 @@ import User from "./user/User";
 import SHA256 from "../lib/crypto/SHA256";
 import JsonDb from "../lib/db/JsonDb";
 import SSHServer from "./core/SSHServer";
+import IPC from "./system/IPC";
 
 export default class Main {
     static async run(isDebug: boolean = false): Promise<void> {
@@ -35,20 +37,38 @@ export default class Main {
         await SSHServer.run(+process.env.PORT + 2 + (isDebug ? 100 : 0));
 
         // Run shell api for command input from terminal
-        // await ShellApi.run();
+        await ShellApi.run();
+
+        // Run all services
+        const serviceList = await Service.list();
+        for (let i = 0; i < serviceList.length; i++) {
+            const child = ChildProcess.spawn(`ts-node`, [serviceList[i].path], {
+                stdio: [0, 1, 2, 'ipc']
+            });
+
+            IPC.addService(serviceList[i].name, child);
+        }
+
+        /*console.time('sex');
+        const resp = await IPC.send('fs', 'json', {
+            type: 'read',
+            path: '/home/maldan/work/nodejs/vs/package.json'
+        });
+        console.log(resp.toString('utf-8'));
+        console.timeEnd('sex');*/
     }
 
     static async stop(): Promise<void> {
         Application.runningApplications.forEach(x => {
-            Service.stop(x);
+            // Service.stop(x);
         });
         Application.runningApplications.clear();
-        Service.runningServices.clear();
+        // Service.runningServices.clear();
         EntryServer.stop();
         AppServer.stop();
         SystemJournal.stop();
         SSHServer.stop();
-        // ShellApi.stop();
+        ShellApi.stop();
     }
 
     /**

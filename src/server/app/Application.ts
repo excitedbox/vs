@@ -8,6 +8,7 @@ import JsonDb from "../../lib/db/JsonDb";
 import Service from "./Service";
 import SystemJournal from "../system/SystemJournal";
 import StringHelper from "../../lib/helper/StringHelper";
+import TypeApplicationInfo from "../../type/TypeApplicationInfo";
 
 const Exec = Util.promisify(ChildProcess.exec);
 const ReadFile = Util.promisify(Fs.readFile);
@@ -58,7 +59,7 @@ export default class Application {
      * Create application info from data
      * @param data
      */
-    constructor({id, name, path, isStatic, domain, storage, repo, access = []}: Application) {
+    constructor({id, name, path, isStatic, domain, storage, repo, access = []}: TypeApplicationInfo) {
         this.id = +id;
         this.name = name;
         this.path = path;
@@ -124,7 +125,7 @@ export default class Application {
         Application.runningApplications.set(newKey, newSession);
 
         // Start service if exists
-        await Service.start(newSession);
+        // await Service.start(newSession);
 
         // Save current logs
         await SystemJournal.flushLogs();
@@ -146,7 +147,7 @@ export default class Application {
      */
     static async close(session: Session, key: string): Promise<void> {
         // Stop service if exists
-        Service.stop(Application.runningApplications.get(key));
+        //Service.stop(Application.runningApplications.get(key));
 
         // Remove app from list
         Application.runningApplications.delete(key);

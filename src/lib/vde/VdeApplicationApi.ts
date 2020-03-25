@@ -1,4 +1,4 @@
-import Application from "../../server/app/Application";
+import TypeApplicationInfo from "../../type/TypeApplicationInfo";
 
 export default class VdeApplicationApi {
     async run(query: string) {
@@ -83,13 +83,13 @@ export default class VdeApplicationApi {
         return await response.json();
     }
 
-    async list(): Promise<Application[]> {
+    async list(): Promise<TypeApplicationInfo[]> {
         const response = await fetch(`/$api?m=Application.list`);
         if (response.status !== 200) {
             throw new Error(await response.text());
         }
         let list = await response.json();
-        list = list.map((x: Application) => {
+        list = list.map((x: TypeApplicationInfo) => {
             x.access = x.access || [];
             return x;
         });

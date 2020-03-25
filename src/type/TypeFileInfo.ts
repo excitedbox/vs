@@ -1,4 +1,4 @@
-export default class FileInfo {
+export default class TypeFileInfo {
     public name: string;
     public path: string;
     public isDir: boolean;

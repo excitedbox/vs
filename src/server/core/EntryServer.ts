@@ -7,7 +7,7 @@ import BaseServerApi from "./BaseServerApi";
 export default class EntryServer {
     private static _server: any;
 
-    static async run(port: number) {
+    static async run(port: number): Promise<void> {
         const Express = require('express'), RestApp = Express();
 
         // Set public folder
@@ -43,13 +43,13 @@ export default class EntryServer {
         });*/
 
         // Default app
-        RestApp.get('^/', async (req, res) => {
+        RestApp.get('^/', (req, res) => {
             console.log(req.headers.host);
-            let host = req.headers.host.split(':');
+            const host = req.headers.host.split(':');
             res.redirect(`http://auth.${host[0]}:${+host[1] + 1}`);
         });
 
-        return new Promise<void>((resolve => {
+        return new Promise<void>(((resolve: Function) => {
             EntryServer._server = RestApp.listen(port, () => {
                 console.log(`Entry Server starts at :${port}`);
                 resolve();
@@ -57,8 +57,8 @@ export default class EntryServer {
         }));
     }
 
-    static stop() {
+    static stop(): void {
         if (this._server)
-            this._server.close();
+            {this._server.close();}
     }
 }

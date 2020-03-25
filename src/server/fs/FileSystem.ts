@@ -5,7 +5,7 @@ import StdDrive from "./drive/StdDrive";
 import IDrive from "./drive/IDrive";
 import LibDrive from "./drive/LibDrive";
 import {WriteStream} from "fs";
-import FileInfo from "./FileInfo";
+import TypeFileInfo from "../../type/TypeFileInfo";
 
 const ReadFile = Util.promisify(Fs.readFile);
 
@@ -37,7 +37,7 @@ export default class FileSystem {
         return await FileSystem.getDrive(session, path, 'r').list(filter);
     }
 
-    static async search(session: Session, path: string, filter: string = ''): Promise<FileInfo[]> {
+    static async search(session: Session, path: string, filter: string = ''): Promise<TypeFileInfo[]> {
         return await FileSystem.getDrive(session, path, 'r').search(filter);
     }
 

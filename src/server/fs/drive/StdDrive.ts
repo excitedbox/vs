@@ -7,7 +7,7 @@ import * as Path from "path";
 import FileSystem from "../FileSystem";
 import FileConverter from "../FileConverter";
 import * as Glob from "glob";
-import FileInfo from "../FileInfo";
+import TypeFileInfo from "../../../type/TypeFileInfo";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -62,7 +62,7 @@ export default class StdDrive implements IDrive {
         return await StatFile(this.path);
     }
 
-    async list(filter: string = ''): Promise<FileInfo[]> {
+    async list(filter: string = ''): Promise<TypeFileInfo[]> {
         let list = (await ReadDir(this.path)).map((x: string) => {
             const stat = Fs.lstatSync(this.path + '/' + x);
             return {
@@ -86,14 +86,14 @@ export default class StdDrive implements IDrive {
         }
 
         // Filter files
-        list = list.filter((x: FileInfo) => {
+        list = list.filter((x: TypeFileInfo) => {
             if (x.isDir) {
                 return true;
             }
             return x.name.match(new RegExp(filter));
         });
 
-        list = list.sort((a: FileInfo, b: FileInfo) => +b.isDir - +a.isDir);
+        list = list.sort((a: TypeFileInfo, b: TypeFileInfo) => +b.isDir - +a.isDir);
 
         return list;
     }
@@ -113,7 +113,7 @@ export default class StdDrive implements IDrive {
         await RenamePath(this.path, dstPath);
     }
 
-    async search(filter: string): Promise<FileInfo[]> {
+    async search(filter: string): Promise<TypeFileInfo[]> {
         let path = this.path;
         if (path.slice(-1) !== '/') {
             path += '/';

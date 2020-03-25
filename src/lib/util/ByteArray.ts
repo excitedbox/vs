@@ -1,8 +1,9 @@
 import ByteHelper from "../helper/ByteHelper";
+import "../extender/ArrayExtender";
 
 export default class ByteArray {
-    private readonly _buffer: Uint8Array;
-    private readonly _capacity: number;
+    private _buffer: Uint8Array;
+    private _capacity: number;
     private _order: string;
     private _position: number;
     private _tempFloatArray: Float32Array = new Float32Array(1);
@@ -82,18 +83,20 @@ export default class ByteArray {
         this.putUInt8(this._tempFloatArray.buffer[3]);
     }
 
-    putString(str: string) {
-        let byteStr = new TextEncoder().encode(str);
-        this.putUInt16(byteStr.length); // str len
-        for (let i = 0; i < byteStr.length; i++)
+    putString(str: string): void {
+        const byteStr = new TextEncoder().encode(str);
+        this.putUInt32(byteStr.length); // str len
+        for (let i = 0; i < byteStr.length; i++) {
             this.putUInt8(byteStr[i]);
+        }
     }
 
     /** Equally to putStr but doesn't contain length info */
-    putChars(str: string) {
-        let byteStr = new TextEncoder().encode(str);
-        for (let i = 0; i < byteStr.length; i++)
+    putChars(str: string): void {
+        const byteStr = new TextEncoder().encode(str);
+        for (let i = 0; i < byteStr.length; i++) {
             this.putUInt8(byteStr[i]);
+        }
     }
 
     getUInt8() {
@@ -118,9 +121,9 @@ export default class ByteArray {
         return h + (l * 0x0100000000);
     }
 
-    getString() {
-        let len = this.getUInt16();
-        let str = new TextDecoder().decode(this._buffer.slice(this._position, this._position + len));
+    getString(): string {
+        const len = this.getUInt32();
+        const str = new TextDecoder().decode(this._buffer.slice(this._position, this._position + len));
         this._position += len;
         return str;
     }
@@ -135,6 +138,15 @@ export default class ByteArray {
         let val = this.getUInt64() + number;
         this._position -= 8;
         this.putUInt64(val);
+    }
+
+    resize(length: number) {
+        this._buffer = (new Uint8Array(length)).append(this._buffer);
+        this._capacity = this._buffer.length;
+    }
+
+    optimize() {
+        this._buffer = this._buffer.slice(0, this._position);
     }
 
     get position() {

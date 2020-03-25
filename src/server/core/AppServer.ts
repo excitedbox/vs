@@ -96,7 +96,7 @@ export default class AppServer {
         });
 
         // Get file from file system api
-        RestApp.get('^/\\$service/:path(*)', async (req, res) => {
+        /*RestApp.get('^/\\$service/:path(*)', async (req, res) => {
             try {
                 // Get user from db by session key
                 let subdomainKey = req.headers.host.split('.')[0];
@@ -104,8 +104,8 @@ export default class AppServer {
                 let session = Application.runningApplications.get(accessToken);
                 if (!session) throw new Error(`Session not found!`);
 
-                if (!Service.runningServices.has(session))
-                    throw new Error(`Service not found!`);
+                /!*if (!Service.runningServices.has(session))
+                    throw new Error(`Service not found!`);*!/
 
                 let args = Object.assign({}, req.query);
                 delete args.access_token;
@@ -122,7 +122,7 @@ export default class AppServer {
                     message: e.message
                 });
             }
-        });
+        });*/
 
         // Get file from file system api
         RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {

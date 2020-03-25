@@ -7,7 +7,7 @@ import Service from "../app/Service";
 
 export default class ShellApi {
     private static _tmpSession: Session;
-    private static _runningApplicationList: Array<Session> = [];
+    private static _runningApplicationList: Session[] = [];
     private static _lineReader: any;
 
     static async run() {
@@ -16,7 +16,7 @@ export default class ShellApi {
             input: process.stdin,
             output: process.stdout,
             terminal: false
-        }).on('line', async (line) => {
+        }).on('line', async (line: string) => {
             await this._processCommand(line);
         });
 
@@ -25,10 +25,11 @@ export default class ShellApi {
         console.log(`You are log in as "${process.env.SHELL_LOGIN}"`);
 
         // Run static applications
-        let appDb = await Application.getApplicationDb('root');
-        let apps = appDb.get('application').find({isStatic: true});
-        for (let i = 0; i < apps.length; i++)
+        const appDb = await Application.getApplicationDb('root');
+        const apps = appDb.get('application').find({isStatic: true});
+        for (let i = 0; i < apps.length; i++) {
             await this._processCommand(`run ${apps[i].repo}`);
+        }
 
         // Dummy
         this._processCommand('');
@@ -40,9 +41,9 @@ export default class ShellApi {
     }
 
     private static async _processCommand(cmd: string) {
-        let cmdParsed = cmd.split(' ');
-        let mainCmd = cmdParsed.shift();
-        let restCmd = cmdParsed.join(' ');
+        const cmdParsed = cmd.split(' ');
+        const mainCmd = cmdParsed.shift();
+        const restCmd = cmdParsed.join(' ');
 
         try {
             // Init system
@@ -62,10 +63,17 @@ export default class ShellApi {
                 await Application.install(this._tmpSession, cmdParsed.join(' '));
             }
 
+            // Install service
+            if (mainCmd === 'install_service') {
+                await Service.install(this._tmpSession, cmdParsed.join(' '));
+            }
+
             // Run application
             if (mainCmd === 'run' || mainCmd === 'open') {
-                let session = await Application.run(this._tmpSession, cmdParsed.join(' '));
-                if (mainCmd === 'open') Opn(`http://${session.key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/index.html`);
+                const session = await Application.run(this._tmpSession, cmdParsed.join(' '));
+                if (mainCmd === 'open') {
+                    Opn(`http://${session.key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/index.html`);
+                }
                 console.log(`${session.application.name}: ${session.key}`);
                 this._runningApplicationList.push(session);
             }
@@ -79,9 +87,14 @@ export default class ShellApi {
             // Close application
             if (mainCmd === 'close') {
                 let session = null;
-                if (restCmd === 'last') session = this._runningApplicationList.pop();
-                if (session) Application.close(this._tmpSession, session.key);
-                else console.log('Session not found');
+                if (restCmd === 'last') {
+                    session = this._runningApplicationList.pop();
+                }
+                if (session) {
+                    await Application.close(this._tmpSession, session.key);
+                } else {
+                    console.log('Session not found');
+                }
             }
 
             // Remove application
@@ -95,7 +108,7 @@ export default class ShellApi {
 
             // Show running applications
             if (mainCmd === 'htop') {
-                Application.runningApplications.forEach(x => {
+                Application.runningApplications.forEach((x: Session) => {
                     console.log(x.application.name + ': ' + x.key);
                 });
             }

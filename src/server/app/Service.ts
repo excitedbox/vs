@@ -1,185 +1,113 @@
-import * as Fs from 'fs';
-import * as Util from 'util';
+import TypeServiceInfo from "../../type/TypeServiceInfo";
 import Session from "../user/Session";
-import FileSystem from "../fs/FileSystem";
-import SystemJournal from "../system/SystemJournal";
-import FunctionHelper from "../../lib/helper/FunctionHelper";
+import * as Fs from "fs";
+import * as Util from "util";
+import * as ChildProcess from "child_process";
+import * as Rimraf from "rimraf";
+import JsonDb from "../../lib/db/JsonDb";
 
-const {NodeVM} = require('vm2');
-
-const Exists = Util.promisify(Fs.exists);
-
-class ServiceParams {
-    public intervalKeys: Array<any> = [];
-    public timeoutKeys: Array<any> = [];
-}
+const Exec = Util.promisify(ChildProcess.exec);
+const ReadFile = Util.promisify(Fs.readFile);
+const WriteFile = Util.promisify(Fs.writeFile);
+const Unlink = Util.promisify(Fs.unlink);
+const MkDir = Util.promisify(Fs.mkdir);
+const RemoveFolder = Util.promisify(Rimraf);
 
 export default class Service {
-    public static runningServices: Map<Session, Service> = new Map<Session, Service>();
-    public static serviceParams: Map<Service, ServiceParams> = new Map<Service, ServiceParams>();
-    public bindingPath: Map<string, Function> = new Map<string, Function>();
+    public id: number;
+    public name: string;
+    public repo: string;
+    public path: string;
 
-    static async start(session: Session) {
-        if (!session) throw new Error(`Session is require!`);
-        if (!session.isApplicationLevel) throw new Error(`Access denied for this session!`);
+    constructor({id, name, path, repo}: TypeServiceInfo) {
+        this.id = +id;
+        this.name = name;
+        this.path = path;
+        this.repo = repo;
+    }
 
-        // Check if service exists
-        if (!await Exists(session.application.path + '/service/index.js')) return;
+    static async install(session: Session, repo: string): Promise<void> {
+        if (!session) {
+            throw new Error(`Session is require!`);
+        }
 
-        // Create service
-        let service = new Service();
-        let serviceParams = new ServiceParams();
+        // Check url is correct
+        if (!repo) {
+            throw new Error(`Invalid repo url!`);
+        }
+        if (!(repo.startsWith('https://') || repo.startsWith('http://'))) {
+            throw new Error(`Invalid repo url!`);
+        }
 
-        // Create virtual environment
-        const vm = new NodeVM({
-            console: 'off',
-            // compiler: 'tsc',
-            sandbox: {
-                console: {
-                    log(msg) {
-                        SystemJournal.log(session, msg);
-                    },
-                    error(msg) {
-                        SystemJournal.error(session, msg);
-                    }
-                },
-                setInterval: function(fn, time, ...args) {
-                    serviceParams.intervalKeys.push(setInterval(fn, time, ...args));
-                },
-                setTimeout: function(fn, time, ...args) {
-                    serviceParams.timeoutKeys.push(setTimeout(fn, time, ...args));
-                },
-                service
-            },
-            eval: false,
-            wasm: false,
-            require: {
-                external: true,
-                builtin: ['fs', 'util'],
-                root: "./",
-                mock: {
-                    fs: {
-                        readFile: (path, options, callback) => this._fsReadFile(session, path, options, callback),
-                        writeFile: (path, options, callback) => this._fsWriteFile(session, path, options, callback),
-                        stat: (path, callback) => this._fsStat(session, path, callback),
-                        exists: (path, callback) => this._fsExists(session, path, callback),
-                        mkdir: (path, options, callback) => this._fsMkDir(session, path, options, callback),
-                        rename: (oldPath, newPath, callback) => this._fsRename(session, oldPath, newPath, callback),
-                        unlink: (path, callback) => this._fsUnlink(session, path, callback),
-                        readdir: (path, options, callback) => this._fsReadDir(session, path, options, callback),
-                        search: (path, filter) => {
-                        },
-                        tree: (path, filter) => {
-                        },
-                    },
-                    util: {
-                        promisify: Util.promisify
-                    }
-                }
-            }
+        // Get repo domain
+        const domain = repo.replace(/https?:\/\//, '')
+            .split('/')
+            .shift()
+            .replace(':', '-');
+
+        // Generate repo folder name
+        const folderName = domain + '/' + repo.split('/')
+            .slice(-2)
+            .map((x: string) => x.replace('.git', '')
+                .replace('.', '_'))
+            .join('/');
+
+        // Final app path in user app folder
+        const finalServicePath = './service/' + folderName;
+
+        // Check if already installed
+        if (Fs.existsSync(finalServicePath)) {
+            throw new Error(`Folder already exists!`);
+        }
+
+        // Clone and fetch repo
+        try {
+            await Exec(`git clone "${repo}" "${finalServicePath}"`);
+            await Exec(`cd ${finalServicePath} && git fetch && git fetch --tags`);
+        } catch {
+            await RemoveFolder(finalServicePath);
+            throw new Error(`Can't clone "${repo}"`);
+        }
+
+        // Check if there is application description
+        let serviceJson;
+        try {
+            serviceJson = JSON.parse(await ReadFile(`${finalServicePath}/application.json`, 'utf-8'));
+        } catch {
+            await RemoveFolder(finalServicePath);
+            throw new Error(`Service "${repo}" doesn't contain application.json file`);
+        }
+
+        if (serviceJson.type !== "service") {
+            throw new Error('Not a service!');
+        }
+
+        // Add new app
+        const serviceInfo = Object.assign(serviceJson, {
+            path: finalServicePath,
+            repo: repo
         });
 
-        // Start service in vm
-        let sex = Fs.readFileSync(session.application.path + '/service/index.js', 'utf-8');
-        vm.run(sex, session.application.path + '/service/index.js');
-
-        // Save service
-        Service.runningServices.set(session, service);
-        Service.serviceParams.set(service, serviceParams);
+        // Save application to db
+        const appDb = await Service.getServiceDb();
+        await appDb.get('service').push(serviceInfo).write();
     }
 
-    /**
-     * Stop service and remove all service resources.
-     * @param session
-     */
-    static stop(session: Session) {
-
-        if (this.runningServices.has(session)) {
-            // Get service and params
-            let service = this.runningServices.get(session);
-            let params = this.serviceParams.get(service);
-
-            // Destroy all service timers
-            params.intervalKeys.forEach(x => clearInterval(x));
-            params.timeoutKeys.forEach(x => clearTimeout(x));
-            this.serviceParams.delete(service);
-        }
-        this.runningServices.delete(session);
-    }
-
-    listen(path: string, fn: Function) {
-        this.bindingPath.set(path, fn);
-    }
-
-    async execute(path: string, args: any) {
-        if (!this.bindingPath.has(path)) return;
-        return await FunctionHelper.callFunctionWithArgumentNames(this.bindingPath.get(path), args);
-    }
-
-    private static async _fsReadFile(session: Session, path: string, options: any, callback: Function) {
+    static async silentInstall(session: Session, repo: string): Promise<{ status: boolean }> {
         try {
-            let data: any = await FileSystem.readFile(session, path);
-            if (options === 'utf-8') data = data.toString('utf-8');
-            callback(null, data);
-        } catch (e) {
-            callback(e);
+            await Service.install(session, repo);
+        } catch {
+            return {status: false};
         }
+        return {status: true};
     }
 
-    private static async _fsWriteFile(session: Session, path: string, data: string, callback: Function) {
-        try {
-            await FileSystem.writeFile(session, path, data);
-            callback(null, true);
-        } catch (e) {
-            callback(e);
-        }
+    static async list(): Promise<TypeServiceInfo[]> {
+        const serviceDb = await Service.getServiceDb();
+        return serviceDb.get('service').find();
     }
 
-    private static async _fsStat(session: Session, path: string, callback: Function) {
-        try {
-            callback(null, await FileSystem.info(session, path));
-        } catch (e) {
-            callback(e);
-        }
-    }
-
-    private static async _fsExists(session: Session, path: string, callback: Function) {
-        try {
-            callback(null, await FileSystem.exists(session, path));
-        } catch (e) {
-            callback(e);
-        }
-    }
-
-    private static async _fsMkDir(session: Session, path: string, options: any, callback: Function) {
-        try {
-            callback(null, await FileSystem.createDir(session, path));
-        } catch (e) {
-            callback(e);
-        }
-    }
-
-    private static async _fsRename(session: Session, path: string, name: string, callback: Function) {
-        try {
-            callback(null, await FileSystem.rename(session, path, name));
-        } catch (e) {
-            callback(e);
-        }
-    }
-
-    private static async _fsUnlink(session: Session, path: string, callback: Function) {
-        try {
-            callback(null, await FileSystem.remove(session, path));
-        } catch (e) {
-            callback(e);
-        }
-    }
-
-    private static async _fsReadDir(session: Session, path: string, options: any, callback: Function) {
-        try {
-            callback(null, await FileSystem.createDir(session, path));
-        } catch (e) {
-            callback(e);
-        }
+    static async getServiceDb(): Promise<JsonDb> {
+        return await JsonDb.db(`./user/service.json`, {service: []});
     }
 }
