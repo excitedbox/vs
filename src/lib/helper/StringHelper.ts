@@ -19,12 +19,12 @@ export default class StringHelper {
     }
 
     static generateRandomKey(sectionAmount: number = 4, sectionSize: number = 4): string {
-        let out = '';
+        const out = [];
 
         for (let i = 0; i < sectionAmount; i++) {
-            out += MD5.encode(Math.random() + '_' + Math.random()).slice(-sectionSize);
+            out.push(MD5.encode(Math.random() + '_' + Math.random()).slice(-sectionSize));
         }
 
-        return out;
+        return out.join('-');
     }
 }

@@ -6,7 +6,6 @@ import * as ChildProcess from "child_process";
 import * as Rimraf from "rimraf";
 import JsonDb from "../../lib/db/JsonDb";
 import Service from "./Service";
-import SystemJournal from "../system/SystemJournal";
 import StringHelper from "../../lib/helper/StringHelper";
 import TypeApplicationInfo from "../../type/TypeApplicationInfo";
 
@@ -128,7 +127,7 @@ export default class Application {
         // await Service.start(newSession);
 
         // Save current logs
-        await SystemJournal.flushLogs();
+        // await SystemJournal.flushLogs();
 
         // Save session to session list
         if (!app.isStatic) {

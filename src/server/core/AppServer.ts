@@ -10,27 +10,30 @@ import BaseServerApi from "./BaseServerApi";
 import Service from "../app/Service";
 import Session from "../user/Session";
 import * as Path from "path";
+import * as Express from 'express';
+import IPC from "../system/IPC";
 
 export default class AppServer {
     private static _server: any;
 
     static async run(port: number) {
-        const Express = require('express'), RestApp = Express();
+        const RestApp = Express();
         RestApp.use(Formidable());
         RestApp.use(Cors());
 
-        let corsOptions = {
+        const corsOptions = {
             origin: [`${process.env.DOMAIN}`, `.${process.env.DOMAIN}`],
             optionsSuccessStatus: 200
         };
 
-        let sessionDb = await Application.getSessionDb();
-        let sessionList = sessionDb.get('session').find();
-        for (let i = 0; i < sessionList.length; i++)
+        const sessionDb = await Application.getSessionDb();
+        const sessionList = sessionDb.get('session').find();
+        for (let i = 0; i < sessionList.length; i++) {
             Application.runningApplications.set(
                 sessionList[i].key,
                 new Session(sessionList[i].key, new User(sessionList[i].user), new Application(sessionList[i].application))
             );
+        }
 
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
@@ -40,7 +43,7 @@ export default class AppServer {
         });
 
         // Remote
-        RestApp.get('^/\\$remote/:path(*)', async (req, res) => {
+        RestApp.get('^/\\$remote/:path(*)', async (req: Express.Request, res: Express.Response) => {
             try {
                 Request({
                     method: 'GET',
@@ -67,11 +70,11 @@ export default class AppServer {
                 });
             }
         });
-        RestApp.post('^/\\$remote', async (req, res) => {
+        RestApp.post('^/\\$remote', async (req: Express.Request, res: Express.Response) => {
             try {
                 Request({
                     method: 'GET',
-                    url: req.fields.url,
+                    url: req['fields'].url,
                     encoding: null
                 }, function (error, response, body) {
                     if (!error && response.statusCode === 200) {
@@ -123,6 +126,22 @@ export default class AppServer {
                 });
             }
         });*/
+
+        // Get file from file system api
+        RestApp.get('^/fs/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
+            try {
+                const resp = await IPC.send('fs', 'json', {
+                    type: 'read',
+                    path: req.params.path
+                });
+
+                res.setHeader('Content-Type', 'image/png');
+                res.send(resp);
+            } catch (e) {
+                res.status(500);
+                res.send(e.message);
+            }
+        });
 
         // Get file from file system api
         RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
@@ -201,8 +220,9 @@ export default class AppServer {
         }));
     }
 
-    static stop() {
-        if (this._server)
+    static stop(): void {
+        if (this._server) {
             this._server.close();
+        }
     }
 }

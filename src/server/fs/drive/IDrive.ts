@@ -1,8 +1,8 @@
 import Session from "../../user/Session";
 
 export default interface IDrive {
-    path;
-    contentType;
+    path: string;
+    contentType: string;
 
     /**
      * Get info about a file or folder.

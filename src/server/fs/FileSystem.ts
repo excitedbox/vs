@@ -3,7 +3,6 @@ import * as Util from 'util';
 import Session from "../user/Session";
 import StdDrive from "./drive/StdDrive";
 import IDrive from "./drive/IDrive";
-import LibDrive from "./drive/LibDrive";
 import {WriteStream} from "fs";
 import TypeFileInfo from "../../type/TypeFileInfo";
 
@@ -89,12 +88,12 @@ export default class FileSystem {
 
         let drive: IDrive;
         const redirect = [
-            {
+            /*{
                 route: '/$lib',
                 access: 'r',
                 path: './',
                 drive: LibDrive
-            },
+            },*/
             {
                 route: '/$public',
                 access: 'r',

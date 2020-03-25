@@ -3,7 +3,6 @@ import * as ChildProcess from 'child_process';
 import AppServer from "./core/AppServer";
 import EntryServer from "./core/EntryServer";
 import ShellApi from "./system/ShellApi";
-import SystemJournal from "./system/SystemJournal";
 import Application from "./app/Application";
 import Service from "./app/Service";
 import "../lib/extender/NumberExtender";
@@ -13,7 +12,6 @@ import "../lib/extender/DateExtender";
 import User from "./user/User";
 import SHA256 from "../lib/crypto/SHA256";
 import JsonDb from "../lib/db/JsonDb";
-import SSHServer from "./core/SSHServer";
 import IPC from "./system/IPC";
 
 export default class Main {
@@ -25,7 +23,7 @@ export default class Main {
         await Main.defaultInit();
 
         // Init system journal for logs
-        await SystemJournal.init();
+        // await SystemJournal.init();
 
         // Run os server
         await EntryServer.run(+process.env.PORT + (isDebug ? 100 : 0));
@@ -34,10 +32,7 @@ export default class Main {
         await AppServer.run(+process.env.PORT + 1 + (isDebug ? 100 : 0));
 
         // Run ssh server
-        await SSHServer.run(+process.env.PORT + 2 + (isDebug ? 100 : 0));
-
-        // Run shell api for command input from terminal
-        await ShellApi.run();
+        // await SSHServer.run(+process.env.PORT + 2 + (isDebug ? 100 : 0));
 
         // Run all services
         const serviceList = await Service.list();
@@ -47,11 +42,15 @@ export default class Main {
             });
 
             IPC.addService(serviceList[i].name, child);
+            console.log(`Run "${serviceList[i].name}" service`);
         }
+        
+        // Run shell api for command input from terminal
+        await ShellApi.run();
 
         /*console.time('sex');
         const resp = await IPC.send('fs', 'json', {
-            type: 'read',
+            type: 'readx',
             path: '/home/maldan/work/nodejs/vs/package.json'
         });
         console.log(resp.toString('utf-8'));
@@ -59,15 +58,15 @@ export default class Main {
     }
 
     static async stop(): Promise<void> {
-        Application.runningApplications.forEach(x => {
+        /*Application.runningApplications.forEach(x => {
             // Service.stop(x);
-        });
+        });*/
         Application.runningApplications.clear();
         // Service.runningServices.clear();
         EntryServer.stop();
         AppServer.stop();
-        SystemJournal.stop();
-        SSHServer.stop();
+        // SystemJournal.stop();
+        // SSHServer.stop();
         ShellApi.stop();
     }
 
