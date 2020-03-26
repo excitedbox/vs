@@ -1,5 +1,3 @@
-import Session from "../../user/Session";
-
 export default interface IDrive {
     path: string;
     contentType: string;

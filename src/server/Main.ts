@@ -55,6 +55,9 @@ export default class Main {
         });
         console.log(resp.toString('utf-8'));
         console.timeEnd('sex');*/
+
+        /*const resp = await IPC.send('fs', 'string', '');
+        console.log(resp);*/
     }
 
     static async stop(): Promise<void> {

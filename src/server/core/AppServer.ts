@@ -130,21 +130,64 @@ export default class AppServer {
         // Get file from file system api
         RestApp.get('^/fs/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
             try {
-                const resp = await IPC.send('fs', 'json', {
-                    type: 'read',
-                    path: req.params.path
-                });
+                if (!req.params.path) {
+                    req.params.path = '/';
+                }
+                req.query.appDomain = req.headers['host'];
+                req.query.domain = req.headers['host'].split('.').slice(1).join('.');
 
-                res.setHeader('Content-Type', 'image/png');
-                res.send(resp);
+                // Get application session by session key
+                const subdomainKey = req.headers.host.split('.')[0];
+                const accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                const session = Application.runningApplications.get(accessToken);
+                if (!session) {
+                    throw new AuthenticationError(`Session not found!`);
+                }
+
+
+                // Get list of files
+                if (req.query.hasOwnProperty('info')) {
+                    const resp = await IPC.send('fs', 'json', {
+                        type: 'info',
+                        path: req.params.path,
+                        session
+                    });
+
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(resp);
+                } else
+                // Get list of files
+                if (req.query.hasOwnProperty('list')) {
+                    const resp = await IPC.send('fs', 'json', {
+                        type: 'list',
+                        path: req.params.path,
+                        session
+                    });
+
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(resp);
+                } else {
+                    const resp = await IPC.send('fs', 'json', {
+                        type: 'read',
+                        path: req.params.path,
+                        session
+                    });
+
+                    res.setHeader('Content-Type', 'image/png');
+                    res.send(resp);
+                }
             } catch (e) {
                 res.status(500);
-                res.send(e.message);
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({
+                    status: false,
+                    message: e
+                }));
             }
         });
 
         // Get file from file system api
-        RestApp.get('^/:path(*)', Cors(corsOptions), async (req, res) => {
+        RestApp.get('^/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
             if (!req.params.path) {
                 req.params.path = '/';
             }
@@ -212,7 +255,7 @@ export default class AppServer {
             }
         });
 
-        return new Promise<void>((resolve => {
+        return new Promise<void>(((resolve: Function) => {
             AppServer._server = RestApp.listen(port, () => {
                 console.log(`App Server starts at :${port}`);
                 resolve();

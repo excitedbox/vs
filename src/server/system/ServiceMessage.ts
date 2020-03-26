@@ -2,10 +2,10 @@ import ByteArray from "../../lib/util/ByteArray";
 
 export default class ServiceMessage {
     public id: number;
-    public type: "string" | "json" | "binary";
+    public type: "string" | "json" | "binary" | "error";
     public data: string | {[key: string]: {}} | Buffer;
 
-    constructor(id: number, type: "string" | "json" | "binary", data: string | {[key: string]: {}} | Buffer ) {
+    constructor(id: number, type: "string" | "json" | "binary" | "error", data: string | {[key: string]: {}} | Buffer ) {
         this.id = id;
         this.type = type;
         this.data = data;
@@ -21,35 +21,51 @@ export default class ServiceMessage {
             return ss;
         }
 
-        const s = new ByteArray();
-
-        s.putUInt32(this.id);
         if (this.type === "string") {
+            // Allocate buffer
+            const s = new ByteArray(4 + 1 + 4 + (this.data as string).length * 2);
+
+            // Set package id
+            s.putUInt32(this.id);
             s.putUInt8(0);
-        }
-        if (this.type === "json") {
-            s.putUInt8(1);
-        }
-
-        if (this.type === "string") {
             s.putString(this.data as string);
+            s.optimize();
+            return Buffer.from(s.buffer);
         }
         if (this.type === "json") {
-            s.putString(JSON.stringify(this.data as string));
-        }
+            const msg = JSON.stringify(this.data as string);
 
-        s.optimize();
-        return Buffer.from(s.buffer);
+            // Allocate buffer
+            const s = new ByteArray(4 + 1 + 4 + msg.length * 3);
+
+            // Set package id
+            s.putUInt32(this.id);
+            s.putUInt8(1);
+            s.putString(msg);
+            s.optimize();
+            return Buffer.from(s.buffer);
+        }
+        if (this.type === "error") {
+            // Allocate buffer
+            const s = new ByteArray(4 + 1 + 4 + (this.data as string).length * 2);
+
+            // Set package id
+            s.putUInt32(this.id);
+            s.putUInt8(3);
+            s.putString(this.data as string);
+            s.optimize();
+            return Buffer.from(s.buffer);
+        }
     }
 
     static from(buffer: Buffer): ServiceMessage {
         buffer = Buffer.from(buffer);
         const id = buffer.readUInt32BE(0);
         const type = buffer.readUInt8(4);
-        const typeName = type === 0 ?"string" :type === 1 ?"json" :"binary";
+        const typeName = type === 0 ?"string" :type === 1 ?"json" :type === 2 ?"binary" :"error";
         const length = buffer.readUInt32BE(5);
         const data = buffer.slice(9);
-        const convertedData = typeName === "string" ?data.toString('utf-8')
+        const convertedData = (typeName === "string" || typeName === "error") ?data.toString('utf-8')
             :typeName === "json" ?JSON.parse(data.toString('utf-8')) :data;
 
         return new ServiceMessage(id, typeName, convertedData);

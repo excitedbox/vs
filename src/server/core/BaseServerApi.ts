@@ -1,10 +1,11 @@
 import Application from "../app/Application";
 import FunctionHelper from "../../lib/helper/FunctionHelper";
+import * as Express from 'express';
 
 export default class BaseServerApi {
-    private static async requestLogic(classList: any, req, res) {
+    private static async requestLogic(classList: {}, req: Express.Request, res: Express.Response) {
         try {
-            const finalParams = Object.assign(req.query, req.body, req.fields, req.files);
+            const finalParams = Object.assign(req.query, req.body, req['fields'], req['files']);
 
             // Get user from db by session key
             const subdomainKey = req.headers.host.split('.')[0];

@@ -5,13 +5,11 @@ export default class Session {
     public key: string;
     public readonly user: User;
     public readonly application: Application;
-    // public readonly url: string;
 
     constructor(key: string, user: User, application: Application = null) {
         this.key = key;
         this.user = user;
         this.application = application;
-        // this.url = `http://${key}.${process.env.DOMAIN}:${+process.env.PORT + 1}/`;
     }
 
     get isUserLevel(): boolean {
@@ -28,19 +26,25 @@ export default class Session {
      */
     checkAccess(access: string): boolean {
         // Root access
-        if ((access === 'root' || access === 'root-readonly') && this.user.name !== 'root')
+        if ((access === 'root' || access === 'root-readonly') && this.user.name !== 'root') {
             return false;
+        }
 
         // Access to data folder
-        if (access === 'data' && this.application.hasAccess('data')) return true;
+        if (access === 'data' && this.application.hasAccess('data')) {
+            return true;
+        }
 
         // Access to user folder
-        if (access === 'user' && this.application.hasAccess('user')) return true;
+        if (access === 'user' && this.application.hasAccess('user')) {
+            return true;
+        }
 
         // Access to user folder but readonly
         if (access === 'user-readonly'
-            && (this.application.hasAccess('user-readonly') || this.application.hasAccess('user')))
+            && (this.application.hasAccess('user-readonly') || this.application.hasAccess('user'))) {
             return true;
+        }
 
         return this.application.hasAccess(access);
     }
