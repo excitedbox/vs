@@ -5,7 +5,7 @@ import * as MimeTypes from 'mime-types';
 import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
-import FileSystem from "../fs/FileSystem";
+// import FileSystem from "../fs/FileSystem";
 import BaseServerApi from "./BaseServerApi";
 import Service from "../app/Service";
 import Session from "../user/Session";
@@ -38,7 +38,7 @@ export default class AppServer {
         // Rest api
         BaseServerApi.baseApiWithSessionControl(RestApp, '^/\\$api', {
             'Application': Application,
-            'FileSystem': FileSystem,
+            // 'FileSystem': FileSystem,
             'User': User
         });
 
@@ -128,7 +128,7 @@ export default class AppServer {
         });*/
 
         // Get file from file system api
-        RestApp.get('^/fs/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
+        /*RestApp.get('^/fs/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
             try {
                 if (!req.params.path) {
                     req.params.path = '/';
@@ -144,36 +144,22 @@ export default class AppServer {
                     throw new AuthenticationError(`Session not found!`);
                 }
 
+                // Make query
+                const resp = await IPC.send('fs', 'json', {
+                    type: req.query.m || 'read',
+                    path: req.params.path,
+                    args: req.query,
+                    session
+                });
 
-                // Get list of files
-                if (req.query.hasOwnProperty('info')) {
-                    const resp = await IPC.send('fs', 'json', {
-                        type: 'info',
-                        path: req.params.path,
-                        session
-                    });
-
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(resp);
+                if (typeof resp === "string") {
+                    res.sendFile(resp);
                 } else
-                // Get list of files
-                if (req.query.hasOwnProperty('list')) {
-                    const resp = await IPC.send('fs', 'json', {
-                        type: 'list',
-                        path: req.params.path,
-                        session
-                    });
-
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(resp);
+                if (resp instanceof Buffer) {
+                    res.setHeader('Content-Type', resp.subarray(0, 255).toString('utf-8').replace(/\u0000/g, ''));
+                    res.send(resp.subarray(255));
                 } else {
-                    const resp = await IPC.send('fs', 'json', {
-                        type: 'read',
-                        path: req.params.path,
-                        session
-                    });
-
-                    res.setHeader('Content-Type', 'image/png');
+                    res.setHeader('Content-Type', 'application/json');
                     res.send(resp);
                 }
             } catch (e) {
@@ -184,10 +170,71 @@ export default class AppServer {
                     message: e
                 }));
             }
-        });
+        });*/
 
         // Get file from file system api
-        RestApp.get('^/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
+        const readFromFileSystem = async (req: Express.Request, res: Express.Response): Promise<void> => {
+            if (!req.params.path) {
+                req.params.path = '/';
+            }
+
+            try {
+                if (!req.headers.host) {
+                    throw new Error(`Host not found!`);
+                }
+
+                // Get application session by session key
+                const finalParams = Object.assign(req.query, req.body, req['fields'], req['files']);
+                const subdomainKey = req.headers.host.split('.')[0];
+                const accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                const session = Application.runningApplications.get(accessToken);
+
+                if (!session) {
+                    throw new AuthenticationError(`Session not found!`);
+                }
+
+                // Collect files
+                const files = {};
+                for (const file in req['files']) {
+                    if (!req['files'].hasOwnProperty(file)) {
+                        continue;
+                    }
+                    files[file] = req['files'][file].path;
+                    delete finalParams[file];
+                }
+                finalParams.files = files;
+
+                // Make query to FS Service
+                const resp = await IPC.send('fs', 'json', {
+                    type: req.query.m || 'read',
+                    path: req.params.path,
+                    args: finalParams,
+                    session
+                });
+
+                if (typeof resp === "string") {
+                    res.sendFile(resp);
+                } else
+                if (resp instanceof Buffer) {
+                    res.setHeader('Content-Type', resp.subarray(0, 255).toString('utf-8').replace(/\u0000/g, ''));
+                    res.send(resp.subarray(255));
+                } else {
+                    res.send(resp);
+                }
+            } catch (e) {
+                res.status(e.httpStatusCode || 500);
+                res.send({
+                    status: false,
+                    message: e
+                });
+            }
+        };
+
+        RestApp.get('^/:path(*)', Cors(corsOptions), readFromFileSystem);
+        RestApp.post('^/:path(*)', Cors(corsOptions), readFromFileSystem);
+
+        // Get file from file system api
+        /*RestApp.get('^/:path(*)', Cors(corsOptions), async (req: Express.Request, res: Express.Response) => {
             if (!req.params.path) {
                 req.params.path = '/';
             }
@@ -253,7 +300,7 @@ export default class AppServer {
                     message: e.message
                 });
             }
-        });
+        });*/
 
         return new Promise<void>(((resolve: Function) => {
             AppServer._server = RestApp.listen(port, () => {

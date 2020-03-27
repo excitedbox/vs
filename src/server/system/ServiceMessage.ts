@@ -64,10 +64,9 @@ export default class ServiceMessage {
         const type = buffer.readUInt8(4);
         const typeName = type === 0 ?"string" :type === 1 ?"json" :type === 2 ?"binary" :"error";
         const length = buffer.readUInt32BE(5);
-        const data = buffer.slice(9);
+        const data = buffer.subarray(9);
         const convertedData = (typeName === "string" || typeName === "error") ?data.toString('utf-8')
             :typeName === "json" ?JSON.parse(data.toString('utf-8')) :data;
-
         return new ServiceMessage(id, typeName, convertedData);
     }
 }
