@@ -1,4 +1,4 @@
-export default class Rectangle2D {
+export default class Rectangle {
     public left: number = 0;
     public right: number = 0;
     public top: number = 0;
@@ -32,7 +32,7 @@ export default class Rectangle2D {
     };
 
     // Check rectangle collision
-    intersectRectangle(rect: Rectangle2D, isReversed: boolean): boolean {
+    intersectRectangle(rect: Rectangle, isReversed: boolean = false): boolean {
         if (isReversed) {
             return !(rect.left > this.right ||
                 rect.right < this.left ||
