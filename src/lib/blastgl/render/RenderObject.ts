@@ -13,6 +13,11 @@ export type TypeRenderObjectParameters = {
     type: number;
 };
 
+export enum RenderObjectType {
+    Sprite,
+    Container
+}
+
 export default class RenderObject {
     public x: number;
     public y: number;
@@ -24,7 +29,10 @@ export default class RenderObject {
     public scaleY: number;
 
     public id: number;
-    public type: number;
+    public type: RenderObjectType;
+    public vertex: Float32Array;
+
+    public isVisible: boolean;
 
     public area: Rectangle;
 
@@ -40,6 +48,10 @@ export default class RenderObject {
         if (z !== undefined) {
             this.z = z;
         }
+    }
+
+    update(): void {
+
     }
 
     destroy(): void {

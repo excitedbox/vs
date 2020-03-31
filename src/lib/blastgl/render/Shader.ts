@@ -2,7 +2,8 @@ import BlastGL from "../BlastGL";
 
 export default class Shader {
     public readonly program: WebGLProgram;
-    private _bindParams: {[key: string]: number| WebGLUniformLocation} = {};
+    private _attributeParams: { [key: string]: number } = {};
+    private _uniformParams: { [key: string]: WebGLUniformLocation } = {};
 
     constructor(name: string, vertex: string, fragment: string) {
         this.program = BlastGL.gl.createProgram();
@@ -15,7 +16,7 @@ export default class Shader {
         BlastGL.gl.linkProgram(this.program);
     }
 
-    addShader(type: number, code: string) {
+    addShader(type: number, code: string): void {
         const shader = BlastGL.gl.createShader(type);
         BlastGL.gl.shaderSource(shader, code);
         BlastGL.gl.compileShader(shader);
@@ -28,11 +29,29 @@ export default class Shader {
 
     // Биндим атрибуты шейдера
     bindAttribute(parameter: string): void {
-        this._bindParams[parameter] = BlastGL.gl.getAttribLocation(this.program, parameter);
+        this._attributeParams[parameter] = BlastGL.gl.getAttribLocation(this.program, parameter);
     };
 
     // Биндим юниформ
     bindUniform(parameter: string): void {
-        this._bindParams[parameter] = BlastGL.gl.getUniformLocation(this.program, parameter);
+        this._uniformParams[parameter] = BlastGL.gl.getUniformLocation(this.program, parameter);
     };
+
+    getAttributeLocation(parameter: string): number {
+        return this._attributeParams[parameter];
+    }
+
+    getUniformLocation(parameter: string): WebGLUniformLocation {
+        return this._uniformParams[parameter];
+    }
+
+    // Активируем атрибут
+    enableVertexAttribArray(): void {
+        for (const s in this._attributeParams) {
+            if (!this._attributeParams.hasOwnProperty(s)) {
+                continue;
+            }
+            BlastGL.gl.enableVertexAttribArray(this._attributeParams[s]);
+        }
+    }
 }

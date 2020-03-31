@@ -8,6 +8,10 @@ export default class Scene {
 
     }
 
+    update(): void {
+
+    }
+
     destroy(): void {
 
     }

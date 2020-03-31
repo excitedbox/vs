@@ -3,16 +3,19 @@ import RenderObject from "./render/RenderObject";
 import Scene from "./render/Scene";
 import Layer from "./render/Layer";
 import Shader from "./render/Shader";
-
-// import "./shader/image.fragment.glsl";
-// import "./shader/image.vertex.glsl";
+import Camera from "./render/Camera";
+import Chunk from "./render/Chunk";
 
 export default class BlastGL {
     private static _gl: WebGLRenderingContext;
     private static _indexSize: number;
     private static _canvas: HTMLCanvasElement;
     private static _currentScene: Scene;
-    private static _shaderList: {[key: string]: Shader} = {};
+    private static _currentCamera: Camera;
+    private static _lastUsedShader: Shader;
+    private static _chunkList: Chunk[] = [];
+    private static _chunkCounter: number = 0;
+    private static _shaderList: { [key: string]: Shader } = {};
     public static readonly event: EventEmitter = new EventEmitter();
 
     static init(element: string): void {
@@ -38,11 +41,24 @@ export default class BlastGL {
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
 
+        // Init shaders
+        this.initShaders();
+
         // Index size for index buffer
         this._indexSize = this.gl.UNSIGNED_SHORT;
+
+        // Таймер обновления
+        setInterval(function () {
+            BlastGL.calculate();
+        }, 16);
+
+        // Таймер рендера
+        setInterval(function () {
+            BlastGL.render();
+        }, 16);
     }
 
-    private static initShaders() {
+    private static initShaders(): void {
         // Настройка шейдера для спрайтов
         this._shaderList['sprite2d'] = new Shader(
             'sprite2d',
@@ -65,6 +81,10 @@ export default class BlastGL {
         }
         this._currentScene = scene;
         this._currentScene.init();
+    }
+
+    static setCamera(camera: Camera): void {
+        this._currentCamera = camera;
     }
 
     static addObject(object: RenderObject, layerId: number = 0): void {
@@ -98,10 +118,87 @@ export default class BlastGL {
         });
     }
 
+    static calculate(): void {
+        if (!this._currentScene || !this._currentCamera) {
+            return;
+        }
+
+        this._currentCamera.update();
+        this._currentScene.update();
+
+        for (let i = 0; i < this._currentScene.layers.length; i++) {
+            for (let j = 0; j < this._currentScene.layers[i].elements.length; j++) {
+                const tempElement = this._currentScene.layers[i].elements[j];
+
+                if (tempElement.update) {
+                    tempElement.update();
+                }
+            }
+        }
+    }
+
+    static allocateChunk(): Chunk {
+        this._chunkCounter += 1;
+        if (!this._chunkList[this._chunkCounter - 1]) {
+            this._chunkList[this._chunkCounter - 1] = new Chunk(this._chunkCounter - 1);
+        }
+
+        return this._chunkList[this._chunkCounter - 1];
+    }
+
+    static render(): void {
+        this.gl.clear(this.gl.DEPTH_BUFFER_BIT | this.gl.COLOR_BUFFER_BIT);
+        this.gl.clearDepth(1.0);
+
+        for (let i = 0; i < this._chunkCounter; i++) {
+            const tempChunk = this._chunkList[i];
+
+            // Линкуем шейдер если нужно
+            if (this._lastUsedShader !== tempChunk.shader) {
+                this.gl.useProgram(tempChunk.shader.program);
+                tempChunk.shader.enableVertexAttribArray();
+            }
+
+            // Передаем текстуру в шейдер если нужно
+            if (this._lastUsedShader !== tempChunk.texture) {
+                this.gl.activeTexture(this.gl.TEXTURE0);
+                this.gl.uniform1i(this.gl.getUniformLocation(tempChunk.shader.program, "uSampler"), 0);
+            }
+
+            // Биндим текстуру, если текстуры нет, берем текстуру атласа
+            this.gl.bindTexture(this.gl.TEXTURE_2D, tempChunk.texture);
+
+            // Передаем вертексы
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tempChunk.vertexBuffer);
+            this.gl.vertexAttribPointer(tempChunk.shader.getAttributeLocation('aVertexPosition'), 3, this.gl.FLOAT, false, 0, 0);
+
+            // Текстурые координаты
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tempChunk.uvBuffer);
+            this.gl.vertexAttribPointer(tempChunk.shader.getAttributeLocation('aTextureCoord'), 2, this.gl.FLOAT, false, 0, 0);
+
+            // Цвет если спрайт
+            if (tempChunk.shader === this._shaderList['sprite2d']) {
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tempChunk.colorBuffer);
+                this.gl.vertexAttribPointer(tempChunk.shader.getAttributeLocation('aColor'), 4, this.gl.FLOAT, false, 0, 0);
+            }
+
+            // Индексный буфер
+            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, tempChunk.indexBuffer);
+
+            // Передаем камеру в шейдер
+            this.gl.uniformMatrix4fv(tempChunk.shader.getUniformLocation('uCameraMatrix'), false, this._currentCamera.matrix.matrix);
+
+            // Отрисовка чанка
+            this.gl.drawElements(this.gl.TRIANGLES, tempChunk.size * 6, this._indexSize, 0);
+        }
+    }
+
     // Очистить все слои и объекты
     static clear(exceptionLayer: number[] = []): void {
         for (let i = 0; i < this._currentScene.layers.length; i++) {
-            if (exceptionLayer.indexOf(this._currentScene.layers[i].id) !== -1) {continue;}
+            if (exceptionLayer.indexOf(this._currentScene.layers[i].id) !== -1) {
+                continue;
+            }
             for (let j = 0; j < this._currentScene.layers[i].elements.length; j++) {
                 this._currentScene.layers[i].elements[j].destroy();
                 //this.isNeedGarbageCollector = true;
