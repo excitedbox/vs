@@ -1,29 +1,39 @@
 import EventEmitter from "../util/EventEmitter";
-import RenderObject from "./render/RenderObject";
+import RenderObject, {RenderObjectType} from "./render/RenderObject";
 import Scene from "./render/Scene";
 import Layer from "./render/Layer";
 import Shader from "./render/Shader";
 import Camera from "./render/Camera";
 import Chunk from "./render/Chunk";
+import Texture from "./texture/Texture";
 
 export default class BlastGL {
     private static _gl: WebGLRenderingContext;
     private static _indexSize: number;
     private static _canvas: HTMLCanvasElement;
+    private static _atlasContainer: HTMLElement;
     private static _currentScene: Scene;
     private static _currentCamera: Camera;
     private static _lastUsedShader: Shader;
+    private static _lastUsedTexture: Texture;
     private static _chunkList: Chunk[] = [];
     private static _chunkCounter: number = 0;
-    private static _shaderList: { [key: string]: Shader } = {};
+    public static readonly shaderList: { [key: string]: Shader } = {};
     public static readonly event: EventEmitter = new EventEmitter();
+
+    private static _resolutionDecreaseRate: number = 1;
+
+    private static _sceneWidth: number;
+    private static _sceneHeight: number;
 
     static init(element: string): void {
         // Inject canvas
         document.querySelector(element).innerHTML = `
-            <canvas></canvas>  
+            <canvas></canvas>
+            <div></div>
         `;
         this._canvas = document.querySelector(element).querySelector('canvas');
+        this._atlasContainer = document.querySelector(element).querySelector('div');
 
         // Init webgl
         try {
@@ -56,19 +66,41 @@ export default class BlastGL {
         setInterval(function () {
             BlastGL.render();
         }, 16);
+
+        console.log(this._chunkList);
     }
 
     private static initShaders(): void {
         // Настройка шейдера для спрайтов
-        this._shaderList['sprite2d'] = new Shader(
+        this.shaderList['sprite2d'] = new Shader(
             'sprite2d',
             `[[[ "./shader/sprite.vertex.glsl" ]]]`,
             `[[[ "./shader/sprite.fragment.glsl" ]]]`,
         );
-        this._shaderList['sprite2d'].bindAttribute('aVertexPosition');
-        this._shaderList['sprite2d'].bindAttribute('aColor');
-        this._shaderList['sprite2d'].bindAttribute('aTextureCoord');
-        this._shaderList['sprite2d'].bindUniform('uCameraMatrix');
+        this.shaderList['sprite2d'].bindAttribute('aVertexPosition');
+        this.shaderList['sprite2d'].bindAttribute('aColor');
+        this.shaderList['sprite2d'].bindAttribute('aTextureCoord');
+        this.shaderList['sprite2d'].bindUniform('uCameraMatrix');
+    }
+
+    static resize(width: number, height: number): void {
+        // Обновляем параметры сцены
+        this._sceneWidth = width / this._resolutionDecreaseRate;
+        this._sceneHeight = height / this._resolutionDecreaseRate;
+
+        // Обновляем размер камеры (но не статический размер)
+        //his._currentCamera.width = width / this._resolutionDecreaseRate;
+        //this._currentCamera.height = height / this._resolutionDecreaseRate;
+
+        // Размеры канваса
+        this._canvas.setAttribute("width", width / this._resolutionDecreaseRate + "");
+        this._canvas.setAttribute("height", height / this._resolutionDecreaseRate + "");
+
+        // Обновляем вьюпорт
+        this.gl.viewport(0, 0, width / this._resolutionDecreaseRate, height / this._resolutionDecreaseRate);
+
+        this._canvas.style.width = width + 'px';
+        this._canvas.style.height = height + 'px';
     }
 
     static setScene(scene: Scene): void {
@@ -85,6 +117,10 @@ export default class BlastGL {
 
     static setCamera(camera: Camera): void {
         this._currentCamera = camera;
+    }
+
+    static addTexture(texture: Texture): void {
+        this._currentScene.textureManager.addTexture(texture);
     }
 
     static addObject(object: RenderObject, layerId: number = 0): void {
@@ -124,6 +160,7 @@ export default class BlastGL {
         }
 
         this._currentCamera.update();
+        this._currentScene.textureManager.update();
         this._currentScene.update();
 
         for (let i = 0; i < this._currentScene.layers.length; i++) {
@@ -135,6 +172,83 @@ export default class BlastGL {
                 }
             }
         }
+
+        let lastObject = null;
+        let lastTexture = null;
+        let lastShader = null;
+        let tempChunk: Chunk = null;
+        let isNeedToAllocateChunk = true;
+        this._chunkCounter = 0;
+
+        // Проходим по всем слоям и элементам в них
+        for (let i = 0; i < this._currentScene.layers.length; i++) {
+            isNeedToAllocateChunk = true;
+
+            for (let j = 0, length = this._currentScene.layers[i].elements.length + 1; j < length; j++) {
+                if (length === 1) {
+                    continue;
+                }
+                if (this._currentScene.layers[i].elements[j] && this._currentScene.layers[i].elements[j].type === RenderObjectType.Container) {
+                    continue;
+                }
+
+                // Если нужен новый чанк
+                if (isNeedToAllocateChunk && (this._currentScene.layers[i].elements[j] || lastObject)) {
+                    tempChunk = this.allocateChunk();
+                    tempChunk.reset();
+                    tempChunk.camera = this._currentScene.layers[i].camera;
+                    // tempChunk.layerId = this._currentScene.layers[i].id;
+                    isNeedToAllocateChunk = false;
+
+                    // Сразу указываем материалы первого элемента
+                    if (this._currentScene.layers[i].elements[j] && !lastObject) {
+                        if (this._currentScene.layers[i].elements[j].texture)
+                            lastTexture = this._currentScene.layers[i].elements[j].texture.texture;
+                        lastShader = this._currentScene.layers[i].elements[j].shader;
+                    }
+
+                    // Добавляем в чанк предыдущий объект
+                    if (lastObject) {
+                        if (lastObject.texture)
+                            tempChunk.texture = lastObject.texture.texture;
+                        tempChunk.shader = lastObject.shader;
+                        tempChunk.addObject(lastObject);
+                        lastObject = null;
+                    }
+                }
+
+                if (!this._currentScene.layers[i].elements[j]) break;
+
+                // Если чанк переполнен, или используется другая текстура или шейдер, то нужен новый чанк
+                if (j > 0 && (tempChunk.size >= tempChunk.maxSize
+                    || (this._currentScene.layers[i].elements[j].texture && lastTexture !== this._currentScene.layers[i].elements[j].texture.texture)
+                    || lastShader !== this._currentScene.layers[i].elements[j].shader)) {
+                    isNeedToAllocateChunk = true;
+                    lastObject = this._currentScene.layers[i].elements[j];
+                } else {
+                    if (this._currentScene.layers[i].elements[j].texture)
+                        tempChunk.texture = this._currentScene.layers[i].elements[j].texture.texture;
+                    tempChunk.shader = this._currentScene.layers[i].elements[j].shader;
+                    tempChunk.addObject(this._currentScene.layers[i].elements[j]);
+                }
+
+                // Последние юзаемые материалы
+                if (this._currentScene.layers[i].elements[j].texture)
+                    lastTexture = this._currentScene.layers[i].elements[j].texture.texture;
+                lastShader = this._currentScene.layers[i].elements[j].shader;
+
+                // Если не нужно аллоцировать новый чанк, то юзаем текущие шейдеры и текстуру
+                if (!isNeedToAllocateChunk) {
+                    if (this._currentScene.layers[i].elements[j].texture)
+                        tempChunk.texture = this._currentScene.layers[i].elements[j].texture.texture;
+                    tempChunk.shader = this._currentScene.layers[i].elements[j].shader;
+                }
+            }
+        }
+
+        for (var i = 0; i < this._chunkCounter; i++) this._chunkList[i].prepare();
+        for (var i = this._chunkCounter; i < this._chunkList.length; i++) this._chunkList[i].destroy();
+        this._chunkList.length = this._chunkCounter;
     }
 
     static allocateChunk(): Chunk {
@@ -160,7 +274,7 @@ export default class BlastGL {
             }
 
             // Передаем текстуру в шейдер если нужно
-            if (this._lastUsedShader !== tempChunk.texture) {
+            if (this._lastUsedTexture !== tempChunk.texture) {
                 this.gl.activeTexture(this.gl.TEXTURE0);
                 this.gl.uniform1i(this.gl.getUniformLocation(tempChunk.shader.program, "uSampler"), 0);
             }
@@ -177,7 +291,7 @@ export default class BlastGL {
             this.gl.vertexAttribPointer(tempChunk.shader.getAttributeLocation('aTextureCoord'), 2, this.gl.FLOAT, false, 0, 0);
 
             // Цвет если спрайт
-            if (tempChunk.shader === this._shaderList['sprite2d']) {
+            if (tempChunk.shader === this.shaderList['sprite2d']) {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tempChunk.colorBuffer);
                 this.gl.vertexAttribPointer(tempChunk.shader.getAttributeLocation('aColor'), 4, this.gl.FLOAT, false, 0, 0);
             }
@@ -208,5 +322,9 @@ export default class BlastGL {
 
     static get gl(): WebGLRenderingContext {
         return this._gl;
+    }
+
+    static get atlasContainer(): HTMLElement {
+        return this._atlasContainer;
     }
 }

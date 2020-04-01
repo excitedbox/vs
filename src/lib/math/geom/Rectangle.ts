@@ -45,6 +45,14 @@ export default class Rectangle {
             rect.bottom > this.top);
     };
 
+    get x(): number {
+        return this.left;
+    }
+
+    get y(): number {
+        return this.top;
+    }
+
     get width(): number {
         return Math.sqrt((this.left - this.right) * (this.left - this.right));
     }
