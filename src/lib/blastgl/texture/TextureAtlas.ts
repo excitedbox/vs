@@ -19,7 +19,7 @@ export default class TextureAtlas {
         // Create canvas
         this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
         if (!this.canvas) {
-            BlastGL.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: block;"></canvas>';
+            BlastGL.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: block; width: 25%;"></canvas>';
             this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
             this.canvas.setAttribute("width", width + '');
             this.canvas.setAttribute("height", height + '');
@@ -40,8 +40,8 @@ export default class TextureAtlas {
         BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, this.texture);
         BlastGL.gl.pixelStorei(BlastGL.gl.UNPACK_FLIP_Y_WEBGL, true);
         BlastGL.gl.texImage2D(BlastGL.gl.TEXTURE_2D, 0, BlastGL.gl.RGBA, BlastGL.gl.RGBA, BlastGL.gl.UNSIGNED_BYTE, this.canvas);
-        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MAG_FILTER, BlastGL.gl.NEAREST);
-        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MIN_FILTER, BlastGL.gl.NEAREST);
+        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MAG_FILTER, BlastGL.gl.LINEAR);
+        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MIN_FILTER, BlastGL.gl.LINEAR);
         BlastGL.gl.generateMipmap(BlastGL.gl.TEXTURE_2D);
         BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, null);
 
@@ -148,19 +148,19 @@ export default class TextureAtlas {
 
         // Возвращаем UV координаты текстуры
         texture.baseUV = new Float32Array([
-            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.bottom) / this.canvas.height,
-            (area.area.x + area.area.right) / this.canvas.width, 1 - (area.area.y + area.area.bottom) / this.canvas.height,
-            (area.area.x + area.area.right) / this.canvas.width, 1 - area.area.y / this.canvas.height,
+            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.height) / this.canvas.height,
+            (area.area.x + area.area.width) / this.canvas.width, 1 - (area.area.y + area.area.height) / this.canvas.height,
+            (area.area.x + area.area.width) / this.canvas.width, 1 - area.area.y / this.canvas.height,
             area.area.x / this.canvas.width, 1 - area.area.y / this.canvas.height
         ]);
         texture.triangleUV = new Float32Array([
-            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.bottom) / this.canvas.height,
-            (area.area.x + area.area.right) / this.canvas.width, 1 - (area.area.y + area.area.bottom) / this.canvas.height,
-            (area.area.x + area.area.right) / this.canvas.width, 1 - area.area.y / this.canvas.height,
+            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.height) / this.canvas.height,
+            (area.area.x + area.area.width) / this.canvas.width, 1 - (area.area.y + area.area.height) / this.canvas.height,
+            (area.area.x + area.area.width) / this.canvas.width, 1 - area.area.y / this.canvas.height,
 
-            (area.area.x + area.area.right) / this.canvas.width, 1 - area.area.y / this.canvas.height,
+            (area.area.x + area.area.width) / this.canvas.width, 1 - area.area.y / this.canvas.height,
             area.area.x / this.canvas.width, 1 - area.area.y / this.canvas.height,
-            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.bottom) / this.canvas.height
+            area.area.x / this.canvas.width, 1 - (area.area.y + area.area.height) / this.canvas.height
         ]);
 
         // Обновляем данные текстуры

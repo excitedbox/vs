@@ -5,7 +5,7 @@ export default class TextureManager {
     private _atlasList: TextureAtlas[] = [];
 
     constructor(sceneName: string) {
-        this._atlasList.push(new TextureAtlas(sceneName, 0, 512, 512));
+        this._atlasList.push(new TextureAtlas(sceneName, 0, 4096, 4096));
     }
 
     // Register texture

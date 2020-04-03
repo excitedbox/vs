@@ -5,6 +5,7 @@ import TextureManager from "../texture/TextureManager";
 export default class Scene {
     public readonly layers: Layer[] = [];
     public readonly textureManager: TextureManager;
+    public isPaused: boolean = false;
 
     constructor() {
         this.textureManager = new TextureManager(this.constructor.name);
@@ -14,7 +15,7 @@ export default class Scene {
 
     }
 
-    update(): void {
+    update(delta: number): void {
 
     }
 

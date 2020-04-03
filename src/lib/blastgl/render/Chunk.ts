@@ -8,7 +8,7 @@ export default class Chunk {
     public readonly id: number;
 
     public shader: Shader;
-    public texture: Texture;
+    public texture: WebGLTexture;
     public triangles: number = 0;
     public size: number;
     public maxSize: number = 4096; // макс размер чанка, кол-во элементов по умолчанию
@@ -68,12 +68,8 @@ export default class Chunk {
         BlastGL.gl.bufferData(BlastGL.gl.ELEMENT_ARRAY_BUFFER, this.tempIndex, BlastGL.gl.DYNAMIC_DRAW);
     }
 
-    addObject(object: RenderObject) {
+    addObject(object: RenderObject): void {
         if (!object.isVisible) {
-            return;
-        }
-
-        if (object.type === RenderObjectType.Container) {
             return;
         }
 
