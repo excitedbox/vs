@@ -1,4 +1,4 @@
-class ExtImage {
+export default class BitmapData {
     public channel: any = {
         red: null,
         green: null,
@@ -31,7 +31,7 @@ class ExtImage {
             this.channel.blue = new Float32Array(width * height);
             this.channel.gray = new Float32Array(width * height);
             if (hasAlpha) this.channel.alpha = new Float32Array(width * height);
-        } else if (image instanceof ExtImage) {
+        } else if (image instanceof BitmapData) {
             this._width = image.width;
             this._height = image.height;
             this.channel.red = new Float32Array(image.channel.red);
@@ -168,11 +168,11 @@ class ExtImage {
     }
 
     grayscale() {
-        return new ExtImage({image: this, isGrayScale: true});
+        return new BitmapData({image: this, isGrayScale: true});
     }
 
     filter(fn: Function, channel: string = 'gray') {
-        let copy = new ExtImage({image: this});
+        let copy = new BitmapData({image: this});
 
         for (let i = 0; i < copy.channel[channel].length; i++) {
             if (!fn(copy.channel[channel][i], i))
@@ -183,7 +183,7 @@ class ExtImage {
     }
 
     map(fn: Function, channel: string = 'all', step: number = 1) {
-        let copy = new ExtImage({image: this});
+        let copy = new BitmapData({image: this});
 
         if (channel === 'all') {
             for (let i = 0; i < copy.channel['red'].length; i++) {
@@ -224,7 +224,7 @@ class ExtImage {
     }
 
     resize(width: number, height: number) {
-        let newImage = new ExtImage({width, height, isGrayScale: this.isGrayScale});
+        let newImage = new BitmapData({width, height, isGrayScale: this.isGrayScale});
         let px = 0, py = 0;
 
         let rw = this.width / width;
@@ -262,7 +262,7 @@ class ExtImage {
     }
 
     convolution(core: Array<number>, width: number, height: number, stepX: number = 1, stepY: number = 1) {
-        let outImage = new ExtImage({
+        let outImage = new BitmapData({
             width: this.width / stepX | 0,
             height: this.height / stepY | 0,
             isGrayScale: this.isGrayScale
@@ -337,7 +337,7 @@ class ExtImage {
     }
 
     pool(width: number = 2, height: number = 2, type: string = 'max') {
-        let outImage = new ExtImage({
+        let outImage = new BitmapData({
             width: (this.width / width) | 0,
             height: (this.height / height) | 0,
             isGrayScale: this.isGrayScale
@@ -466,7 +466,7 @@ class ExtImage {
 
     static benchmark() {
         console.time('VdeImage createImage');
-        let img = new ExtImage({width: 1024, height: 1024});
+        let img = new BitmapData({width: 1024, height: 1024});
         console.timeEnd('VdeImage createImage');
 
         console.time('VdeImage grayscale');
