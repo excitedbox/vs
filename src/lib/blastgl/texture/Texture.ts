@@ -1,64 +1,60 @@
-import BlastGL from "../BlastGL";
 import Rectangle from "../../math/geom/Rectangle";
+import BlastGL from "../BlastGL";
 
 export default class Texture {
-    // Data info
-    public readonly url: string;
-    public readonly image: HTMLImageElement;
+  // Data info
+  public readonly url: string;
+  public readonly image: HTMLImageElement;
 
-    // Texture size
-    public readonly width: number = 0;
-    public readonly height: number = 0;
+  // Texture size
+  public readonly width: number = 0;
+  public readonly height: number = 0;
 
-    // Atlas info
-    public atlasX: number = 0;
-    public atlasY: number = 0;
-    public atlasWidth: number = 0;
-    public atlasHeight: number = 0;
+  // Atlas info
+  public atlasX: number = 0;
+  public atlasY: number = 0;
+  public atlasWidth: number = 0;
+  public atlasHeight: number = 0;
 
-    // WebGL info
-    public texture: WebGLTexture = null;
-    public uv: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
-    public baseUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
-    public triangleUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
+  // WebGL info
+  public texture: WebGLTexture = null;
+  public uv: Float32Array =
+      new Float32Array([ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0 ]);
+  public baseUV: Float32Array =
+      new Float32Array([ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0 ]);
+  public triangleUV: Float32Array =
+      new Float32Array([ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0 ]);
 
-    constructor({ url, image, useAtlas }:
-        { useAtlas?: boolean; url?: string; image?: HTMLImageElement }) {
+  constructor(
+      {url, image, useAtlas}:
+          {useAtlas?: boolean; url?: string; image?: HTMLImageElement}) {
 
-        this.url = url || null;
-        this.image = image;
+    this.url = url || null;
+    this.image = image;
 
-        this.width = image.width;
-        this.height = image.height;
+    this.width = image.width;
+    this.height = image.height;
 
-        if (useAtlas) {
-            BlastGL.addTexture(this);
-        }
+    if (useAtlas) {
+      BlastGL.addTexture(this);
     }
+  }
 
-    // Create texture from url
-    static async from(url: string, useAtlas: boolean = true): Promise<Texture> {
-        const image = new Image();
-        image.src = url;
+  // Create texture from url
+  static async from(url: string, useAtlas: boolean = true): Promise<Texture> {
+    const image = new Image();
+    image.src = url;
 
-        return new Promise((resolve: Function) => {
-            image.onload = (): void => {
-                const texture = new Texture({
-                    url,
-                    image,
-                    useAtlas
-                });
+    return new Promise((resolve: Function) => {
+      image.onload = (): void => {
+        const texture = new Texture({url, image, useAtlas});
 
-                resolve(texture);
-            };
-        });
-    }
+        resolve(texture);
+      };
+    });
+  }
 
-    update(): void {
+  update(): void {}
 
-    }
-
-    destroy(): void {
-
-    }
+  destroy(): void {}
 }

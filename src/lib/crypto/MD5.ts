@@ -168,7 +168,7 @@ export default class MD5 {
         return unescape(encodeURIComponent(input));
     }
 
-    static encode(input: string) {
+    static encode(input: string): string {
         return MD5.rstr2hex(MD5.rstrMD5(MD5.str2rstrUTF8(input)));
     }
 }
