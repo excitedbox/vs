@@ -92,7 +92,7 @@ export default class VdeFileSystemApi {
                 }
             };
             // oReq.open("post", `/$api?m=FileSystem.writeFile&path=${path}`, true);
-            oReq.open("post", `${path}&?m=write`, true);
+            oReq.open("post", `${path}?m=write`, true);
             oReq.send(formData);
         }));
     }

@@ -26,7 +26,7 @@ declare global {
          */
         getMonthRange(): Array<Date>;
 
-        getYearRange(): Array<Date>;
+        getYearRange(yearsBack?: number): Date[];
 
         /**
          * Add hours to current date
@@ -140,14 +140,17 @@ Date.prototype.getMonthRange = function () {
     return out;
 };
 
-Date.prototype.getYearRange = function () {
-    let out = [];
-    for (let i = 0; i < 12; i++) {
-        let d = new Date(this);
-        d.setDate(1);
-        d.setMonth(i);
-        d.setHours(0, 0, 0, 0);
-        out.push(d);
+Date.prototype.getYearRange = function (yearsBack: number = 0): Date[] {
+    const out = [];
+
+    for (let j = 0; j <= yearsBack; j++) {
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(this).offset(0, 0, -yearsBack + j);
+            d.setDate(1);
+            d.setMonth(i);
+            d.setHours(0, 0, 0, 0);
+            out.push(d);
+        }
     }
 
     return out;
@@ -197,7 +200,7 @@ Date.prototype.time = function (isShort: boolean = false) {
     return ('0' + this.getHours()).slice(-2) + ':' + ('0' + this.getMinutes()).slice(-2) + ':' + ('0' + this.getSeconds()).slice(-2);
 };
 
-Date.prototype.jsonDate = function() {
+Date.prototype.jsonDate = function () {
     return JSON.stringify(this).replace(/"/g, '');
 };
 
