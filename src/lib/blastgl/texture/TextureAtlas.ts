@@ -19,7 +19,7 @@ export default class TextureAtlas {
         // Create canvas
         this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
         if (!this.canvas) {
-            BlastGL.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: display; width: 25%;"></canvas>';
+            BlastGL.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
             this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
             this.canvas.setAttribute("width", width + '');
             this.canvas.setAttribute("height", height + '');

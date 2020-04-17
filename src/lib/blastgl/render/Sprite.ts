@@ -1,10 +1,10 @@
 import RenderObject, {TypeRenderObjectParameters} from "./RenderObject";
 import BlastGL from "../BlastGL";
 import Matrix2D from "../../math/geom/Matrix2D";
+import Texture from "../texture/Texture";
 
 export default class Sprite extends RenderObject {
-
-    constructor(params?: TypeRenderObjectParameters) {
+    constructor(params: TypeRenderObjectParameters = {}) {
         super(params);
 
         // Set default vertex and shader data
@@ -53,5 +53,15 @@ export default class Sprite extends RenderObject {
         this.area.left = Math.min(this.vertex[0], this.vertex[3], this.vertex[6], this.vertex[9]);
         this.area.bottom = Math.min(this.vertex[1], this.vertex[4], this.vertex[7], this.vertex[10]);
         this.area.right = Math.max(this.vertex[0], this.vertex[3], this.vertex[6], this.vertex[9]);
+    }
+
+    set texture(value: Texture) {
+        this._texture = value;
+        this.width = value.width;
+        this.height = value.height;
+    }
+
+    get texture(): Texture {
+        return this._texture;
     }
 }

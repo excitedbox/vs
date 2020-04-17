@@ -22,6 +22,7 @@ export default class BlastGL {
     public static readonly shaderList: { [key: string]: Shader } = {};
     public static readonly event: EventEmitter = new EventEmitter();
     public static readonly info: BlastGLInfo = new BlastGLInfo();
+    public static isNeedGarbageCollector: boolean = false;
 
     private static _resolutionDecreaseRate: number = 1;
 
@@ -168,6 +169,19 @@ export default class BlastGL {
             this._currentScene.update(this.info.deltaTime);
         }
 
+        // Удаляем удаленные спрайты
+        if (this.isNeedGarbageCollector) {
+            for (let i = 0; i < this._currentScene.layers.length; i++) {
+                for (let j = 0; j < this._currentScene.layers[i].elements.length; j++) {
+                    if (this._currentScene.layers[i].elements[j].isRemoved) {
+                        // this._currentScene.layers[i].elements[j].free();
+                        this._currentScene.layers[i].elements.splice(j, 1);
+                        j -= 1;
+                    }
+                }
+            }
+        }
+
         for (let i = 0; i < this._currentScene.layers.length; i++) {
             for (let j = 0; j < this._currentScene.layers[i].elements.length; j++) {
                 const tempElement = this._currentScene.layers[i].elements[j];
@@ -195,7 +209,6 @@ export default class BlastGL {
                     continue;
                 }
                 //if (this._currentScene.layers[i].elements[j] && this._currentScene.layers[i].elements[j].type === RenderObjectType.Container) {
-
 
                 // Если нужен новый чанк
                 if (isNeedToAllocateChunk && (this._currentScene.layers[i].elements[j] || lastObject)) {

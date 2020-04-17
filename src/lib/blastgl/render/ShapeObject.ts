@@ -1,5 +1,6 @@
 import Rectangle from "../../math/geom/Rectangle";
 import Matrix2D from "../../math/geom/Matrix2D";
+import {TypeRenderObjectParameters} from "./RenderObject";
 
 export type TypeShapeObjectParameters = {
     x?: number;
@@ -30,7 +31,7 @@ export default class ShapeObject {
     public parent: ShapeObject;
     public readonly matrix: Matrix2D = new Matrix2D();
 
-    constructor({ x, y, width, height, scaleX, scaleY, rotation, zIndex }: TypeShapeObjectParameters) {
+    constructor({ x, y, width, height, scaleX, scaleY, rotation, zIndex }: TypeShapeObjectParameters = {}) {
         this.x = x || 0;
         this.y = y || 0;
         this.width = width || 0;

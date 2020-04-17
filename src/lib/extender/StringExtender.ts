@@ -113,14 +113,18 @@ String.prototype.replaceAt = function (index: number, replacement: string) {
     return this.substr(0, index) + replacement + this.substr(index + replacement.length);
 };
 
-String.prototype.DMYToYMD = function () {
-    let tuple = this.split('.');
-    return tuple[2] + '-' + tuple[1] + '-' + tuple[0];
+String.prototype.DMYToYMD = function (): string {
+    const date = this.split(' ')[0];
+    const time = this.split(' ').length > 1 ?(' ' + this.split(' ')[1]) : '';
+    const tuple = date.split('.');
+    return tuple[2] + '-' + tuple[1] + '-' + tuple[0] + time;
 };
 
-String.prototype.YMDToDMY = function () {
-    let tuple = this.split('-');
-    return tuple[2] + '.' + tuple[1] + '.' + tuple[0];
+String.prototype.YMDToDMY = function (): string {
+    const date = this.split(' ')[0];
+    const time = this.split(' ').length > 1 ?(' ' + this.split(' ')[1]) : '';
+    const tuple = date.split('-');
+    return tuple[2] + '.' + tuple[1] + '.' + tuple[0] + time;
 };
 
 String.prototype.HMToInt = function () {

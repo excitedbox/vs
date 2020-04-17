@@ -1,5 +1,7 @@
 import Matrix2D from "../../math/geom/Matrix2D";
 import Rectangle from "../../math/geom/Rectangle";
+import Input from "../../io/Input";
+import Vector2D from "../../math/geom/Vector2D";
 
 export default class Camera {
     public readonly matrix: Matrix2D = new Matrix2D();
@@ -39,6 +41,12 @@ export default class Camera {
         this.spaceScreen.right = (((this._width / 1) / 2) / this.zoom);
         this.spaceScreen.top = (((this._height / 1) / 2) / this.zoom);
         this.spaceScreen.bottom = ((-(this._height / 1) / 2) / this.zoom);
+
+        // console.log(this.x);
+    }
+
+    getInputWorldPosition(): Vector2D {
+        return new Vector2D((Input.x - this._width / 2 ) / this._zoom - this.x, (Input.y - this._height / 2) / this._zoom - this.y);
     }
 
     set zoom(value: number) {
@@ -48,5 +56,13 @@ export default class Camera {
 
     get zoom(): number {
         return this._zoom;
+    }
+
+    get width(): number {
+        return this._width;
+    }
+
+    get height(): number {
+        return this._height;
     }
 }
