@@ -114,21 +114,21 @@ export default class Chunk {
 
         // Цвета только для спрайтов
         if (this.shader === BlastGL.shaderList['sprite2d']) {
-            this.tempColor[this.colorLen] = object.color[0] * object.brightness;
-            this.tempColor[this.colorLen + 1] = object.color[1] * object.brightness;
-            this.tempColor[this.colorLen + 2] = object.color[2] * object.brightness;
+            this.tempColor[this.colorLen] = object.vertexColor[0] * object.brightness;
+            this.tempColor[this.colorLen + 1] = object.vertexColor[1] * object.brightness;
+            this.tempColor[this.colorLen + 2] = object.vertexColor[2] * object.brightness;
             this.tempColor[this.colorLen + 3] = object.alpha;
-            this.tempColor[this.colorLen + 4] = object.color[4] * object.brightness;
-            this.tempColor[this.colorLen + 5] = object.color[5] * object.brightness;
-            this.tempColor[this.colorLen + 6] = object.color[6] * object.brightness;
+            this.tempColor[this.colorLen + 4] = object.vertexColor[4] * object.brightness;
+            this.tempColor[this.colorLen + 5] = object.vertexColor[5] * object.brightness;
+            this.tempColor[this.colorLen + 6] = object.vertexColor[6] * object.brightness;
             this.tempColor[this.colorLen + 7] = object.alpha;
-            this.tempColor[this.colorLen + 8] = object.color[8] * object.brightness;
-            this.tempColor[this.colorLen + 9] = object.color[9] * object.brightness;
-            this.tempColor[this.colorLen + 10] = object.color[10] * object.brightness;
+            this.tempColor[this.colorLen + 8] = object.vertexColor[8] * object.brightness;
+            this.tempColor[this.colorLen + 9] = object.vertexColor[9] * object.brightness;
+            this.tempColor[this.colorLen + 10] = object.vertexColor[10] * object.brightness;
             this.tempColor[this.colorLen + 11] = object.alpha;
-            this.tempColor[this.colorLen + 12] = object.color[12] * object.brightness;
-            this.tempColor[this.colorLen + 13] = object.color[13] * object.brightness;
-            this.tempColor[this.colorLen + 14] = object.color[14] * object.brightness;
+            this.tempColor[this.colorLen + 12] = object.vertexColor[12] * object.brightness;
+            this.tempColor[this.colorLen + 13] = object.vertexColor[13] * object.brightness;
+            this.tempColor[this.colorLen + 14] = object.vertexColor[14] * object.brightness;
             this.tempColor[this.colorLen + 15] = object.alpha;
             this.isColorChanged = true;
             this.colorLen += 16;

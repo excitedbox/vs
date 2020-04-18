@@ -11,7 +11,7 @@ export default class Color {
         this.a = a;
     }
 
-    fromHex(value: string): Color {
+    static fromHex(value: string): Color {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(value);
         return result ? new Color(
             parseInt(result[1], 16) / 255,
@@ -21,7 +21,7 @@ export default class Color {
         ) : null;
     }
 
-    randomColor(): Color {
+    static randomColor(): Color {
         return new Color(
             Math.random(),
             Math.random(),

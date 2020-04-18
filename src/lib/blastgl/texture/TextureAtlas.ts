@@ -2,6 +2,7 @@ import BlastGL from "../BlastGL";
 import Texture from "./Texture";
 import Rectangle from "../../math/geom/Rectangle";
 import TextureAtlasArea from "./TextureAtlasArea";
+import Vector2D from "../../math/geom/Vector2D";
 
 export default class TextureAtlas {
     public readonly canvas: HTMLCanvasElement;
@@ -126,6 +127,18 @@ export default class TextureAtlas {
         }
 
         return area;
+    }
+
+    freeArea(area: TextureAtlasArea): void {
+        this._allocatedAreaList.remove(area);
+    }
+
+    copyTextureData(area: Rectangle): ImageData {
+        return this.context.getImageData(area.x, area.y, area.width, area.height);
+    }
+
+    pasteTextureData(imageData: ImageData, to: Vector2D): void {
+        this.context.putImageData(imageData, to.x, to.y);
     }
 
     addTexture(texture: Texture): void {

@@ -7,6 +7,9 @@ import Camera from "./render/Camera";
 import Chunk from "./render/Chunk";
 import Texture from "./texture/Texture";
 import BlastGLInfo from "./util/BlastGLInfo";
+import TextureAtlasArea from "./texture/TextureAtlasArea";
+import Rectangle from "../math/geom/Rectangle";
+import Vector2D from "../math/geom/Vector2D";
 
 export default class BlastGL {
     private static _gl: WebGLRenderingContext;
@@ -118,6 +121,22 @@ export default class BlastGL {
 
     static addTexture(texture: Texture): void {
         this._currentScene.textureManager.addTexture(texture);
+    }
+
+    static allocateTextureArea(width: number, height: number): TextureAtlasArea {
+        return this._currentScene.textureManager.allocateArea(width, height);
+    }
+
+    static freeTextureArea(area: TextureAtlasArea): void {
+        this._currentScene.textureManager.freeArea(area);
+    }
+
+    static copyTextureData(area: Rectangle): ImageData {
+        return this._currentScene.textureManager.copyTextureData(area);
+    }
+
+    static pasteTextureData(imageData: ImageData, to: Vector2D): void {
+        this._currentScene.textureManager.pasteTextureData(imageData, to);
     }
 
     static addObject(object: RenderObject, layerId: number = 0): void {
