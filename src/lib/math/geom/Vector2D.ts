@@ -2,11 +2,19 @@ export default class Vector2D {
     public x: number;
     public y: number;
 
-    constructor(x: number = 0, y: number = 0) {
-        this.x = x;
-        this.y = y;
+    constructor();
+    constructor(x: number, y: number);
+    constructor({x, y}: { x: number; y: number });
+    constructor(p1: unknown = 0, p2: unknown = 0) {
+        if (typeof p1 === "object") {
+            this.x = p1['x'];
+            this.y = p1['y'];
+        } else {
+            this.x = p1 as number;
+            this.y = p2 as number;
+        }
     }
-    
+
     static distance(p1: Vector2D, p2: Vector2D): number {
         const a = p1.x - p2.x;
         const b = p1.y - p2.y;

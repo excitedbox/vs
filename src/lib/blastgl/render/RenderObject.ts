@@ -33,12 +33,11 @@ export default class RenderObject extends ShapeObject {
     public vertex: Float32Array;
     public color: Float32Array = new Float32Array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]); // Цвет для каждой вершины
 
-
     protected _texture: Texture;
 
     constructor({ x, y, zIndex, width, height, scaleX, scaleY, texture }: TypeRenderObjectParameters = {}) {
         super({ x, y, zIndex, width, height, scaleX, scaleY });
-        this._texture = texture;
+        this._texture = texture || null;
     }
 
     update(delta: number): void {

@@ -210,6 +210,13 @@ export default class BlastGL {
                 }
                 //if (this._currentScene.layers[i].elements[j] && this._currentScene.layers[i].elements[j].type === RenderObjectType.Container) {
 
+                if (this._currentScene.layers[i].elements[j] && !this._currentScene.layers[i].elements[j].texture) {
+                    continue;
+                }
+                if (lastObject && !lastObject.texture) {
+                    continue;
+                }
+
                 // Если нужен новый чанк
                 if (isNeedToAllocateChunk && (this._currentScene.layers[i].elements[j] || lastObject)) {
                     tempChunk = this.allocateChunk();

@@ -16,6 +16,9 @@ export default class Sprite extends RenderObject {
             this.width = params.texture.width;
             this.height = params.texture.height;
         }
+
+        // Set area
+        this.calculateMatrix();
     }
 
     update(delta: number): void {
@@ -23,6 +26,10 @@ export default class Sprite extends RenderObject {
             return;
         }
 
+        this.calculateMatrix();
+    }
+
+    calculateMatrix(): void {
         this.matrix.identity();
         if (this.parent) {
             this.matrix.concat(this.parent.matrix);
