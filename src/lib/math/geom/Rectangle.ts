@@ -4,11 +4,21 @@ export default class Rectangle {
     public top: number = 0;
     public bottom: number = 0;
 
-    constructor(left: number = 0, top: number = 0, right: number = 0, bottom: number = 0) {
-        this.left = left;
-        this.right = right;
-        this.top = top;
-        this.bottom = bottom;
+    constructor();
+    constructor({ left, top, right, bottom }: { left: number; top: number; right: number; bottom: number });
+    constructor(left: number, top: number, right: number, bottom: number);
+    constructor(left: unknown = 0, top: unknown = 0, right: unknown = 0, bottom: unknown = 0) {
+        if (typeof left === "object") {
+            this.left = left['left'];
+            this.right = left['right'];
+            this.top = left['top'];
+            this.bottom = left['bottom'];
+        } else {
+            this.left = left as number;
+            this.right = right as number;
+            this.top = top as number;
+            this.bottom = bottom as number;
+        }
     }
 
     // Check if point between to point
@@ -49,8 +59,20 @@ export default class Rectangle {
         return this.left;
     }
 
+    set x(value: number) {
+        const tmpRight = this.right - this.left;
+        this.left = value;
+        this.right = tmpRight + value;
+    }
+
     get y(): number {
         return this.top;
+    }
+
+    set y(value: number) {
+        const tmpBottom = this.bottom - this.top;
+        this.top = value;
+        this.bottom = tmpBottom + value;
     }
 
     get width(): number {

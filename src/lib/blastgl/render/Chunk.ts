@@ -1,7 +1,6 @@
 import Shader from "./Shader";
-import Texture from "../texture/Texture";
 import BlastGL from "../BlastGL";
-import RenderObject, {RenderObjectType} from "./RenderObject";
+import RenderObject from "./RenderObject";
 import Camera from "./Camera";
 
 export default class Chunk {
@@ -21,10 +20,10 @@ export default class Chunk {
     public colorLen: number = 0;
 
     // Массивы для буферов
-    public tempIndex = new Uint16Array(this.maxSize * 6);
-    public tempVertex = new Float32Array(this.maxSize * 12);
-    public tempUv = new Float32Array(this.maxSize * 8);
-    public tempColor = new Float32Array(this.maxSize * 16);
+    public tempIndex: Uint16Array = new Uint16Array(this.maxSize * 6);
+    public tempVertex: Float32Array = new Float32Array(this.maxSize * 12);
+    public tempUv: Float32Array = new Float32Array(this.maxSize * 8);
+    public tempColor: Float32Array = new Float32Array(this.maxSize * 16);
 
     public readonly indexBuffer: WebGLBuffer;
     public readonly vertexBuffer: WebGLBuffer;
@@ -32,14 +31,14 @@ export default class Chunk {
     public readonly colorBuffer: WebGLBuffer;
 
     // Состояние чанка
-    public isVertexChanged = false;
-    public isUvChanged = false;
-    public isColorChanged = false;
+    public isVertexChanged: boolean = false;
+    public isUvChanged: boolean = false;
+    public isColorChanged: boolean = false;
 
-    public isRemoved = false;
-    public isOrderChanged = false;
-    public isPrepared = false;
-    public isChanged = false;
+    public isRemoved: boolean = false;
+    public isOrderChanged: boolean = false;
+    public isPrepared: boolean = false;
+    public isChanged: boolean = false;
 
     constructor(id: number) {
         this.id = id;
@@ -142,7 +141,7 @@ export default class Chunk {
         this.triangles += 2;
     }
 
-    prepare() {
+    prepare(): void {
         if (this.isRemoved) {
             return;
         }
@@ -168,7 +167,7 @@ export default class Chunk {
         this.isPrepared = true;
     }
 
-    reset() {
+    reset(): void {
         this.size = 0;
         this.triangles = 0;
         this.vertexLen = 0;
@@ -186,7 +185,7 @@ export default class Chunk {
 
     }
 
-    destroy() {
+    destroy(): void {
 
     }
 }
