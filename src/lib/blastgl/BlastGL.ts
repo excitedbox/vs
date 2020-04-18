@@ -2,7 +2,7 @@ import EventEmitter from "../util/EventEmitter";
 import RenderObject from "./render/RenderObject";
 import Scene from "./render/Scene";
 import Layer from "./render/Layer";
-import Shader from "./render/Shader";
+import Shader from "./shader/Shader";
 import Camera from "./render/Camera";
 import Chunk from "./render/Chunk";
 import Texture from "./texture/Texture";
@@ -10,6 +10,8 @@ import BlastGLInfo from "./util/BlastGLInfo";
 import TextureAtlasArea from "./texture/TextureAtlasArea";
 import Rectangle from "../math/geom/Rectangle";
 import Vector2D from "../math/geom/Vector2D";
+import ShapeObject from "./render/ShapeObject";
+import Container from "./render/Container";
 
 export default class BlastGL {
     private static _gl: WebGLRenderingContext;
@@ -139,7 +141,16 @@ export default class BlastGL {
         this._currentScene.textureManager.pasteTextureData(imageData, to);
     }
 
-    static addObject(object: RenderObject, layerId: number = 0): void {
+    static getLayer(id: number): Layer {
+        for (let i = 0; i < this._currentScene.layers.length; i++) {
+            if (this._currentScene.layers[i].id === id) {
+                return this._currentScene.layers[i];
+            }
+        }
+        return null;
+    }
+
+    static addObject(object: ShapeObject, layerId: number = 0): void {
         if (!this._currentScene) {
             throw new Error("Can't add object to null scene");
         }
@@ -179,6 +190,9 @@ export default class BlastGL {
 
         // Update camera
         this._currentCamera.update();
+        for (let i = 0; i < this._currentScene.layers.length; i++) {
+            this._currentScene.layers[i].camera?.update();
+        }
 
         // Update textures
         this._currentScene.textureManager.update();
@@ -227,6 +241,10 @@ export default class BlastGL {
                 if (length === 1) {
                     continue;
                 }
+                if (this._currentScene.layers[i].elements[j] && this._currentScene.layers[i].elements[j] instanceof Container) {
+                    continue;
+                }
+
                 //if (this._currentScene.layers[i].elements[j] && this._currentScene.layers[i].elements[j].type === RenderObjectType.Container) {
 
                 /*if (this._currentScene.layers[i].elements[j] && !this._currentScene.layers[i].elements[j].texture) {
@@ -358,8 +376,9 @@ export default class BlastGL {
             // Индексный буфер
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, tempChunk.indexBuffer);
 
-            // Передаем камеру в шейдер
-            this.gl.uniformMatrix4fv(tempChunk.shader.getUniformLocation('uCameraMatrix'), false, this._currentCamera.matrix.matrix);
+            // Pass camera matrix to shader
+            // We pass global camera or chunk specific camera
+            this.gl.uniformMatrix4fv(tempChunk.shader.getUniformLocation('uCameraMatrix'), false, tempChunk.camera ?tempChunk.camera.matrix.matrix :this._currentCamera.matrix.matrix);
 
             // Отрисовка чанка
             this.gl.drawElements(this.gl.TRIANGLES, tempChunk.size * 6, this._indexSize, 0);

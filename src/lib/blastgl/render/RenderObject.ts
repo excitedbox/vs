@@ -1,5 +1,5 @@
 import Texture from "../texture/Texture";
-import Shader from "./Shader";
+import Shader from "../shader/Shader";
 import ShapeObject from "./ShapeObject";
 import BlastGL from "../BlastGL";
 import Color from "../../image/Color";
@@ -25,7 +25,6 @@ export default class RenderObject extends ShapeObject {
     public lastChunkId: number = 0;
     public lastChunkPosition: number = 0;
     public isVisible: boolean = true;
-    public isRemoved: boolean = false;
 
     // Visual effects
     public alpha: number = 1;
@@ -48,11 +47,6 @@ export default class RenderObject extends ShapeObject {
 
     update(delta: number): void {
 
-    }
-
-    destroy(): void {
-        this.isRemoved = true;
-        BlastGL.isNeedGarbageCollector = true;
     }
 
     set texture(texture: Texture) {

@@ -1,4 +1,4 @@
-import Shader from "./Shader";
+import Shader from "../shader/Shader";
 import BlastGL from "../BlastGL";
 import RenderObject from "./RenderObject";
 import Camera from "./Camera";
