@@ -6,35 +6,35 @@ export default class Shader {
     private _uniformParams: { [key: string]: WebGLUniformLocation } = {};
 
     constructor(name: string, vertex: string, fragment: string) {
-        this.program = BlastGL.gl.createProgram();
+        this.program = BlastGL.renderer.gl.createProgram();
 
         // Добавляем вершинный и фрагментый шейдеры
-        this.addShader(BlastGL.gl.VERTEX_SHADER, vertex);
-        this.addShader(BlastGL.gl.FRAGMENT_SHADER, fragment);
+        this.addShader(BlastGL.renderer.gl.VERTEX_SHADER, vertex);
+        this.addShader(BlastGL.renderer.gl.FRAGMENT_SHADER, fragment);
 
         // Линкуем шейдер
-        BlastGL.gl.linkProgram(this.program);
+        BlastGL.renderer.gl.linkProgram(this.program);
     }
 
     addShader(type: number, code: string): void {
-        const shader = BlastGL.gl.createShader(type);
-        BlastGL.gl.shaderSource(shader, code);
-        BlastGL.gl.compileShader(shader);
-        if (!BlastGL.gl.getShaderParameter(shader, BlastGL.gl.COMPILE_STATUS)) {
-            console.error(BlastGL.gl.getShaderInfoLog(shader));
+        const shader = BlastGL.renderer.gl.createShader(type);
+        BlastGL.renderer.gl.shaderSource(shader, code);
+        BlastGL.renderer.gl.compileShader(shader);
+        if (!BlastGL.renderer.gl.getShaderParameter(shader, BlastGL.renderer.gl.COMPILE_STATUS)) {
+            console.error(BlastGL.renderer.gl.getShaderInfoLog(shader));
             return;
         }
-        BlastGL.gl.attachShader(this.program, shader);
+        BlastGL.renderer.gl.attachShader(this.program, shader);
     }
 
     // Биндим атрибуты шейдера
     bindAttribute(parameter: string): void {
-        this._attributeParams[parameter] = BlastGL.gl.getAttribLocation(this.program, parameter);
+        this._attributeParams[parameter] = BlastGL.renderer.gl.getAttribLocation(this.program, parameter);
     };
 
     // Биндим юниформ
     bindUniform(parameter: string): void {
-        this._uniformParams[parameter] = BlastGL.gl.getUniformLocation(this.program, parameter);
+        this._uniformParams[parameter] = BlastGL.renderer.gl.getUniformLocation(this.program, parameter);
     };
 
     getAttributeLocation(parameter: string): number {
@@ -51,7 +51,7 @@ export default class Shader {
             if (!this._attributeParams.hasOwnProperty(s)) {
                 continue;
             }
-            BlastGL.gl.enableVertexAttribArray(this._attributeParams[s]);
+            BlastGL.renderer.gl.enableVertexAttribArray(this._attributeParams[s]);
         }
     }
 }

@@ -20,7 +20,7 @@ export default class TextureAtlas {
         // Create canvas
         this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
         if (!this.canvas) {
-            BlastGL.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
+            BlastGL.renderer.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
             this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
             this.canvas.setAttribute("width", width + '');
             this.canvas.setAttribute("height", height + '');
@@ -37,14 +37,14 @@ export default class TextureAtlas {
         this.height = height;
 
         // Create texture
-        this.texture = BlastGL.gl.createTexture();
-        BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, this.texture);
-        BlastGL.gl.pixelStorei(BlastGL.gl.UNPACK_FLIP_Y_WEBGL, true);
-        BlastGL.gl.texImage2D(BlastGL.gl.TEXTURE_2D, 0, BlastGL.gl.RGBA, BlastGL.gl.RGBA, BlastGL.gl.UNSIGNED_BYTE, this.canvas);
-        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MAG_FILTER, BlastGL.gl.NEAREST);
-        BlastGL.gl.texParameteri(BlastGL.gl.TEXTURE_2D, BlastGL.gl.TEXTURE_MIN_FILTER, BlastGL.gl.NEAREST);
-        BlastGL.gl.generateMipmap(BlastGL.gl.TEXTURE_2D);
-        BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, null);
+        this.texture = BlastGL.renderer.gl.createTexture();
+        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
+        BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+        BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
+        BlastGL.renderer.gl.texParameteri(BlastGL.renderer.gl.TEXTURE_2D, BlastGL.renderer.gl.TEXTURE_MAG_FILTER, BlastGL.renderer.gl.NEAREST);
+        BlastGL.renderer.gl.texParameteri(BlastGL.renderer.gl.TEXTURE_2D, BlastGL.renderer.gl.TEXTURE_MIN_FILTER, BlastGL.renderer.gl.NEAREST);
+        BlastGL.renderer.gl.generateMipmap(BlastGL.renderer.gl.TEXTURE_2D);
+        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
 
         // Update atlas
         this.update();
@@ -186,9 +186,9 @@ export default class TextureAtlas {
 
     update(): void {
         // Redraw texture from canvas
-        BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, this.texture);
-        BlastGL.gl.pixelStorei(BlastGL.gl.UNPACK_FLIP_Y_WEBGL, true);
-        BlastGL.gl.texImage2D(BlastGL.gl.TEXTURE_2D, 0, BlastGL.gl.RGBA, BlastGL.gl.RGBA, BlastGL.gl.UNSIGNED_BYTE, this.canvas);
-        BlastGL.gl.bindTexture(BlastGL.gl.TEXTURE_2D, null);
+        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
+        BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+        BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
+        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
     }
 }

@@ -11,7 +11,7 @@ void main(void) {
     if (gl_FragColor.a < 0.01)
         discard;
 
-     //gl_FragColor.r = gl_FragCoord.z;
+    //gl_FragColor.r = gl_FragCoord.z;
     /*gl_FragColor.r = floor(gl_FragColor.r / 0.5) * 0.5;
     gl_FragColor.g = floor(gl_FragColor.g / 0.5) * 0.5;
     gl_FragColor.b = floor(gl_FragColor.b / 0.5) * 0.5;*/

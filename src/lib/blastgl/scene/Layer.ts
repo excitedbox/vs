@@ -1,4 +1,4 @@
-import RenderObject from "./RenderObject";
+import RenderObject from "../render/RenderObject";
 import Camera from "./Camera";
 
 export default class Layer {

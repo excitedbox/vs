@@ -97,7 +97,7 @@ export default class Container extends ShapeObject {
 
     destroy(): void {
         this.isRemoved = true;
-        BlastGL.isNeedGarbageCollector = true;
+        BlastGL.scene.isNeedGarbageCollector = true;
         for (let i = 0; i < this.elements.length; i++) {
             this.elements[i].destroy();
         }

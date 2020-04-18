@@ -9,7 +9,7 @@ export default class Sprite extends RenderObject {
 
         // Set default vertex and shader data
         this.vertex = new Float32Array([-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, 0.5, 0.0, -0.5, 0.5, 0.0]);
-        this.shader = BlastGL.shaderList['sprite2d'];
+        this.shader = BlastGL.renderer.shaderList['sprite2d'];
 
         // Set default size from texture
         if (params.texture) {

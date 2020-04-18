@@ -50,7 +50,7 @@ export default class ShapeObject {
 
     destroy(): void {
         this.isRemoved = true;
-        BlastGL.isNeedGarbageCollector = true;
+        BlastGL.scene.isNeedGarbageCollector = true;
     }
 
     get width(): number {

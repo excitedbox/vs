@@ -16,11 +16,11 @@ export default class TextureManager {
         this._atlasList[0].addTexture(texture);
     }
 
-    allocateArea(width: number, height: number): TextureAtlasArea {
+    allocateTextureArea(width: number, height: number): TextureAtlasArea {
         return this._atlasList[0].allocateArea(width, height);
     }
 
-    freeArea(area: TextureAtlasArea): void {
+    freeTextureArea(area: TextureAtlasArea): void {
         this._atlasList[0].freeArea(area);
     }
 

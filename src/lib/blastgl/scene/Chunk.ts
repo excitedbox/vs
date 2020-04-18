@@ -1,6 +1,6 @@
 import Shader from "../shader/Shader";
 import BlastGL from "../BlastGL";
-import RenderObject from "./RenderObject";
+import RenderObject from "../render/RenderObject";
 import Camera from "./Camera";
 
 export default class Chunk {
@@ -43,10 +43,10 @@ export default class Chunk {
     constructor(id: number) {
         this.id = id;
 
-        this.indexBuffer = BlastGL.gl.createBuffer();
-        this.vertexBuffer = BlastGL.gl.createBuffer();
-        this.uvBuffer = BlastGL.gl.createBuffer();
-        this.colorBuffer = BlastGL.gl.createBuffer();
+        this.indexBuffer = BlastGL.renderer.gl.createBuffer();
+        this.vertexBuffer = BlastGL.renderer.gl.createBuffer();
+        this.uvBuffer = BlastGL.renderer.gl.createBuffer();
+        this.colorBuffer = BlastGL.renderer.gl.createBuffer();
 
         // Индексы должны быть всегда одинаковые, так как это 2d чанк
         let count = 0;
@@ -63,8 +63,8 @@ export default class Chunk {
         }
 
         // Сразу заливаем индексы в буфер
-        BlastGL.gl.bindBuffer(BlastGL.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        BlastGL.gl.bufferData(BlastGL.gl.ELEMENT_ARRAY_BUFFER, this.tempIndex, BlastGL.gl.DYNAMIC_DRAW);
+        BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.tempIndex, BlastGL.renderer.gl.DYNAMIC_DRAW);
     }
 
     addObject(object: RenderObject): void {
@@ -113,7 +113,7 @@ export default class Chunk {
         this.uvLen += 8; // UV same length as vertex
 
         // Цвета только для спрайтов
-        if (this.shader === BlastGL.shaderList['sprite2d']) {
+        if (this.shader === BlastGL.renderer.shaderList['sprite2d']) {
             this.tempColor[this.colorLen] = object.vertexColor[0] * object.brightness;
             this.tempColor[this.colorLen + 1] = object.vertexColor[1] * object.brightness;
             this.tempColor[this.colorLen + 2] = object.vertexColor[2] * object.brightness;
@@ -148,20 +148,20 @@ export default class Chunk {
 
         // Если вертексы изменились, то перезаписать массив
         if (this.isVertexChanged) {
-            BlastGL.gl.bindBuffer(BlastGL.gl.ARRAY_BUFFER, this.vertexBuffer);
-            BlastGL.gl.bufferData(BlastGL.gl.ARRAY_BUFFER, this.tempVertex, BlastGL.gl.DYNAMIC_DRAW);
+            BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this.vertexBuffer);
+            BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempVertex, BlastGL.renderer.gl.DYNAMIC_DRAW);
         }
 
         if (this.isColorChanged) {
             // Цвета пока отправляем всегда
-            BlastGL.gl.bindBuffer(BlastGL.gl.ARRAY_BUFFER, this.colorBuffer);
-            BlastGL.gl.bufferData(BlastGL.gl.ARRAY_BUFFER, this.tempColor, BlastGL.gl.DYNAMIC_DRAW);
+            BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this.colorBuffer);
+            BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempColor, BlastGL.renderer.gl.DYNAMIC_DRAW);
         }
 
         // Если UV изменилась, отправляем в гпу
         if (this.isUvChanged) {
-            BlastGL.gl.bindBuffer(BlastGL.gl.ARRAY_BUFFER, this.uvBuffer);
-            BlastGL.gl.bufferData(BlastGL.gl.ARRAY_BUFFER, this.tempUv, BlastGL.gl.DYNAMIC_DRAW);
+            BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this.uvBuffer);
+            BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempUv, BlastGL.renderer.gl.DYNAMIC_DRAW);
         }
 
         this.isPrepared = true;

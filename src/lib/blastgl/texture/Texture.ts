@@ -1,4 +1,3 @@
-import Rectangle from "../../math/geom/Rectangle";
 import BlastGL from "../BlastGL";
 
 export default class Texture {
@@ -36,7 +35,7 @@ export default class Texture {
         this.height = image.height;
 
         if (useAtlas) {
-            BlastGL.addTexture(this);
+            BlastGL.renderer.textureManager.addTexture(this);
         }
     }
 

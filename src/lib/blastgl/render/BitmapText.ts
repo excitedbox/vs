@@ -36,9 +36,9 @@ export default class BitmapText extends Sprite {
 
         // Prepare text area
         if (this._area) {
-            BlastGL.freeTextureArea(this._area);
+            BlastGL.renderer.textureManager.freeTextureArea(this._area);
         }
-        this._area = BlastGL.allocateTextureArea(textSize.width, textSize.height);
+        this._area = BlastGL.renderer.textureManager.allocateTextureArea(textSize.width, textSize.height);
 
         // Set text size
         this.width = textSize.width;
@@ -63,8 +63,8 @@ export default class BitmapText extends Sprite {
             const charArea = this.font.getCharPosition(this._text.charAt(i));
 
             // Copy from table to text area
-            const imgData = BlastGL.copyTextureData(charArea);
-            BlastGL.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
+            const imgData = BlastGL.renderer.textureManager.copyTextureData(charArea);
+            BlastGL.renderer.textureManager.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
         }
 
         this.texture.uv = this._area.uv;
