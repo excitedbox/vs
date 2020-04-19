@@ -11,7 +11,7 @@ export default class TextureAtlas {
 
     private readonly _allocatedAreaList: TextureAtlasArea[] = [];
 
-    // private _isNeedToUpdate: boolean = false;
+    private _isNeedToUpdate: boolean = false;
 
     public readonly width: number;
     public readonly height: number;
@@ -139,6 +139,8 @@ export default class TextureAtlas {
 
     pasteTextureData(imageData: ImageData, to: Vector2D): void {
         this.context.putImageData(imageData, to.x, to.y);
+
+        this._isNeedToUpdate = true;
     }
 
     addTexture(texture: Texture): void {
@@ -182,13 +184,18 @@ export default class TextureAtlas {
         texture.atlasY = area.area.y;
         texture.atlasWidth = this.canvas.width;
         texture.atlasHeight = this.canvas.height;
+
+        this._isNeedToUpdate = true;
     };
 
     update(): void {
-        // Redraw texture from canvas
-        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
-        BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
-        BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
-        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
+        if (this._isNeedToUpdate) {
+            // Redraw texture from canvas
+            BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
+            BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+            BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
+            BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
+        }
+        this._isNeedToUpdate = false;
     }
 }

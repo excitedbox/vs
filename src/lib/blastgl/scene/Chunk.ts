@@ -1,12 +1,13 @@
-import Shader from "../shader/Shader";
 import BlastGL from "../BlastGL";
 import RenderObject from "../render/RenderObject";
 import Camera from "./Camera";
+import Material from "../shader/Material";
 
 export default class Chunk {
     public readonly id: number;
+    public layerId: number;
 
-    public shader: Shader;
+    public material: Material;
     public texture: WebGLTexture;
     public triangles: number = 0;
     public size: number;
@@ -46,7 +47,7 @@ export default class Chunk {
         this.indexBuffer = BlastGL.renderer.gl.createBuffer();
         this.vertexBuffer = BlastGL.renderer.gl.createBuffer();
         this.uvBuffer = BlastGL.renderer.gl.createBuffer();
-        this.colorBuffer = BlastGL.renderer.gl.createBuffer();
+        // this.colorBuffer = BlastGL.renderer.gl.createBuffer();
 
         // Индексы должны быть всегда одинаковые, так как это 2d чанк
         let count = 0;
@@ -113,7 +114,7 @@ export default class Chunk {
         this.uvLen += 8; // UV same length as vertex
 
         // Цвета только для спрайтов
-        if (this.shader === BlastGL.renderer.shaderList['sprite2d']) {
+        /*if (this.material === BlastGL.renderer.defaultSpriteMaterial) {
             this.tempColor[this.colorLen] = object.vertexColor[0] * object.brightness;
             this.tempColor[this.colorLen + 1] = object.vertexColor[1] * object.brightness;
             this.tempColor[this.colorLen + 2] = object.vertexColor[2] * object.brightness;
@@ -132,7 +133,7 @@ export default class Chunk {
             this.tempColor[this.colorLen + 15] = object.alpha;
             this.isColorChanged = true;
             this.colorLen += 16;
-        }
+        }*/
 
         // Обновляем данные чанка в объекте
         object.lastChunkId = this.id;
@@ -152,11 +153,11 @@ export default class Chunk {
             BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempVertex, BlastGL.renderer.gl.DYNAMIC_DRAW);
         }
 
-        if (this.isColorChanged) {
+        /*if (this.isColorChanged) {
             // Цвета пока отправляем всегда
             BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this.colorBuffer);
             BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempColor, BlastGL.renderer.gl.DYNAMIC_DRAW);
-        }
+        }*/
 
         // Если UV изменилась, отправляем в гпу
         if (this.isUvChanged) {

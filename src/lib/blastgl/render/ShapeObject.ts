@@ -1,6 +1,5 @@
 import Rectangle from "../../math/geom/Rectangle";
 import Matrix2D from "../../math/geom/Matrix2D";
-import {TypeRenderObjectParameters} from "./RenderObject";
 import BlastGL from "../BlastGL";
 
 export type TypeShapeObjectParameters = {

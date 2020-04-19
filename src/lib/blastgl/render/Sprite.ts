@@ -1,7 +1,7 @@
 import RenderObject, {TypeRenderObjectParameters} from "./RenderObject";
 import BlastGL from "../BlastGL";
-import Matrix2D from "../../math/geom/Matrix2D";
 import Texture from "../texture/Texture";
+import SpriteMaterial from "../shader/SpriteMaterial";
 
 export default class Sprite extends RenderObject {
     constructor(params: TypeRenderObjectParameters = {}) {
@@ -9,7 +9,9 @@ export default class Sprite extends RenderObject {
 
         // Set default vertex and shader data
         this.vertex = new Float32Array([-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, 0.5, 0.0, -0.5, 0.5, 0.0]);
-        this.shader = BlastGL.renderer.shaderList['sprite2d'];
+        if (!this.material) {
+            this.material = new SpriteMaterial();
+        }
 
         // Set default size from texture
         if (params.texture) {
@@ -27,6 +29,7 @@ export default class Sprite extends RenderObject {
         }
 
         this.calculateMatrix();
+        super.update(delta);
     }
 
     calculateMatrix(): void {
