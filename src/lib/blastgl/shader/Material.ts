@@ -11,4 +11,12 @@ export default class Material {
     bind(renderObject: RenderObject): void {
 
     }
+
+    get shaderPropertyList(): { name: string; type?: string; size?: number }[] {
+        return [];
+    }
+
+    pullProperty(parameter: string): Float32Array {
+        return this[`_${parameter}`];
+    }
 }

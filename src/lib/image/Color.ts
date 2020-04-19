@@ -11,13 +11,22 @@ export default class Color {
         this.a = a;
     }
 
+    toHex(): string {
+        const r = ('00' + (this.r * 255).toString(16)).slice(-2);
+        const g = ('00' + (this.g * 255).toString(16)).slice(-2);
+        const b = ('00' + (this.b * 255).toString(16)).slice(-2);
+        const a = ('00' + (this.a * 255).toString(16)).slice(-2);
+
+        return `#${r}${g}${b}${a}`;
+    }
+
     static fromHex(value: string): Color {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(value);
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(value);
         return result ? new Color(
             parseInt(result[1], 16) / 255,
             parseInt(result[2], 16) / 255,
             parseInt(result[3], 16) / 255,
-            1
+            result[4] ?parseInt(result[4], 16) / 255 :1
         ) : null;
     }
 

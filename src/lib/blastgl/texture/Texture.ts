@@ -17,17 +17,11 @@ export default class Texture {
 
     // WebGL info
     public texture: WebGLTexture = null;
-    public uv: Float32Array =
-        new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
-    public baseUV: Float32Array =
-        new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
-    public triangleUV: Float32Array =
-        new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
+    public uv: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
+    public baseUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
+    public triangleUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
 
-    constructor(
-        {url, image, useAtlas}:
-            { useAtlas?: boolean; url?: string; image?: HTMLImageElement }) {
-
+    constructor({url, image, useAtlas}: { useAtlas?: boolean; url?: string; image?: HTMLImageElement }) {
         this.url = url || null;
         this.image = image;
 

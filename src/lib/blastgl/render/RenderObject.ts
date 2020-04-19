@@ -16,44 +16,43 @@ export type TypeRenderObjectParameters = {
 
     type?: number;
 
-    texture?: Texture;
     material?: Material;
 };
 
 export default class RenderObject extends ShapeObject {
     // Info
     public id: number;
-    public lastChunkId: number = 0;
-    public lastChunkPosition: number = 0;
+    //public lastChunkId: number = 0;
+    //public lastChunkPosition: number = 0;
     public isVisible: boolean = true;
 
     // Visual effects
-    public alpha: number = 1;
-    public brightness: number = 1;
+    //public alpha: number = 1;
+    //public brightness: number = 1;
     public material: Material;
-    public vertex: Float32Array;
-    public readonly vertexColor: Float32Array = new Float32Array([
+    //public vertex: Float32Array;
+    /*public readonly vertexColor: Float32Array = new Float32Array([
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1
-    ]); // Цвет для каждой вершины
+    ]); */
 
-    protected _texture: Texture;
+    /*protected _texture: Texture;
 
     public tempIndex: Uint16Array = new Uint16Array(1 * 6);
     public tempVertex: Float32Array = new Float32Array(1 * 12);
     public tempUv: Float32Array = new Float32Array(1 * 8);
     public readonly indexBuffer: WebGLBuffer;
     public readonly vertexBuffer: WebGLBuffer;
-    public readonly uvBuffer: WebGLBuffer;
+    public readonly uvBuffer: WebGLBuffer;*/
 
-    constructor({ x, y, zIndex, width, height, scaleX, scaleY, texture, material }: TypeRenderObjectParameters = {}) {
+    constructor({ x, y, zIndex, width, height, scaleX, scaleY, material }: TypeRenderObjectParameters = {}) {
         super({ x, y, zIndex, width, height, scaleX, scaleY });
-        this._texture = texture || null;
+        //this._texture = texture || null;
         this.material = material || null;
 
-        this.indexBuffer = BlastGL.renderer.gl.createBuffer();
+        /*this.indexBuffer = BlastGL.renderer.gl.createBuffer();
         this.vertexBuffer = BlastGL.renderer.gl.createBuffer();
         this.uvBuffer = BlastGL.renderer.gl.createBuffer();
 
@@ -62,15 +61,15 @@ export default class RenderObject extends ShapeObject {
         this.tempIndex[2] = 2 + 0;
         this.tempIndex[3] = 0;
         this.tempIndex[4] = 2 + 0;
-        this.tempIndex[5] = 3 + 0;
+        this.tempIndex[5] = 3 + 0;*/
 
         // Сразу заливаем индексы в буфер
-        BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.tempIndex, BlastGL.renderer.gl.DYNAMIC_DRAW);
+        // BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        // BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this.tempIndex, BlastGL.renderer.gl.DYNAMIC_DRAW);
     }
 
     update(delta: number): void {
-        this.tempVertex[0] = this.vertex[0];
+        /*this.tempVertex[0] = this.vertex[0];
         this.tempVertex[0 + 1] = this.vertex[1];
         this.tempVertex[0 + 2] = this.vertex[2];
         this.tempVertex[0 + 3] = this.vertex[3];
@@ -97,18 +96,18 @@ export default class RenderObject extends ShapeObject {
         BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempVertex, BlastGL.renderer.gl.DYNAMIC_DRAW);
 
         BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this.uvBuffer);
-        BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempUv, BlastGL.renderer.gl.DYNAMIC_DRAW);
+        BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this.tempUv, BlastGL.renderer.gl.DYNAMIC_DRAW);*/
     }
 
-    set texture(texture: Texture) {
+    /*set texture(texture: Texture) {
         this._texture = texture;
     }
 
     get texture(): Texture {
         return this._texture;
-    }
+    }*/
 
-    set color(value: string) {
+    /*set color(value: string) {
         if (typeof value === "string") {
             const color = Color.fromHex(value);
 
@@ -116,5 +115,5 @@ export default class RenderObject extends ShapeObject {
             this.vertexColor[1] = this.vertexColor[5] = this.vertexColor[9] = this.vertexColor[13] = color.g;
             this.vertexColor[2] = this.vertexColor[6] = this.vertexColor[10] = this.vertexColor[14] = color.b;
         }
-    }
+    }*/
 }

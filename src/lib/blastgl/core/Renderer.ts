@@ -18,6 +18,7 @@ export default class Renderer {
     private _lastUsedMaterial: Material;
     private _lastUsedTexture: Texture;
     private _textureManager: TextureManager;
+    private _isNeedToAllocateChunk: boolean = true;
     //private _defaultSpriteMaterial: Material;
 
     init(element: string): void {
@@ -98,8 +99,29 @@ export default class Renderer {
             BlastGL.scene.update(BlastGL.info.deltaTime);
         }
 
-        /*
+        // Split elements to chunks
+        let tempChunk: Chunk = null;
+        // let isNeedToAllocateChunk = true;
+        let lastObject: RenderObject = null;
+        let lastTexture: WebGLTexture = null;
+        let lastMaterial: Material = null;
 
+        for (let i = 0; i < BlastGL.scene.layers.length; i++) {
+            for (let j = 0; j < BlastGL.scene.layers[i].elements.length; j++) {
+                if (this._isNeedToAllocateChunk) {
+                    tempChunk = this.allocateChunk();
+                    this._isNeedToAllocateChunk = false;
+                    tempChunk.material = BlastGL.scene.layers[i].elements[j].material;
+                    tempChunk.addObject(BlastGL.scene.layers[i].elements[j]);
+                }
+            }
+        }
+
+        for (let i = 0; i < this._chunkCounter; i++) {
+            this._chunkList[i].build();
+        }
+
+        /*
         let lastObject: RenderObject = null;
         let lastTexture: WebGLTexture = null;
         let lastMaterial: Material = null;
@@ -193,36 +215,41 @@ export default class Renderer {
         BlastGL.info.lastFrameTime = performance.now();*/
     }
 
-    /*private allocateChunk(): Chunk {
+    private allocateChunk(): Chunk {
         this._chunkCounter += 1;
         if (!this._chunkList[this._chunkCounter - 1]) {
             this._chunkList[this._chunkCounter - 1] = new Chunk(this._chunkCounter - 1);
         }
 
         return this._chunkList[this._chunkCounter - 1];
-    }*/
+    }
 
     draw(): void {
-        this._gl.clear(this._gl.DEPTH_BUFFER_BIT | this._gl.COLOR_BUFFER_BIT);
-        this._gl.clearDepth(1.0);
+        const gl = this.gl;
 
+        gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+        gl.clearDepth(1.0);
+
+        for (let i = 0; i < this._chunkCounter; i++) {
+            const chunk = this._chunkList[i];
+
+            chunk.draw();
+        }
+
+        // console.log(this._chunkList[0]);
         // Проходим по всем слоям и элементам в них
-        for (let i = 0; i < BlastGL.scene.layers.length; i++) {
+        /*for (let i = 0; i < BlastGL.scene.layers.length; i++) {
             for (let j = 0; j < BlastGL.scene.layers[i].elements.length; j++) {
+                // Get element
                 const element = BlastGL.scene.layers[i].elements[j];
 
                 // Bind material buffers
                 element.material.bind(element);
 
-                // Pass camera matrix to shader. We pass global camera or chunk specific camera
-                this._gl.uniformMatrix4fv(
-                    element.material.shader.getUniformLocation('uCameraMatrix'), false,
-                    BlastGL.scene.camera.matrix.matrix);
-
                 // Отрисовка чанка
                 this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
             }
-        }
+        }*/
 
         /*for (let i = 0; i < this._chunkCounter; i++) {
             const tempChunk = this._chunkList[i];
@@ -282,8 +309,4 @@ export default class Renderer {
     get textureManager(): TextureManager {
         return this._textureManager;
     }
-
-    /*get defaultSpriteMaterial(): Material {
-        return this._defaultSpriteMaterial;
-    }*/
 }

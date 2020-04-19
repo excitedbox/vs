@@ -5,18 +5,32 @@ import RenderObject from "../render/RenderObject";
 import Color from "../../image/Color";
 
 export default class SpriteMaterial extends Material {
-
-    private readonly _vertexColor: Float32Array = new Float32Array([
+    private readonly _index: Float32Array = new Float32Array([
+        0, 1, 2, 3, 4, 5
+    ]);
+    private readonly _aColor: Float32Array = new Float32Array([
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1
     ]);
-    private _vertexColorBuffer: WebGLBuffer;
+    private readonly _aVertexPosition: Float32Array = new Float32Array([
+        -0.5, -0.5, 0.0,
+        0.5, -0.5, 0.0,
+        0.5, 0.5, 0.0,
+        -0.5, 0.5, 0.0
+    ]);
+    private readonly _aTextureCoord: Float32Array = new Float32Array([
+        1.0, 0.0,
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 1.0
+    ]);
 
     constructor() {
         super();
 
+        // Create shader
         SpriteMaterial._shader = new Shader(
             'sprite2d',
              // language=GLSL
@@ -52,59 +66,76 @@ export default class SpriteMaterial extends Material {
             `,
         );
 
+        // Bind attributes
         SpriteMaterial._shader.bindAttribute('aVertexPosition');
         SpriteMaterial._shader.bindAttribute('aColor');
         SpriteMaterial._shader.bindAttribute('aTextureCoord');
         SpriteMaterial._shader.bindUniform('uCameraMatrix');
 
-        this._vertexColorBuffer = BlastGL.renderer.gl.createBuffer();
+        // Create buffer
+        // this._vertexColorBuffer = BlastGL.renderer.gl.createBuffer();
     }
 
     public get shader(): Shader {
         return SpriteMaterial._shader;
     }
 
+    get shaderPropertyList(): { name: string; type?: string; size?: number }[] {
+        return [
+            { name: 'index', type: 'index' },
+            { name: 'uSampler', type: 'texture' },
+            { name: 'aVertexPosition', size: 3 },
+            { name: 'aColor', size: 4 },
+            { name: 'aTextureCoord', size: 2 },
+        ];
+    }
+
     public set color(value: string) {
         if (typeof value === "string") {
             const color = Color.fromHex(value);
 
-            this._vertexColor[0] = this._vertexColor[4] = this._vertexColor[8] = this._vertexColor[12] = color.r;
+            /*this._vertexColor[0] = this._vertexColor[4] = this._vertexColor[8] = this._vertexColor[12] = color.r;
             this._vertexColor[1] = this._vertexColor[5] = this._vertexColor[9] = this._vertexColor[13] = color.g;
-            this._vertexColor[2] = this._vertexColor[6] = this._vertexColor[10] = this._vertexColor[14] = color.b;
+            this._vertexColor[2] = this._vertexColor[6] = this._vertexColor[10] = this._vertexColor[14] = color.b;*/
         }
     }
 
     bind(renderObject: RenderObject): void {
-        const gl = BlastGL.renderer.gl;
+        //const gl = BlastGL.renderer.gl;
 
         // Use shader
-        gl.useProgram(renderObject.material.shader.program);
-        renderObject.material.shader.enableVertexAttribArray();
+        //gl.useProgram(renderObject.material.shader.program);
+        //renderObject.material.shader.enableVertexAttribArray();
 
         // Bind texture
-        gl.activeTexture(gl.TEXTURE0);
+        /*gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(gl.getUniformLocation(renderObject.material.shader.program, "uSampler"), 0);
         gl.bindTexture(gl.TEXTURE_2D, renderObject.texture.texture);
 
-        // Передаем вертексы
+        // Pass vertex data
         gl.bindBuffer(gl.ARRAY_BUFFER, renderObject.vertexBuffer);
         gl.vertexAttribPointer(
             this.shader.getAttributeLocation('aVertexPosition'), 3,
             gl.FLOAT, false, 0, 0);
 
-        // Текстурые координаты
+        // Pass UV
         gl.bindBuffer(gl.ARRAY_BUFFER, renderObject.uvBuffer);
         gl.vertexAttribPointer(
             this.shader.getAttributeLocation('aTextureCoord'), 2,
-            gl.FLOAT, false, 0, 0);
+            gl.FLOAT, false, 0, 0);*/
 
         // Color
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexColorBuffer);
+        /*gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexColorBuffer);
         gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this._vertexColor, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(this.shader.getAttributeLocation('aColor'), 4,
-            gl.FLOAT, false, 0, 0);
+            gl.FLOAT, false, 0, 0);*/
 
-        // Индексный буфер
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, renderObject.indexBuffer);
+        // Index buffer
+        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, renderObject.indexBuffer);
+
+        // Pass camera matrix to shader
+        /*gl.uniformMatrix4fv(
+            renderObject.material.shader.getUniformLocation('uCameraMatrix'), false,
+            BlastGL.scene.camera.matrix.matrix);*/
     }
 }

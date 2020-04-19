@@ -8,10 +8,6 @@ export default class TextureAtlasArea {
     public context: CanvasRenderingContext2D;
     public area: Rectangle;
 
-   /* public x: number;
-    public y: number;
-    public width: number;
-    public height: number;*/
     public uv: Float32Array;
     public texture: Texture;
 
