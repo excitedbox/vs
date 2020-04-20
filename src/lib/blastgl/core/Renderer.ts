@@ -24,7 +24,7 @@ export default class Renderer {
     init(element: string): void {
         // Inject canvas
         document.querySelector(element).innerHTML = `
-            <canvas style="border: 1px solid #fefefe;"></canvas>
+            <canvas style="border: 1px solid #fefefe; image-rendering: pixelated;"></canvas>
             <div></div>
         `;
 
@@ -63,17 +63,17 @@ export default class Renderer {
         }, 16);
     }
 
-    resize(width: number, height: number): void {
+    resize(width: number, height: number, scale: number = 1): void {
         // Set scene size
-        this._sceneWidth = width;
-        this._sceneHeight = height;
+        this._sceneWidth = width / scale;
+        this._sceneHeight = height / scale;
 
         // Set canvas size attribute
-        this._canvas.setAttribute("width", width + "");
-        this._canvas.setAttribute("height", height + "");
+        this._canvas.setAttribute("width", width / scale + "");
+        this._canvas.setAttribute("height", height / scale + "");
 
         // Update viewport
-        this._gl.viewport(0, 0, width, height);
+        this._gl.viewport(0, 0, width / scale, height / scale);
 
         // Set canvas style size
         this._canvas.style.width = width + 'px';
@@ -102,9 +102,9 @@ export default class Renderer {
         // Split elements to chunks
         let tempChunk: Chunk = null;
         // let isNeedToAllocateChunk = true;
-        let lastObject: RenderObject = null;
-        let lastTexture: WebGLTexture = null;
-        let lastMaterial: Material = null;
+        //let lastObject: RenderObject = null;
+        //let lastTexture: WebGLTexture = null;
+        //let lastMaterial: Material = null;
 
         for (let i = 0; i < BlastGL.scene.layers.length; i++) {
             for (let j = 0; j < BlastGL.scene.layers[i].elements.length; j++) {
@@ -113,6 +113,7 @@ export default class Renderer {
                     this._isNeedToAllocateChunk = false;
                     tempChunk.material = BlastGL.scene.layers[i].elements[j].material;
                     tempChunk.addObject(BlastGL.scene.layers[i].elements[j]);
+                    console.log(tempChunk);
                 }
             }
         }

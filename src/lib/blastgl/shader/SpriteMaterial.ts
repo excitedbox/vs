@@ -1,31 +1,33 @@
 import Material from "./Material";
 import Shader from "./Shader";
-import BlastGL from "../BlastGL";
 import RenderObject from "../render/RenderObject";
 import Color from "../../image/Color";
+import Texture from "../texture/Texture";
 
 export default class SpriteMaterial extends Material {
-    private readonly _index: Float32Array = new Float32Array([
-        0, 1, 2, 3, 4, 5
-    ]);
+
     private readonly _aColor: Float32Array = new Float32Array([
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1
     ]);
+
+    /*private readonly _index: Uint16Array = new Uint16Array([
+        0, 1, 2, 3, 4, 5
+    ]);
     private readonly _aVertexPosition: Float32Array = new Float32Array([
         -0.5, -0.5, 0.0,
         0.5, -0.5, 0.0,
         0.5, 0.5, 0.0,
         -0.5, 0.5, 0.0
-    ]);
-    private readonly _aTextureCoord: Float32Array = new Float32Array([
+    ]);*/
+    /*private _aTextureCoord: Float32Array = new Float32Array([
         1.0, 0.0,
         0.0, 0.0,
         0.0, 1.0,
         1.0, 1.0
-    ]);
+    ]);*/
 
     constructor() {
         super();
@@ -68,25 +70,34 @@ export default class SpriteMaterial extends Material {
 
         // Bind attributes
         SpriteMaterial._shader.bindAttribute('aVertexPosition');
-        SpriteMaterial._shader.bindAttribute('aColor');
         SpriteMaterial._shader.bindAttribute('aTextureCoord');
+        SpriteMaterial._shader.bindAttribute('aColor');
         SpriteMaterial._shader.bindUniform('uCameraMatrix');
+    }
 
-        // Create buffer
-        // this._vertexColorBuffer = BlastGL.renderer.gl.createBuffer();
+    set texture(texture: Texture) {
+        this._texture = texture;
+        // this._aTextureCoord = texture.uv;
+    }
+
+    get texture(): Texture {
+        return this._texture;
     }
 
     public get shader(): Shader {
         return SpriteMaterial._shader;
     }
 
-    get shaderPropertyList(): { name: string; type?: string; size?: number }[] {
+    get shaderPropertyList(): { name: string; type: string; size?: number }[] {
         return [
-            { name: 'index', type: 'index' },
             { name: 'uSampler', type: 'texture' },
-            { name: 'aVertexPosition', size: 3 },
-            { name: 'aColor', size: 4 },
-            { name: 'aTextureCoord', size: 2 },
+            { name: 'aVertexPosition', type: 'mesh', size: 3 },
+            { name: 'aTextureCoord', type: 'uv', size: 2 },
+
+            { name: 'aColor', type: 'float', size: 4 },
+
+            { name: 'index', type: 'index' },
+            { name: 'uCameraMatrix', type: 'matrix4' },
         ];
     }
 

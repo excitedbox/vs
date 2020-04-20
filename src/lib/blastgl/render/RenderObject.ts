@@ -3,6 +3,7 @@ import ShapeObject from "./ShapeObject";
 import Color from "../../image/Color";
 import Material from "../shader/Material";
 import BlastGL from "../BlastGL";
+import Mesh from "./Mesh";
 
 export type TypeRenderObjectParameters = {
     x?: number;
@@ -30,6 +31,8 @@ export default class RenderObject extends ShapeObject {
     //public alpha: number = 1;
     //public brightness: number = 1;
     public material: Material;
+    public mesh: Mesh;
+
     //public vertex: Float32Array;
     /*public readonly vertexColor: Float32Array = new Float32Array([
         1, 1, 1, 1,
@@ -49,7 +52,7 @@ export default class RenderObject extends ShapeObject {
 
     constructor({ x, y, zIndex, width, height, scaleX, scaleY, material }: TypeRenderObjectParameters = {}) {
         super({ x, y, zIndex, width, height, scaleX, scaleY });
-        //this._texture = texture || null;
+        // this._texture = texture || null;
         this.material = material || null;
 
         /*this.indexBuffer = BlastGL.renderer.gl.createBuffer();

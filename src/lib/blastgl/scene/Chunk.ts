@@ -1,5 +1,4 @@
 import RenderObject from "../render/RenderObject";
-import Shader from "../shader/Shader";
 import BlastGL from "../BlastGL";
 import Material from "../shader/Material";
 
@@ -8,12 +7,12 @@ export default class Chunk {
     public maxSize: number = 4096;
 
     private _material: Material;
-    public texture: WebGLTexture;
 
     private _parameterDataLength: {} = {};
-    private _valueList: Float32Array[] = [];
-    private _bufferList: WebGLBuffer[] = [];
+    private _valueList: {[key: string]: Float32Array | Uint16Array} = {};
+    private _bufferList: {[key: string]: WebGLBuffer} = {};
     private _objectList: RenderObject[] = [];
+    private _indexAmount: number = 0;
 
     constructor(id: number) {
         this.id = id;
@@ -31,12 +30,12 @@ export default class Chunk {
 
         // Init buffers for all properties
         for (let i = 0; i < params.length; i++) {
-            if (params[i].type === "texture") {
+            if (!(params[i].type === "float" || params[i].type === "index"
+                || params[i].type === "mesh" || params[i].type === "uv")) {
                 continue;
             }
 
-            const buffer = BlastGL.renderer.gl.createBuffer();
-            this._bufferList.push(buffer);
+            this._bufferList[params[i].name] = BlastGL.renderer.gl.createBuffer();
         }
     }
 
@@ -50,11 +49,27 @@ export default class Chunk {
 
         // Calculate all parameters length
         for (let i = 0; i < params.length; i++) {
-            if (params[i].type === "texture") {
+            if (!(params[i].type === "float" || params[i].type === "index"
+                || params[i].type === "mesh" || params[i].type === "uv")) {
                 continue;
             }
 
-            this._parameterDataLength[params[i].name] += renderObject.material.pullProperty(params[i].name).length;
+            if (!this._parameterDataLength[params[i].name]) {
+                this._parameterDataLength[params[i].name] = 0;
+            }
+
+            if (params[i].type === "mesh") {
+                this._parameterDataLength[params[i].name] += renderObject.mesh.vertex.length;
+            }
+            if (params[i].type === "uv") {
+                this._parameterDataLength[params[i].name] += renderObject.mesh.uv.length;
+            }
+            if (params[i].type === "index") {
+                this._parameterDataLength[params[i].name] += renderObject.mesh.index.length;
+            }
+            if (params[i].type === "float") {
+                this._parameterDataLength[params[i].name] += renderObject.material.getProperty(params[i].name).length;
+            }
         }
 
         // Add object to pool
@@ -62,37 +77,65 @@ export default class Chunk {
     }
 
     public build(): void {
+        const gl = BlastGL.renderer.gl;
+
         // Get properties for material
         const params = this._material.shaderPropertyList;
 
+        this._indexAmount = 0;
+
         // Allocate all arrays
         for (let i = 0; i < params.length; i++) {
-            if (params[i].type === "texture") {
+            if (!(params[i].type === "float" || params[i].type === "index"
+                || params[i].type === "mesh" || params[i].type === "uv")) {
                 continue;
             }
 
             // Allocate array
-            this._valueList[i] = new Float32Array(this._parameterDataLength[params[i].name]);
+            if (params[i].type === "index") {
+                this._valueList[params[i].name] = new Uint16Array(this._parameterDataLength[params[i].name]);
+            } else {
+                this._valueList[params[i].name] = new Float32Array(this._parameterDataLength[params[i].name]);
+            }
 
             for (let j = 0; j < this._objectList.length; j++) {
                 const object = this._objectList[j];
-                const parameter = object.material.pullProperty(params[i].name);
+                let parameter = object.material.getProperty(params[i].name);
                 let positionId: number = 0;
 
-                // Put element's vertex in chunk vertex array
-                for (let k = 0; k < parameter.length; k++) {
-                    this._valueList[i][positionId++] = parameter[j];
+                if (params[i].type === "index") {
+                    parameter = this._objectList[j].mesh.index;
+                }
+
+                if (params[i].type === "mesh") {
+                    parameter = this._objectList[j].mesh.vertex;
+                }
+
+                if (params[i].type === "uv") {
+                    parameter = this._objectList[j].mesh.uv;
+                }
+
+                if (params[i].type === "index") {
+                    // Put element's vertex in chunk vertex array
+                    for (let k = 0; k < parameter.length; k++) {
+                        this._valueList[params[i].name][positionId++] = parameter[k] + this._indexAmount;
+                    }
+                    this._indexAmount += parameter.length;
+                } else {
+                    // Put element's vertex in chunk vertex array
+                    for (let k = 0; k < parameter.length; k++) {
+                        this._valueList[params[i].name][positionId++] = parameter[k];
+                    }
                 }
             }
 
+            // Upload buffer to GPU
             if (params[i].type === "index") {
-                // Upload buffer to GPU
-                BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this._bufferList[i]);
-                BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ELEMENT_ARRAY_BUFFER, this._valueList[i], BlastGL.renderer.gl.DYNAMIC_DRAW);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
             } else {
-                // Upload buffer to GPU
-                BlastGL.renderer.gl.bindBuffer(BlastGL.renderer.gl.ARRAY_BUFFER, this._bufferList[i]);
-                BlastGL.renderer.gl.bufferData(BlastGL.renderer.gl.ARRAY_BUFFER, this._valueList[i], BlastGL.renderer.gl.DYNAMIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferList[params[i].name]);
+                gl.bufferData(gl.ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
             }
         }
     }
@@ -108,30 +151,37 @@ export default class Chunk {
         const params = this._material.shaderPropertyList;
 
         for (let i = 0; i < params.length; i++) {
-            if (params[i].type === "index") {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[i]);
-            } else
-            if (params[i].type === "texture") {
-                // Bind texture
-                gl.activeTexture(gl.TEXTURE0);
-                gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), 0);
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-            } else {
-                gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferList[i]);
-                gl.vertexAttribPointer(
-                    this.material.shader.getAttributeLocation(params[i].name), params[i].size,
-                    gl.FLOAT, false, 0, 0);
+            switch (params[i].type) {
+                case "index":
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
+                    break;
+                case "matrix4":
+                    gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
+                        false, BlastGL.scene.camera.matrix.matrix);
+                    break;
+                case "texture":
+                    // Bind texture
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), 0);
+                    gl.bindTexture(gl.TEXTURE_2D, this.material.texture.texture);
+                    break;
+                case "uv":
+                case "mesh":
+                case "float":
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferList[params[i].name]);
+                    gl.vertexAttribPointer(
+                        this.material.shader.getAttributeLocation(params[i].name),
+                        params[i].size,
+                        gl.FLOAT, false, 0, 0
+                    );
+                    break;
+                default:
+                    console.error(`Unsupported type "${params[i].type}"`);
+                    break;
             }
         }
 
-        // Индексный буфер
-        // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tempChunk.indexBuffer);
-
-        // Pass camera matrix to shader
-        // We pass global camera or chunk specific camera
-        // gl.uniformMatrix4fv(tempChunk.material.shader.getUniformLocation('uCameraMatrix'), false, tempChunk.camera ?tempChunk.camera.matrix.matrix :BlastGL.scene.camera.matrix.matrix);
-
         // Отрисовка чанка
-        // gl.drawElements(gl.TRIANGLES, tempChunk.size * 6, this._gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, this._indexAmount, gl.UNSIGNED_SHORT, 0);
     }
 }
