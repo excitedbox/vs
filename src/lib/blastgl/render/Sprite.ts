@@ -1,6 +1,7 @@
 import RenderObject, {TypeRenderObjectParameters} from "./RenderObject";
 import SpriteMaterial from "../shader/SpriteMaterial";
 import Mesh from "./Mesh";
+import Texture from "../texture/Texture";
 
 export default class Sprite extends RenderObject {
     constructor(params: TypeRenderObjectParameters) {
@@ -37,10 +38,10 @@ export default class Sprite extends RenderObject {
         this.calculateMatrix();
 
         // Update texture
-        if (this.material.textureList[0]) {
+        /*if (this.material.textureList[0]) {
             this.width = this.material.textureList[0].width;
             this.height = this.material.textureList[0].height;
-        }
+        }*/
 
         // Set uv for textures
         for (let i = 0; i < this.material.textureList.length; i++) {
@@ -83,6 +84,13 @@ export default class Sprite extends RenderObject {
         this.area.left = Math.min(this.mesh.vertex[0], this.mesh.vertex[3], this.mesh.vertex[6], this.mesh.vertex[9]);
         this.area.bottom = Math.min(this.mesh.vertex[1], this.mesh.vertex[4], this.mesh.vertex[7], this.mesh.vertex[10]);
         this.area.right = Math.max(this.mesh.vertex[0], this.mesh.vertex[3], this.mesh.vertex[6], this.mesh.vertex[9]);
+    }
+
+    set texture(value: Texture) {
+        this.material.textureList[0] = value;
+        this.width = value.width;
+        this.height = value.height;
+        this.mesh.uv[0] = value.uv;
     }
 
     get material(): SpriteMaterial {
