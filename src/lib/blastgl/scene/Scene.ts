@@ -3,6 +3,7 @@ import ShapeObject from "../render/ShapeObject";
 import Camera from "./Camera";
 import BlastGL from "../BlastGL";
 import RenderObject from "../render/RenderObject";
+import Chunk from "./Chunk";
 
 export default class Scene {
     public blastGl: BlastGL;
@@ -12,12 +13,15 @@ export default class Scene {
     public camera: Camera;
     public isNeedGarbageCollector: boolean = false;
 
+    private _chunkList: Chunk[] = [];
+    private _chunkCounter: number = 0;
+
     init(): void {
 
     }
 
     addObject(object: ShapeObject, layerId: number = 0): void {
-        // Ищем слой с указанным id
+        // Find a layer with such id
         let layer = null;
         for (let i = 0; i < this.layers.length; i++) {
             if (this.layers[i].id === layerId) {
@@ -26,26 +30,66 @@ export default class Scene {
             }
         }
 
-        // Если такого слоя нет, создаем
+        // Create if not found
         if (!layer) {
             layer = new Layer(layerId);
             this.layers.push(layer);
         }
 
-        // Добавляем элемент в слой
+        // Add object to layer
         if (layer.elements.indexOf(object) === -1) {
             layer.elements.push(object);
         }
 
-        // Сортируем слои по id
+        // Sort layers by id
         this.layers.sort(function (a: Layer, b: Layer) {
             return (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0);
         });
 
-        // Register object in renderer
+        // Add object in chunk system
         if (object instanceof RenderObject) {
-            this.blastGl.renderer.registerObject(object);
+            this.addObjectToChunk(object);
         }
+    }
+
+    private addObjectToChunk(object: RenderObject): void {
+        let isFound = false;
+        let chunk: Chunk;
+
+        for (let i = 0; i < this._chunkList.length; i++) {
+            chunk = this._chunkList[i];
+            isFound = true;
+
+            // Check shader
+            if (chunk.material.shader !== object.material.shader) {
+                isFound = false;
+                continue;
+            }
+        }
+
+        if (!isFound) {
+            chunk = this.allocateChunk();
+            chunk.camera = this.camera;
+            chunk.material = object.material;
+            chunk.addObject(object);
+        } else {
+            chunk.addObject(object);
+        }
+    }
+
+    private removeObjectFromChunk(object: RenderObject): void {
+        for (let i = 0; i < this._chunkList.length; i++) {
+            this._chunkList[i].removeObject(object);
+        }
+    }
+
+    private allocateChunk(): Chunk {
+        this._chunkCounter += 1;
+        if (!this._chunkList[this._chunkCounter - 1]) {
+            this._chunkList[this._chunkCounter - 1] = new Chunk(this.blastGl, this._chunkCounter - 1);
+        }
+
+        return this._chunkList[this._chunkCounter - 1];
     }
 
     getLayer(id: number): Layer {
@@ -69,6 +113,7 @@ export default class Scene {
             for (let i = 0; i < this.layers.length; i++) {
                 for (let j = 0; j < this.layers[i].elements.length; j++) {
                     if (this.layers[i].elements[j].isRemoved) {
+                        this.removeObjectFromChunk(this.layers[i].elements[j]);
                         this.layers[i].elements.splice(j, 1);
                         j -= 1;
                     }
@@ -86,6 +131,19 @@ export default class Scene {
                     tempElement.update(delta);
                 }
             }
+        }
+
+        // Build chunks
+        for (let i = 0; i < this._chunkList.length; i++) {
+            const chunk = this._chunkList[i];
+            chunk.build();
+        }
+    }
+
+    draw(): void {
+        for (let i = 0; i < this._chunkList.length; i++) {
+            const chunk = this._chunkList[i];
+            chunk.draw();
         }
     }
 

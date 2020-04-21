@@ -17,13 +17,13 @@ export default class SpriteMaterial extends Material {
                         attribute vec2 aUV;
 
                         // Camera
-                        uniform mat4 uCameraMatrix;
+                        uniform mat4 uCamera;
 
                         // To frag
                         varying lowp vec2 vUV;
 
                         void main(void) {
-                            gl_Position = uCameraMatrix * vec4(aMesh, 1.0);
+                            gl_Position = uCamera * vec4(aMesh, 1.0);
                             vUV = aUV;
                         }
                 `,
@@ -45,7 +45,7 @@ export default class SpriteMaterial extends Material {
             // Bind attributes
             SpriteMaterial._shader.bindAttribute('aMesh');
             SpriteMaterial._shader.bindAttribute('aUV');
-            SpriteMaterial._shader.bindUniform('uCameraMatrix');
+            SpriteMaterial._shader.bindUniform('uCamera');
         }
     }
 
@@ -58,10 +58,10 @@ export default class SpriteMaterial extends Material {
             { name: 'index', type: 'index' },
 
             { name: 'aMesh', type: 'mesh', size: 3 },
-            { name: 'aUV', type: 'uv', size: 2 },
+            { name: 'aUV', type: 'uv', size: 2, slot: 0 },
 
             { name: 'uTexture', type: 'texture', slot: 0 },
-            { name: 'uCameraMatrix', type: 'matrix4' },
+            { name: 'uCamera', type: 'camera' },
         ];
     }
 }

@@ -19,7 +19,8 @@ export default class Chunk {
     private _bufferList: {[key: string]: WebGLBuffer} = {};
     private _objectList: RenderObject[] = [];
     private _indexAmount: number = 0;
-    private _isObjectAdded: boolean = false;
+
+    private _isObjectListChanged: boolean = false;
 
     constructor(blastGl: BlastGL, id: number) {
         this._blastGl = blastGl;
@@ -76,9 +77,9 @@ export default class Chunk {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.vertex.length;
                 this._parameterLength[params[i].name] = renderObject.mesh.vertex.length;
             }
-            if (params[i].type === "uv") {
-                this._parameterDataLength[params[i].name] += renderObject.mesh.uv.length;
-                this._parameterLength[params[i].name] = renderObject.mesh.uv.length;
+            if (params[i].type === "uv" && renderObject.mesh.uv[params[i].slot]) {
+                this._parameterDataLength[params[i].name] += renderObject.mesh.uv[params[i].slot].length;
+                this._parameterLength[params[i].name] = renderObject.mesh.uv[params[i].slot].length;
             }
             if (params[i].type === "index") {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.index.length;
@@ -93,7 +94,14 @@ export default class Chunk {
         // Add object to pool
         this._objectList.push(renderObject);
 
-        this._isObjectAdded = true;
+        this._isObjectListChanged = true;
+    }
+
+    public removeObject(renderObject: RenderObject): void {
+        if (this._objectList.has(renderObject)) {
+            this._objectList.remove(renderObject);
+            this._isObjectListChanged = true;
+        }
     }
 
     public build(): void {
@@ -103,7 +111,7 @@ export default class Chunk {
         const params = this._material.shaderPropertyList;
 
         // Reset index amount
-        if (this._isObjectAdded) {
+        if (this._isObjectListChanged) {
             this._indexAmount = 0;
         }
         let indexOffset: number = 0;
@@ -116,7 +124,7 @@ export default class Chunk {
             }
 
             // Allocate array
-            if (this._isObjectAdded) {
+            if (this._isObjectListChanged) {
                 if (params[i].type === "index") {
                     this._valueList[params[i].name] = new Uint16Array(this._parameterDataLength[params[i].name]);
                 } else {
@@ -145,7 +153,7 @@ export default class Chunk {
                 }
 
                 if (params[i].type === "uv") {
-                    parameter = this._objectList[j].mesh.uv;
+                    parameter = this._objectList[j].mesh.uv[params[i].slot];
                 }
 
                 if (params[i].type === "index") {
@@ -170,7 +178,7 @@ export default class Chunk {
 
             // Upload buffer to GPU
             if (params[i].type === "index") {
-                if (this._isObjectAdded) {
+                if (this._isObjectListChanged) {
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
                     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
                 }
@@ -180,7 +188,7 @@ export default class Chunk {
             }
         }
 
-        this._isObjectAdded = false;
+        this._isObjectListChanged = false;
     }
 
     public draw(): void {
@@ -198,7 +206,7 @@ export default class Chunk {
                 case "index":
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
                     break;
-                case "matrix4":
+                case "camera":
                     gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
                         false, this.camera.matrix.matrix);
                     break;
@@ -206,7 +214,7 @@ export default class Chunk {
                     // Bind texture
                     gl.activeTexture(gl.TEXTURE0);
                     gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), 0);
-                    gl.bindTexture(gl.TEXTURE_2D, this.material.texture[params[i].slot].texture);
+                    gl.bindTexture(gl.TEXTURE_2D, this.material.textureList[params[i].slot].texture);
                     break;
                 case "uv":
                 case "mesh":
@@ -217,6 +225,12 @@ export default class Chunk {
                         params[i].size,
                         gl.FLOAT, false, 0, 0
                     );
+                    break;
+                case "time":
+                    gl.uniform4fv(this.material.shader.getUniformLocation(params[i].name),
+                        new Float32Array([
+                            this._blastGl.info.tickId, 1, 1, 1
+                        ]));
                     break;
                 default:
                     console.error(`Unsupported type "${params[i].type}"`);

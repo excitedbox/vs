@@ -7,7 +7,6 @@ export default class TextureAtlasArea {
     public atlasTexture: WebGLTexture;
     public context: CanvasRenderingContext2D;
     public area: Rectangle;
-
     public uv: Float32Array;
     public texture: Texture;
 

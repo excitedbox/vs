@@ -42,6 +42,8 @@ declare global {
          */
         clone(): Array<T>;
 
+        has(value: unknown): boolean;
+
         /**
          * Remove non unique values from array
          */
@@ -118,6 +120,10 @@ Array.prototype.sortBy = function (field: string, isReverse: boolean = false) {
     });
     if (isReverse) return this.reverse();
     return this;
+};
+
+Array.prototype.has = function (value: unknown): boolean {
+    return this.indexOf(value) !== -1;
 };
 
 Array.prototype.limit = function (value: number) {

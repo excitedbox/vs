@@ -1,30 +1,32 @@
-import BlastGL from "../BlastGL";
 import Texture from "./Texture";
 import Rectangle from "../../math/geom/Rectangle";
 import TextureAtlasArea from "./TextureAtlasArea";
 import Vector2D from "../../math/geom/Vector2D";
 import Renderer from "../core/Renderer";
+import BlastGL from "../BlastGL";
 
 export default class TextureAtlas {
     public readonly canvas: HTMLCanvasElement;
     public readonly context: CanvasRenderingContext2D = null;
     public readonly texture: WebGLTexture = null;
 
+    // List of allocated areas
     private readonly _allocatedAreaList: TextureAtlasArea[] = [];
 
+    // If texture changed
     private _isNeedToUpdate: boolean = false;
-    private _renderer: Renderer;
+    private _blastGl: BlastGL;
 
     public readonly width: number;
     public readonly height: number;
 
-    constructor(renderer: Renderer, sceneName: string, canvasId: number, width: number, height: number) {
-        this._renderer = renderer;
+    constructor(blastGl: BlastGL, sceneName: string, canvasId: number, width: number, height: number) {
+        this._blastGl = blastGl;
 
         // Create canvas
         this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
         if (!this.canvas) {
-            renderer.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
+            blastGl.renderer.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
             this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
             this.canvas.setAttribute("width", width + '');
             this.canvas.setAttribute("height", height + '');
@@ -41,14 +43,14 @@ export default class TextureAtlas {
         this.height = height;
 
         // Create texture
-        this.texture = renderer.gl.createTexture();
-        renderer.gl.bindTexture(renderer.gl.TEXTURE_2D, this.texture);
-        renderer.gl.pixelStorei(renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
-        renderer.gl.texImage2D(renderer.gl.TEXTURE_2D, 0, renderer.gl.RGBA, renderer.gl.RGBA, renderer.gl.UNSIGNED_BYTE, this.canvas);
-        renderer.gl.texParameteri(renderer.gl.TEXTURE_2D, renderer.gl.TEXTURE_MAG_FILTER, renderer.gl.NEAREST);
-        renderer.gl.texParameteri(renderer.gl.TEXTURE_2D, renderer.gl.TEXTURE_MIN_FILTER, renderer.gl.NEAREST);
-        renderer.gl.generateMipmap(renderer.gl.TEXTURE_2D);
-        renderer.gl.bindTexture(renderer.gl.TEXTURE_2D, null);
+        this.texture = blastGl.renderer.gl.createTexture();
+        blastGl.renderer.gl.bindTexture(blastGl.renderer.gl.TEXTURE_2D, this.texture);
+        blastGl.renderer.gl.pixelStorei(blastGl.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+        blastGl.renderer.gl.texImage2D(blastGl.renderer.gl.TEXTURE_2D, 0, blastGl.renderer.gl.RGBA, blastGl.renderer.gl.RGBA, blastGl.renderer.gl.UNSIGNED_BYTE, this.canvas);
+        blastGl.renderer.gl.texParameteri(blastGl.renderer.gl.TEXTURE_2D, blastGl.renderer.gl.TEXTURE_MAG_FILTER, blastGl.renderer.gl.NEAREST);
+        blastGl.renderer.gl.texParameteri(blastGl.renderer.gl.TEXTURE_2D, blastGl.renderer.gl.TEXTURE_MIN_FILTER, blastGl.renderer.gl.NEAREST);
+        blastGl.renderer.gl.generateMipmap(blastGl.renderer.gl.TEXTURE_2D);
+        blastGl.renderer.gl.bindTexture(blastGl.renderer.gl.TEXTURE_2D, null);
 
         // Update atlas
         this.update();
@@ -195,10 +197,10 @@ export default class TextureAtlas {
     update(): void {
         if (this._isNeedToUpdate) {
             // Redraw texture from canvas
-            this._renderer.gl.bindTexture(this._renderer.gl.TEXTURE_2D, this.texture);
-            this._renderer.gl.pixelStorei(this._renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
-            this._renderer.gl.texImage2D(this._renderer.gl.TEXTURE_2D, 0, this._renderer.gl.RGBA, this._renderer.gl.RGBA, this._renderer.gl.UNSIGNED_BYTE, this.canvas);
-            this._renderer.gl.bindTexture(this._renderer.gl.TEXTURE_2D, null);
+            this._blastGl.renderer.gl.bindTexture(this._blastGl.renderer.gl.TEXTURE_2D, this.texture);
+            this._blastGl.renderer.gl.pixelStorei(this._blastGl.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+            this._blastGl.renderer.gl.texImage2D(this._blastGl.renderer.gl.TEXTURE_2D, 0, this._blastGl.renderer.gl.RGBA, this._blastGl.renderer.gl.RGBA, this._blastGl.renderer.gl.UNSIGNED_BYTE, this.canvas);
+            this._blastGl.renderer.gl.bindTexture(this._blastGl.renderer.gl.TEXTURE_2D, null);
         }
         this._isNeedToUpdate = false;
     }

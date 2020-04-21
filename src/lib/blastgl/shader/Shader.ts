@@ -1,4 +1,3 @@
-import Renderer from "../core/Renderer";
 import BlastGL from "../BlastGL";
 
 export default class Shader {

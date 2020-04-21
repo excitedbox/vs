@@ -1,12 +1,5 @@
-import Texture from "../texture/Texture";
 import TextureManager from "../texture/TextureManager";
 import BlastGL from "../BlastGL";
-import Chunk from "../scene/Chunk";
-import Container from "../render/Container";
-import SpriteMaterial from "../shader/SpriteMaterial";
-import Material from "../shader/Material";
-import RenderObject from "../render/RenderObject";
-import Shader from "../shader/Shader";
 
 export default class Renderer {
     private _gl: WebGLRenderingContext;
@@ -14,12 +7,7 @@ export default class Renderer {
     private _atlasContainer: HTMLElement;
     private _sceneWidth: number;
     private _sceneHeight: number;
-    private _chunkCounter: number = 0;
-    private _chunkList: Chunk[] = [];
-    private _lastUsedMaterial: Material;
-    private _lastUsedTexture: Texture;
     private _textureManager: TextureManager;
-    // private _isNeedToAllocateChunk: boolean = true;
     private readonly _blastGl: BlastGL;
 
     constructor(blastGl: BlastGL) {
@@ -54,21 +42,12 @@ export default class Renderer {
         this._gl.blendFuncSeparate(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA, this._gl.ONE, this._gl.ONE_MINUS_SRC_ALPHA);
 
         // Set texture manager
-        this._textureManager = new TextureManager(this, 'main');
+        this._textureManager = new TextureManager(this._blastGl, 'main');
 
         // Update timer
-        //let gas = 0;
         setInterval(() => {
             this.update();
-
-            // console.log(this._blastGl.info.deltaTime);
-            // gas += this._blastGl.info.deltaTime;
         }, 16);
-
-        /*setInterval(() => {
-            console.log(gas);
-            //gas = 0;
-        }, 16 * 60);*/
 
         // Render timer
         setInterval(() => {
@@ -155,9 +134,9 @@ export default class Renderer {
         }*/
 
         //console.time('x');
-        for (let i = 0; i < this._chunkCounter; i++) {
+        /*for (let i = 0; i < this._chunkCounter; i++) {
             this._chunkList[i].build();
-        }
+        }*/
         //console.timeEnd('x');
 
         /*
@@ -254,7 +233,7 @@ export default class Renderer {
         this._blastGl.info.lastFrameTime = performance.now();
     }
 
-    registerObject(object: RenderObject): void {
+    /*registerObject(object: RenderObject): void {
         let isFound = false;
         let chunk: Chunk;
 
@@ -281,22 +260,21 @@ export default class Renderer {
         }
 
         // console.timeEnd('a');
-
         // console.log(chunk);
     }
 
     unRegisterObject(object: RenderObject): void {
 
-    }
+    }*/
 
-    private allocateChunk(): Chunk {
+    /*private allocateChunk(): Chunk {
         this._chunkCounter += 1;
         if (!this._chunkList[this._chunkCounter - 1]) {
             this._chunkList[this._chunkCounter - 1] = new Chunk(this._blastGl, this._chunkCounter - 1);
         }
 
         return this._chunkList[this._chunkCounter - 1];
-    }
+    }*/
 
     draw(): void {
         const gl = this.gl;
@@ -304,10 +282,15 @@ export default class Renderer {
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         gl.clearDepth(1.0);
 
-        for (let i = 0; i < this._chunkCounter; i++) {
+        // Draw current scene
+        if (this._blastGl.scene) {
+            this._blastGl.scene.draw();
+        }
+
+        /*for (let i = 0; i < this._blastGl.s; i++) {
             const chunk = this._chunkList[i];
             chunk.draw();
-        }
+        }*/
 
         // console.log(this._chunkList[0]);
         // Проходим по всем слоям и элементам в них

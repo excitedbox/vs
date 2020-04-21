@@ -32,14 +32,14 @@ export default class SpriteMaterial extends Material {
                 attribute vec4 aColor;
                 
                 // Camera
-                uniform mat4 uCameraMatrix;
+                uniform mat4 uCamera;
                 
                 // To frag
                 varying lowp vec2 vUV;
                 varying lowp vec4 vColor;
                 
                 void main(void) {
-                    gl_Position = uCameraMatrix * vec4(aMesh, 1.0);
+                    gl_Position = uCamera * vec4(aMesh, 1.0);
                     vUV = aUV;
                     vColor = aColor;
                 }
@@ -66,7 +66,7 @@ export default class SpriteMaterial extends Material {
         SpriteMaterial._shader.bindAttribute('aMesh');
         SpriteMaterial._shader.bindAttribute('aUV');
         SpriteMaterial._shader.bindAttribute('aColor');
-        SpriteMaterial._shader.bindUniform('uCameraMatrix');
+        SpriteMaterial._shader.bindUniform('uCamera');
     }
 
     public get aColor(): Float32Array {
@@ -88,11 +88,11 @@ export default class SpriteMaterial extends Material {
             { name: 'index', type: 'index' },
 
             { name: 'aMesh', type: 'mesh', size: 3 },
-            { name: 'aUV', type: 'uv', size: 2 },
+            { name: 'aUV', type: 'uv', size: 2, slot: 0 },
             { name: 'aColor', type: 'float', size: 4 },
 
             { name: 'uTexture', type: 'texture', slot: 0 },
-            { name: 'uCameraMatrix', type: 'matrix4' },
+            { name: 'uCamera', type: 'camera' },
         ];
     }
 

@@ -1,5 +1,4 @@
 import RenderObject, {TypeRenderObjectParameters} from "./RenderObject";
-import Texture from "../texture/Texture";
 import SpriteMaterial from "../shader/SpriteMaterial";
 import Mesh from "./Mesh";
 
@@ -18,12 +17,7 @@ export default class Sprite extends RenderObject {
                 0.5, 0.5, 0.0,
                 -0.5, 0.5, 0.0
             ]),
-            new Float32Array([
-                1.0, 0.0,
-                0.0, 0.0,
-                0.0, 1.0,
-                1.0, 1.0
-            ])
+            []
         );
 
         // Set default material
@@ -41,6 +35,20 @@ export default class Sprite extends RenderObject {
         }
 
         this.calculateMatrix();
+
+        // Update texture
+        if (this.material.textureList[0]) {
+            this.width = this.material.textureList[0].width;
+            this.height = this.material.textureList[0].height;
+        }
+
+        // Set uv for textures
+        for (let i = 0; i < this.material.textureList.length; i++) {
+            if (this.material.textureList[i]) {
+                this.mesh.uv[i] = this.material.textureList[i].uv;
+            }
+        }
+
         super.update(delta);
     }
 
@@ -77,18 +85,11 @@ export default class Sprite extends RenderObject {
         this.area.right = Math.max(this.mesh.vertex[0], this.mesh.vertex[3], this.mesh.vertex[6], this.mesh.vertex[9]);
     }
 
-    set texture(value: Texture) {
-        this.material.texture[0] = value;
-        this.width = value.width;
-        this.height = value.height;
-        this.mesh.uv = value.uv;
-    }
-
-    get texture(): Texture {
-        return this.material.texture[0];
-    }
-
     get material(): SpriteMaterial {
         return this._material as SpriteMaterial;
+    }
+
+    set material(value: SpriteMaterial) {
+        this._material = value;
     }
 }

@@ -11,6 +11,7 @@ export default class Texture {
     public readonly height: number = 0;
 
     // Atlas info
+    public atlasId: number;
     public atlasX: number = 0;
     public atlasY: number = 0;
     public atlasWidth: number = 0;
