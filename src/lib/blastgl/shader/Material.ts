@@ -1,13 +1,12 @@
 import Shader from "./Shader";
-import RenderObject from "../render/RenderObject";
-import Texture from "../texture/Texture";
-import Renderer from "../core/Renderer";
 import BlastGL from "../BlastGL";
+import Texture from "../texture/Texture";
 
 export default class Material {
     protected static _shader: Shader;
-    protected _texture: Texture;
     protected _blastGl: BlastGL;
+
+    public texture: Texture[] = [];
 
     constructor(blastGl: BlastGL) {
         this._blastGl = blastGl;
@@ -17,23 +16,11 @@ export default class Material {
         return Material._shader;
     }
 
-    bind(renderObject: RenderObject): void {
-
-    }
-
-    get shaderPropertyList(): { name: string; type: string; size?: number }[] {
+    get shaderPropertyList(): { name: string; type: string; size?: number; slot?: number }[] {
         return [];
     }
 
     getProperty(parameter: string): Float32Array | Uint16Array {
-        return this[`_${parameter}`];
-    }
-
-    set texture(texture: Texture) {
-        this._texture = texture;
-    }
-
-    get texture(): Texture {
-        return this._texture;
+        return this[parameter];
     }
 }

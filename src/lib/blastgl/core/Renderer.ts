@@ -6,6 +6,7 @@ import Container from "../render/Container";
 import SpriteMaterial from "../shader/SpriteMaterial";
 import Material from "../shader/Material";
 import RenderObject from "../render/RenderObject";
+import Shader from "../shader/Shader";
 
 export default class Renderer {
     private _gl: WebGLRenderingContext;
@@ -18,8 +19,8 @@ export default class Renderer {
     private _lastUsedMaterial: Material;
     private _lastUsedTexture: Texture;
     private _textureManager: TextureManager;
-    private _isNeedToAllocateChunk: boolean = true;
-    private _blastGl: BlastGL;
+    // private _isNeedToAllocateChunk: boolean = true;
+    private readonly _blastGl: BlastGL;
 
     constructor(blastGl: BlastGL) {
         this._blastGl = blastGl;
@@ -54,7 +55,6 @@ export default class Renderer {
 
         // Set texture manager
         this._textureManager = new TextureManager(this, 'main');
-        //this._defaultSpriteMaterial = new SpriteMaterial();
 
         // Update timer
         setInterval(() => {
@@ -104,27 +104,50 @@ export default class Renderer {
         }
 
         // Split elements to chunks
-        let tempChunk: Chunk = null;
-        // let isNeedToAllocateChunk = true;
-        //let lastObject: RenderObject = null;
-        //let lastTexture: WebGLTexture = null;
-        //let lastMaterial: Material = null;
+        /*let tempChunk: Chunk = null;
+        let isNeedToAllocateChunk = true;
+        let lastObject: RenderObject = null;
+        let lastShader: Shader = null;*/
+        // let lastTexture: WebGLTexture = null;
+        // let lastMaterial: Material = null;
 
-        for (let i = 0; i < this._blastGl.scene.layers.length; i++) {
-            for (let j = 0; j < this._blastGl.scene.layers[i].elements.length; j++) {
-                if (this._isNeedToAllocateChunk) {
+        /*for (let i = 0; i < this._blastGl.scene.layers.length; i++) {
+            // We need chunk for each layer
+            isNeedToAllocateChunk = true;
+
+            for (let j = 0, length = this._blastGl.scene.layers[i].elements.length + 1; j < length; j++) {
+                if (length === 1) {
+                    continue;
+                }
+
+                // If need new chunk
+                if (isNeedToAllocateChunk && (this._blastGl.scene.layers[i].elements[j] || lastObject)) {
                     tempChunk = this.allocateChunk();
-                    this._isNeedToAllocateChunk = false;
-                    tempChunk.material = this._blastGl.scene.layers[i].elements[j].material;
-                    tempChunk.addObject(this._blastGl.scene.layers[i].elements[j]);
-                    console.log(tempChunk);
+                    tempChunk.reset();
+                    tempChunk.camera = this._blastGl.scene.layers[i].camera || this._blastGl.scene.camera;
+                    isNeedToAllocateChunk = false;
+
+                    // Сразу указываем материалы первого элемента
+                    if (this._blastGl.scene.layers[i].elements[j] && !lastObject) {
+                        lastShader = this._blastGl.scene.layers[i].elements[j].material.shader;
+                    }
+
+                    // Добавляем в чанк предыдущий объект
+                    if (lastObject !== null) {
+                        if (lastObject.material) {
+                            tempChunk.material = lastObject.material;
+                        }
+                        tempChunk.material = lastObject.material;
+                        tempChunk.addObject(lastObject);
+                        lastObject = null;
+                    }
                 }
             }
-        }
+        }*/
 
-        for (let i = 0; i < this._chunkCounter; i++) {
+        /*for (let i = 0; i < this._chunkCounter; i++) {
             this._chunkList[i].build();
-        }
+        }*/
 
         /*
         let lastObject: RenderObject = null;
@@ -223,7 +246,7 @@ export default class Renderer {
     private allocateChunk(): Chunk {
         this._chunkCounter += 1;
         if (!this._chunkList[this._chunkCounter - 1]) {
-            this._chunkList[this._chunkCounter - 1] = new Chunk(this, this._blastGl.scene.camera, this._chunkCounter - 1);
+            this._chunkList[this._chunkCounter - 1] = new Chunk(this._blastGl, this._chunkCounter - 1);
         }
 
         return this._chunkList[this._chunkCounter - 1];
@@ -237,7 +260,6 @@ export default class Renderer {
 
         for (let i = 0; i < this._chunkCounter; i++) {
             const chunk = this._chunkList[i];
-
             chunk.draw();
         }
 

@@ -4,22 +4,15 @@ import Camera from "./Camera";
 import BlastGL from "../BlastGL";
 
 export default class Scene {
+    public blastGl: BlastGL;
+
     public readonly layers: Layer[] = [];
     public isPaused: boolean = false;
-    private _camera: Camera;
-    public blastGl: BlastGL;
+    public camera: Camera;
     public isNeedGarbageCollector: boolean = false;
 
     init(): void {
 
-    }
-
-    get camera(): Camera {
-        return this._camera;
-    }
-
-    set camera(camera: Camera) {
-        this._camera = camera;
     }
 
     addObject(object: ShapeObject, layerId: number = 0): void {

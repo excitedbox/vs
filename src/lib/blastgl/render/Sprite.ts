@@ -26,8 +26,9 @@ export default class Sprite extends RenderObject {
             ])
         );
 
-        if (!this.material) {
-            this.material = new SpriteMaterial(this.blastGl);
+        // Set default material
+        if (!this._material) {
+            this._material = new SpriteMaterial(this.blastGl);
         }
 
         // Set area
@@ -77,13 +78,17 @@ export default class Sprite extends RenderObject {
     }
 
     set texture(value: Texture) {
-        this.material.texture = value;
+        this.material.texture[0] = value;
         this.width = value.width;
         this.height = value.height;
         this.mesh.uv = value.uv;
     }
 
     get texture(): Texture {
-        return this.material.texture;
+        return this.material.texture[0];
+    }
+
+    get material(): SpriteMaterial {
+        return this._material as SpriteMaterial;
     }
 }

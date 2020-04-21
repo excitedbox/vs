@@ -1,12 +1,14 @@
 import RenderObject from "../render/RenderObject";
 import BlastGL from "../BlastGL";
 import Material from "../shader/Material";
-import Renderer from "../core/Renderer";
 import Camera from "./Camera";
 
 export default class Chunk {
+    private readonly _blastGl: BlastGL;
+
     public readonly id: number;
     public maxSize: number = 4096;
+    public camera: Camera;
 
     private _material: Material;
 
@@ -15,12 +17,9 @@ export default class Chunk {
     private _bufferList: {[key: string]: WebGLBuffer} = {};
     private _objectList: RenderObject[] = [];
     private _indexAmount: number = 0;
-    private _renderer: Renderer;
-    private _camera: Camera;
 
-    constructor(renderer: Renderer, camera: Camera, id: number) {
-        this._renderer = renderer;
-        this._camera = camera;
+    constructor(blastGl: BlastGL, id: number) {
+        this._blastGl = blastGl;
         this.id = id;
     }
 
@@ -41,7 +40,7 @@ export default class Chunk {
                 continue;
             }
 
-            this._bufferList[params[i].name] = this._renderer.gl.createBuffer();
+            this._bufferList[params[i].name] = this._blastGl.renderer.gl.createBuffer();
         }
     }
 
@@ -60,6 +59,7 @@ export default class Chunk {
                 continue;
             }
 
+            // Init counter
             if (!this._parameterDataLength[params[i].name]) {
                 this._parameterDataLength[params[i].name] = 0;
             }
@@ -83,11 +83,12 @@ export default class Chunk {
     }
 
     public build(): void {
-        const gl = this._renderer.gl;
+        const gl = this._blastGl.renderer.gl;
 
         // Get properties for material
         const params = this._material.shaderPropertyList;
 
+        // Reset index amount
         this._indexAmount = 0;
 
         // Allocate all arrays
@@ -147,7 +148,7 @@ export default class Chunk {
     }
 
     public draw(): void {
-        const gl = this._renderer.gl;
+        const gl = this._blastGl.renderer.gl;
 
         // Set shader
         gl.useProgram(this.material.shader.program);
@@ -163,13 +164,13 @@ export default class Chunk {
                     break;
                 case "matrix4":
                     gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
-                        false, this._camera.matrix.matrix);
+                        false, this.camera.matrix.matrix);
                     break;
                 case "texture":
                     // Bind texture
                     gl.activeTexture(gl.TEXTURE0);
                     gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), 0);
-                    gl.bindTexture(gl.TEXTURE_2D, this.material.texture.texture);
+                    gl.bindTexture(gl.TEXTURE_2D, this.material.texture[params[i].slot].texture);
                     break;
                 case "uv":
                 case "mesh":
@@ -189,5 +190,18 @@ export default class Chunk {
 
         // Отрисовка чанка
         gl.drawElements(gl.TRIANGLES, this._indexAmount, gl.UNSIGNED_SHORT, 0);
+    }
+
+    public reset(): void {
+        this._material = null;
+        this._indexAmount = 0;
+        this._parameterDataLength = {};
+        this._valueList = {};
+        this._bufferList = {};
+        this._objectList = [];
+    }
+
+    get size(): number {
+        return this._objectList.length;
     }
 }
