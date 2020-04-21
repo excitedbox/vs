@@ -57,9 +57,18 @@ export default class Renderer {
         this._textureManager = new TextureManager(this, 'main');
 
         // Update timer
+        //let gas = 0;
         setInterval(() => {
             this.update();
+
+            // console.log(this._blastGl.info.deltaTime);
+            // gas += this._blastGl.info.deltaTime;
         }, 16);
+
+        /*setInterval(() => {
+            console.log(gas);
+            //gas = 0;
+        }, 16 * 60);*/
 
         // Render timer
         setInterval(() => {
@@ -145,9 +154,11 @@ export default class Renderer {
             }
         }*/
 
-        /*for (let i = 0; i < this._chunkCounter; i++) {
+        //console.time('x');
+        for (let i = 0; i < this._chunkCounter; i++) {
             this._chunkList[i].build();
-        }*/
+        }
+        //console.timeEnd('x');
 
         /*
         let lastObject: RenderObject = null;
@@ -236,11 +247,46 @@ export default class Renderer {
         for (let i = this._chunkCounter; i < this._chunkList.length; i++) {
             this._chunkList[i].destroy();
         }
-        this._chunkList.length = this._chunkCounter;
+        this._chunkList.length = this._chunkCounter;*/
 
         // Set delta
-        BlastGL.info.deltaTime = (performance.now() - BlastGL.info.lastFrameTime) / 16; /// 1000 / (1 / 60);
-        BlastGL.info.lastFrameTime = performance.now();*/
+        this._blastGl.info.deltaTime = (performance.now() - this._blastGl.info.lastFrameTime) / 16; /// 1000 / (1 / 60);
+        this._blastGl.info.lastFrameTime = performance.now();
+    }
+
+    registerObject(object: RenderObject): void {
+        let isFound = false;
+        let chunk: Chunk;
+
+        // console.time('a');
+
+        for (let i = 0; i < this._chunkList.length; i++) {
+            chunk = this._chunkList[i];
+            isFound = true;
+
+            // Check shader
+            if (chunk.material.shader !== object.material.shader) {
+                isFound = false;
+                continue;
+            }
+        }
+
+        if (!isFound) {
+            chunk = this.allocateChunk();
+            chunk.camera = this._blastGl.scene.camera;
+            chunk.material = object.material;
+            chunk.addObject(object);
+        } else {
+            chunk.addObject(object);
+        }
+
+        // console.timeEnd('a');
+
+        // console.log(chunk);
+    }
+
+    unRegisterObject(object: RenderObject): void {
+
     }
 
     private allocateChunk(): Chunk {

@@ -7,44 +7,46 @@ export default class SpriteMaterial extends Material {
         super(blastGl);
 
         // Create shader
-        SpriteMaterial._shader = new Shader(
-            blastGl,
-            'sprite2d',
-             // language=GLSL
-            `
-                attribute vec3 aMesh;
-                attribute vec2 aUV;
-                
-                // Camera
-                uniform mat4 uCameraMatrix;
-                
-                // To frag
-                varying lowp vec2 vUV;
-                
-                void main(void) {
-                    gl_Position = uCameraMatrix * vec4(aMesh, 1.0);
-                    vUV = aUV;
-                }
-            `,
-            // language=GLSL
-            `
-                precision lowp float;
-                varying lowp vec2 vUV;
-                uniform sampler2D uTexture;
-                
-                void main(void) {
-                    gl_FragColor = texture2D(uTexture, vec2(vUV.x, vUV.y));
-                    
-                    if (gl_FragColor.a < 0.01)
-                        discard;
-                }
-            `,
-        );
+        if (!SpriteMaterial._shader) {
+            SpriteMaterial._shader = new Shader(
+                blastGl,
+                'sprite2d',
+                // language=GLSL
+                    `
+                        attribute vec3 aMesh;
+                        attribute vec2 aUV;
 
-        // Bind attributes
-        SpriteMaterial._shader.bindAttribute('aMesh');
-        SpriteMaterial._shader.bindAttribute('aUV');
-        SpriteMaterial._shader.bindUniform('uCameraMatrix');
+                        // Camera
+                        uniform mat4 uCameraMatrix;
+
+                        // To frag
+                        varying lowp vec2 vUV;
+
+                        void main(void) {
+                            gl_Position = uCameraMatrix * vec4(aMesh, 1.0);
+                            vUV = aUV;
+                        }
+                `,
+                // language=GLSL
+                    `
+                        precision lowp float;
+                        varying lowp vec2 vUV;
+                        uniform sampler2D uTexture;
+
+                        void main(void) {
+                            gl_FragColor = texture2D(uTexture, vec2(vUV.x, vUV.y));
+
+                            if (gl_FragColor.a < 0.01)
+                            discard;
+                        }
+                `,
+            );
+
+            // Bind attributes
+            SpriteMaterial._shader.bindAttribute('aMesh');
+            SpriteMaterial._shader.bindAttribute('aUV');
+            SpriteMaterial._shader.bindUniform('uCameraMatrix');
+        }
     }
 
     public get shader(): Shader {

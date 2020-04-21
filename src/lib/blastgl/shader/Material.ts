@@ -6,7 +6,9 @@ export default class Material {
     protected static _shader: Shader;
     protected _blastGl: BlastGL;
 
-    public texture: Texture[] = [];
+    public texture: Texture[] = [
+        null, null, null, null
+    ];
 
     constructor(blastGl: BlastGL) {
         this._blastGl = blastGl;

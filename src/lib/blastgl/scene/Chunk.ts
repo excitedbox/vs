@@ -7,16 +7,19 @@ export default class Chunk {
     private readonly _blastGl: BlastGL;
 
     public readonly id: number;
+    public layerId: number;
     public maxSize: number = 4096;
     public camera: Camera;
 
     private _material: Material;
 
+    private _parameterLength: {} = {};
     private _parameterDataLength: {} = {};
     private _valueList: {[key: string]: Float32Array | Uint16Array} = {};
     private _bufferList: {[key: string]: WebGLBuffer} = {};
     private _objectList: RenderObject[] = [];
     private _indexAmount: number = 0;
+    private _isObjectAdded: boolean = false;
 
     constructor(blastGl: BlastGL, id: number) {
         this._blastGl = blastGl;
@@ -64,22 +67,33 @@ export default class Chunk {
                 this._parameterDataLength[params[i].name] = 0;
             }
 
+            // Init counter
+            if (!this._parameterLength[params[i].name]) {
+                this._parameterLength[params[i].name] = 0;
+            }
+
             if (params[i].type === "mesh") {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.vertex.length;
+                this._parameterLength[params[i].name] = renderObject.mesh.vertex.length;
             }
             if (params[i].type === "uv") {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.uv.length;
+                this._parameterLength[params[i].name] = renderObject.mesh.uv.length;
             }
             if (params[i].type === "index") {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.index.length;
+                this._parameterLength[params[i].name] = renderObject.mesh.index.length;
             }
             if (params[i].type === "float") {
                 this._parameterDataLength[params[i].name] += renderObject.material.getProperty(params[i].name).length;
+                this._parameterLength[params[i].name] = renderObject.material.getProperty(params[i].name).length;
             }
         }
 
         // Add object to pool
         this._objectList.push(renderObject);
+
+        this._isObjectAdded = true;
     }
 
     public build(): void {
@@ -89,7 +103,10 @@ export default class Chunk {
         const params = this._material.shaderPropertyList;
 
         // Reset index amount
-        this._indexAmount = 0;
+        if (this._isObjectAdded) {
+            this._indexAmount = 0;
+        }
+        let indexOffset: number = 0;
 
         // Allocate all arrays
         for (let i = 0; i < params.length; i++) {
@@ -99,10 +116,19 @@ export default class Chunk {
             }
 
             // Allocate array
-            if (params[i].type === "index") {
-                this._valueList[params[i].name] = new Uint16Array(this._parameterDataLength[params[i].name]);
+            if (this._isObjectAdded) {
+                if (params[i].type === "index") {
+                    this._valueList[params[i].name] = new Uint16Array(this._parameterDataLength[params[i].name]);
+                } else {
+                    this._valueList[params[i].name] = new Float32Array(this._parameterDataLength[params[i].name]);
+                }
             } else {
-                this._valueList[params[i].name] = new Float32Array(this._parameterDataLength[params[i].name]);
+                if (params[i].type === "index") {
+                    continue;
+                }
+                if (params[i].type === "uv") {
+                    continue;
+                }
             }
 
             for (let j = 0; j < this._objectList.length; j++) {
@@ -124,27 +150,37 @@ export default class Chunk {
 
                 if (params[i].type === "index") {
                     // Put element's vertex in chunk vertex array
+                    let gas = 0;
                     for (let k = 0; k < parameter.length; k++) {
-                        this._valueList[params[i].name][positionId++] = parameter[k] + this._indexAmount;
+                        this._valueList[params[i].name][
+                            positionId++
+                            + j * this._parameterLength[params[i].name]
+                        ] = parameter[k] + indexOffset;
+                        gas = Math.max(gas, parameter[k]);
                     }
                     this._indexAmount += parameter.length;
+                    indexOffset += gas + 1;
                 } else {
                     // Put element's vertex in chunk vertex array
                     for (let k = 0; k < parameter.length; k++) {
-                        this._valueList[params[i].name][positionId++] = parameter[k];
+                        this._valueList[params[i].name][positionId++ + j * this._parameterLength[params[i].name]] = parameter[k];
                     }
                 }
             }
 
             // Upload buffer to GPU
             if (params[i].type === "index") {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
+                if (this._isObjectAdded) {
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
+                }
             } else {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferList[params[i].name]);
                 gl.bufferData(gl.ARRAY_BUFFER, this._valueList[params[i].name], gl.DYNAMIC_DRAW);
             }
         }
+
+        this._isObjectAdded = false;
     }
 
     public draw(): void {
@@ -195,6 +231,7 @@ export default class Chunk {
     public reset(): void {
         this._material = null;
         this._indexAmount = 0;
+        this._parameterLength = {};
         this._parameterDataLength = {};
         this._valueList = {};
         this._bufferList = {};

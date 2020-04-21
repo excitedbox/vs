@@ -2,6 +2,7 @@ import Layer from "./Layer";
 import ShapeObject from "../render/ShapeObject";
 import Camera from "./Camera";
 import BlastGL from "../BlastGL";
+import RenderObject from "../render/RenderObject";
 
 export default class Scene {
     public blastGl: BlastGL;
@@ -40,6 +41,11 @@ export default class Scene {
         this.layers.sort(function (a: Layer, b: Layer) {
             return (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0);
         });
+
+        // Register object in renderer
+        if (object instanceof RenderObject) {
+            this.blastGl.renderer.registerObject(object);
+        }
     }
 
     getLayer(id: number): Layer {
