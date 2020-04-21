@@ -3,12 +3,13 @@ import Texture from "./Texture";
 import TextureAtlasArea from "./TextureAtlasArea";
 import Rectangle from "../../math/geom/Rectangle";
 import Vector2D from "../../math/geom/Vector2D";
+import Renderer from "../core/Renderer";
 
 export default class TextureManager {
     private _atlasList: TextureAtlas[] = [];
 
-    constructor(sceneName: string) {
-        this._atlasList.push(new TextureAtlas(sceneName, 0, 512, 512));
+    constructor(renderer: Renderer, sceneName: string) {
+        this._atlasList.push(new TextureAtlas(renderer, sceneName, 0, 512, 512));
     }
 
     // Register texture

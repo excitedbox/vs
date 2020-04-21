@@ -3,6 +3,8 @@ import Matrix2D from "../../math/geom/Matrix2D";
 import BlastGL from "../BlastGL";
 
 export type TypeShapeObjectParameters = {
+    blastGl: BlastGL;
+
     x?: number;
     y?: number;
     zIndex?: number;
@@ -30,9 +32,13 @@ export default class ShapeObject {
     // Other
     public parent: ShapeObject;
     public readonly matrix: Matrix2D = new Matrix2D();
+    public readonly blastGl: BlastGL;
+
+    // State
     public isRemoved: boolean = false;
 
-    constructor({ x, y, width, height, scaleX, scaleY, rotation, zIndex }: TypeShapeObjectParameters = {}) {
+    constructor({ blastGl, x, y, width, height, scaleX, scaleY, rotation, zIndex }: TypeShapeObjectParameters) {
+        this.blastGl = blastGl;
         this.x = x || 0;
         this.y = y || 0;
         this._width = width || 0;
@@ -49,7 +55,7 @@ export default class ShapeObject {
 
     destroy(): void {
         this.isRemoved = true;
-        BlastGL.scene.isNeedGarbageCollector = true;
+        this.blastGl.scene.isNeedGarbageCollector = true;
     }
 
     get width(): number {

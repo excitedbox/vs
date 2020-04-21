@@ -1,40 +1,43 @@
+import Renderer from "../core/Renderer";
 import BlastGL from "../BlastGL";
 
 export default class Shader {
     public readonly program: WebGLProgram;
     private _attributeParams: { [key: string]: number } = {};
     private _uniformParams: { [key: string]: WebGLUniformLocation } = {};
+    private _blastGl: BlastGL;
 
-    constructor(name: string, vertex: string, fragment: string) {
-        this.program = BlastGL.renderer.gl.createProgram();
+    constructor(blastGl: BlastGL, name: string, vertex: string, fragment: string) {
+        this._blastGl = blastGl;
+        this.program = this._blastGl.renderer.gl.createProgram();
 
         // Добавляем вершинный и фрагментый шейдеры
-        this.addShader(BlastGL.renderer.gl.VERTEX_SHADER, vertex);
-        this.addShader(BlastGL.renderer.gl.FRAGMENT_SHADER, fragment);
+        this.addShader(this._blastGl.renderer.gl.VERTEX_SHADER, vertex);
+        this.addShader(this._blastGl.renderer.gl.FRAGMENT_SHADER, fragment);
 
         // Линкуем шейдер
-        BlastGL.renderer.gl.linkProgram(this.program);
+        this._blastGl.renderer.gl.linkProgram(this.program);
     }
 
     addShader(type: number, code: string): void {
-        const shader = BlastGL.renderer.gl.createShader(type);
-        BlastGL.renderer.gl.shaderSource(shader, code);
-        BlastGL.renderer.gl.compileShader(shader);
-        if (!BlastGL.renderer.gl.getShaderParameter(shader, BlastGL.renderer.gl.COMPILE_STATUS)) {
-            console.error(BlastGL.renderer.gl.getShaderInfoLog(shader));
+        const shader = this._blastGl.renderer.gl.createShader(type);
+        this._blastGl.renderer.gl.shaderSource(shader, code);
+        this._blastGl.renderer.gl.compileShader(shader);
+        if (!this._blastGl.renderer.gl.getShaderParameter(shader, this._blastGl.renderer.gl.COMPILE_STATUS)) {
+            console.error(this._blastGl.renderer.gl.getShaderInfoLog(shader));
             return;
         }
-        BlastGL.renderer.gl.attachShader(this.program, shader);
+        this._blastGl.renderer.gl.attachShader(this.program, shader);
     }
 
     // Биндим атрибуты шейдера
     bindAttribute(parameter: string): void {
-        this._attributeParams[parameter] = BlastGL.renderer.gl.getAttribLocation(this.program, parameter);
+        this._attributeParams[parameter] = this._blastGl.renderer.gl.getAttribLocation(this.program, parameter);
     };
 
     // Биндим юниформ
     bindUniform(parameter: string): void {
-        this._uniformParams[parameter] = BlastGL.renderer.gl.getUniformLocation(this.program, parameter);
+        this._uniformParams[parameter] = this._blastGl.renderer.gl.getUniformLocation(this.program, parameter);
     };
 
     getAttributeLocation(parameter: string): number {
@@ -51,7 +54,7 @@ export default class Shader {
             if (!this._attributeParams.hasOwnProperty(s)) {
                 continue;
             }
-            BlastGL.renderer.gl.enableVertexAttribArray(this._attributeParams[s]);
+            this._blastGl.renderer.gl.enableVertexAttribArray(this._attributeParams[s]);
         }
     }
 }

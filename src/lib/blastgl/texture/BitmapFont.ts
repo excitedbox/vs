@@ -1,7 +1,9 @@
 import Texture from "./Texture";
 import Rectangle from "../../math/geom/Rectangle";
+import BlastGL from "../BlastGL";
 
 export type TypeBitmapFontParameters = {
+    blastGl: BlastGL;
     fontUrl: string;
     glyphWidth: number;
     glyphHeight: number;
@@ -17,8 +19,10 @@ export default class BitmapFont {
     private _fontTexture: Texture;
     private _charWidth: { [key: string]: number };
     private _isCaseSensitive: boolean;
+    private _blastGl: BlastGL;
 
     constructor(params: TypeBitmapFontParameters) {
+        this._blastGl = params.blastGl;
         this._fontUrl = params.fontUrl;
         this.glyphWidth = params.glyphWidth;
         this.glyphHeight = params.glyphHeight;
@@ -26,7 +30,7 @@ export default class BitmapFont {
     }
 
     async load(): Promise<void> {
-        this._fontTexture = await Texture.from(this._fontUrl);
+        this._fontTexture = await Texture.from(this._blastGl, this._fontUrl);
     }
 
     getCharPosition(char: string, isLocalPosition: boolean = false): Rectangle {

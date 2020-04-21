@@ -5,6 +5,7 @@ import TextureAtlasArea from "../texture/TextureAtlasArea";
 import Vector2D from "../../math/geom/Vector2D";
 
 export type TypeTextParameters = {
+    blastGl: BlastGL;
     x: number;
     y: number;
     text: string;
@@ -18,9 +19,10 @@ export default class BitmapText extends Sprite {
 
     constructor(params: TypeTextParameters) {
         super({
+            blastGl: params.blastGl,
             x: params.x,
             y: params.y,
-            texture: params.font.texture
+            // texture: params.font.texture
         });
 
         this.font = params.font;
@@ -36,9 +38,9 @@ export default class BitmapText extends Sprite {
 
         // Prepare text area
         if (this._area) {
-            BlastGL.renderer.textureManager.freeTextureArea(this._area);
+            this.blastGl.renderer.textureManager.freeTextureArea(this._area);
         }
-        this._area = BlastGL.renderer.textureManager.allocateTextureArea(textSize.width, textSize.height);
+        this._area = this.blastGl.renderer.textureManager.allocateTextureArea(textSize.width, textSize.height);
 
         // Set text size
         this.width = textSize.width;
@@ -63,8 +65,8 @@ export default class BitmapText extends Sprite {
             const charArea = this.font.getCharPosition(this._text.charAt(i));
 
             // Copy from table to text area
-            const imgData = BlastGL.renderer.textureManager.copyTextureData(charArea);
-            BlastGL.renderer.textureManager.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
+            const imgData = this.blastGl.renderer.textureManager.copyTextureData(charArea);
+            this.blastGl.renderer.textureManager.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
         }
 
         this.texture.uv = this._area.uv;

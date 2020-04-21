@@ -1,6 +1,8 @@
 import RenderObject from "../render/RenderObject";
 import BlastGL from "../BlastGL";
 import Material from "../shader/Material";
+import Renderer from "../core/Renderer";
+import Camera from "./Camera";
 
 export default class Chunk {
     public readonly id: number;
@@ -13,8 +15,12 @@ export default class Chunk {
     private _bufferList: {[key: string]: WebGLBuffer} = {};
     private _objectList: RenderObject[] = [];
     private _indexAmount: number = 0;
+    private _renderer: Renderer;
+    private _camera: Camera;
 
-    constructor(id: number) {
+    constructor(renderer: Renderer, camera: Camera, id: number) {
+        this._renderer = renderer;
+        this._camera = camera;
         this.id = id;
     }
 
@@ -35,7 +41,7 @@ export default class Chunk {
                 continue;
             }
 
-            this._bufferList[params[i].name] = BlastGL.renderer.gl.createBuffer();
+            this._bufferList[params[i].name] = this._renderer.gl.createBuffer();
         }
     }
 
@@ -77,7 +83,7 @@ export default class Chunk {
     }
 
     public build(): void {
-        const gl = BlastGL.renderer.gl;
+        const gl = this._renderer.gl;
 
         // Get properties for material
         const params = this._material.shaderPropertyList;
@@ -141,7 +147,7 @@ export default class Chunk {
     }
 
     public draw(): void {
-        const gl = BlastGL.renderer.gl;
+        const gl = this._renderer.gl;
 
         // Set shader
         gl.useProgram(this.material.shader.program);
@@ -157,7 +163,7 @@ export default class Chunk {
                     break;
                 case "matrix4":
                     gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
-                        false, BlastGL.scene.camera.matrix.matrix);
+                        false, this._camera.matrix.matrix);
                     break;
                 case "texture":
                     // Bind texture

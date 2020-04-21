@@ -3,6 +3,8 @@ import Shader from "./Shader";
 import RenderObject from "../render/RenderObject";
 import Color from "../../image/Color";
 import Texture from "../texture/Texture";
+import Renderer from "../core/Renderer";
+import BlastGL from "../BlastGL";
 
 export default class SpriteMaterial extends Material {
 
@@ -29,11 +31,12 @@ export default class SpriteMaterial extends Material {
         1.0, 1.0
     ]);*/
 
-    constructor() {
-        super();
+    constructor(blastGl: BlastGL) {
+        super(blastGl);
 
         // Create shader
         SpriteMaterial._shader = new Shader(
+            blastGl,
             'sprite2d',
              // language=GLSL
             `

@@ -3,6 +3,7 @@ import Texture from "./Texture";
 import Rectangle from "../../math/geom/Rectangle";
 import TextureAtlasArea from "./TextureAtlasArea";
 import Vector2D from "../../math/geom/Vector2D";
+import Renderer from "../core/Renderer";
 
 export default class TextureAtlas {
     public readonly canvas: HTMLCanvasElement;
@@ -12,15 +13,18 @@ export default class TextureAtlas {
     private readonly _allocatedAreaList: TextureAtlasArea[] = [];
 
     private _isNeedToUpdate: boolean = false;
+    private _renderer: Renderer;
 
     public readonly width: number;
     public readonly height: number;
 
-    constructor(sceneName: string, canvasId: number, width: number, height: number) {
+    constructor(renderer: Renderer, sceneName: string, canvasId: number, width: number, height: number) {
+        this._renderer = renderer;
+
         // Create canvas
         this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
         if (!this.canvas) {
-            BlastGL.renderer.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
+            renderer.atlasContainer.innerHTML += '<canvas id="atlas_' + sceneName + '_' + canvasId + '" style="display: none; width: 100%;"></canvas>';
             this.canvas = document.querySelector('#atlas_' + sceneName + '_' + canvasId);
             this.canvas.setAttribute("width", width + '');
             this.canvas.setAttribute("height", height + '');
@@ -37,14 +41,14 @@ export default class TextureAtlas {
         this.height = height;
 
         // Create texture
-        this.texture = BlastGL.renderer.gl.createTexture();
-        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
-        BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
-        BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
-        BlastGL.renderer.gl.texParameteri(BlastGL.renderer.gl.TEXTURE_2D, BlastGL.renderer.gl.TEXTURE_MAG_FILTER, BlastGL.renderer.gl.NEAREST);
-        BlastGL.renderer.gl.texParameteri(BlastGL.renderer.gl.TEXTURE_2D, BlastGL.renderer.gl.TEXTURE_MIN_FILTER, BlastGL.renderer.gl.NEAREST);
-        BlastGL.renderer.gl.generateMipmap(BlastGL.renderer.gl.TEXTURE_2D);
-        BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
+        this.texture = renderer.gl.createTexture();
+        renderer.gl.bindTexture(renderer.gl.TEXTURE_2D, this.texture);
+        renderer.gl.pixelStorei(renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+        renderer.gl.texImage2D(renderer.gl.TEXTURE_2D, 0, renderer.gl.RGBA, renderer.gl.RGBA, renderer.gl.UNSIGNED_BYTE, this.canvas);
+        renderer.gl.texParameteri(renderer.gl.TEXTURE_2D, renderer.gl.TEXTURE_MAG_FILTER, renderer.gl.NEAREST);
+        renderer.gl.texParameteri(renderer.gl.TEXTURE_2D, renderer.gl.TEXTURE_MIN_FILTER, renderer.gl.NEAREST);
+        renderer.gl.generateMipmap(renderer.gl.TEXTURE_2D);
+        renderer.gl.bindTexture(renderer.gl.TEXTURE_2D, null);
 
         // Update atlas
         this.update();
@@ -191,10 +195,10 @@ export default class TextureAtlas {
     update(): void {
         if (this._isNeedToUpdate) {
             // Redraw texture from canvas
-            BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, this.texture);
-            BlastGL.renderer.gl.pixelStorei(BlastGL.renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
-            BlastGL.renderer.gl.texImage2D(BlastGL.renderer.gl.TEXTURE_2D, 0, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.RGBA, BlastGL.renderer.gl.UNSIGNED_BYTE, this.canvas);
-            BlastGL.renderer.gl.bindTexture(BlastGL.renderer.gl.TEXTURE_2D, null);
+            this._renderer.gl.bindTexture(this._renderer.gl.TEXTURE_2D, this.texture);
+            this._renderer.gl.pixelStorei(this._renderer.gl.UNPACK_FLIP_Y_WEBGL, true);
+            this._renderer.gl.texImage2D(this._renderer.gl.TEXTURE_2D, 0, this._renderer.gl.RGBA, this._renderer.gl.RGBA, this._renderer.gl.UNSIGNED_BYTE, this.canvas);
+            this._renderer.gl.bindTexture(this._renderer.gl.TEXTURE_2D, null);
         }
         this._isNeedToUpdate = false;
     }

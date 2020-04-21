@@ -4,12 +4,13 @@ import BlastGLInfo from "./util/BlastGLInfo";
 import Renderer from "./core/Renderer";
 
 export default class BlastGL {
-    private static _scene: Scene;
-    public static readonly event: EventEmitter = new EventEmitter();
-    public static readonly info: BlastGLInfo = new BlastGLInfo();
-    public static readonly renderer: Renderer = new Renderer();
+    public readonly event: EventEmitter = new EventEmitter();
+    public readonly info: BlastGLInfo = new BlastGLInfo();
+    public readonly renderer: Renderer = new Renderer(this);
 
-    static setScene(scene: Scene): void {
+    private _scene: Scene;
+
+    setScene(scene: Scene): void {
         if (this._scene === scene) {
             return;
         }
@@ -19,10 +20,11 @@ export default class BlastGL {
         }
 
         this._scene = scene;
+        this._scene.blastGl = this;
         this._scene.init();
     }
 
-    static get scene(): Scene {
+    get scene(): Scene {
         return this._scene;
     }
 }

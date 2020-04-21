@@ -19,7 +19,11 @@ export default class Renderer {
     private _lastUsedTexture: Texture;
     private _textureManager: TextureManager;
     private _isNeedToAllocateChunk: boolean = true;
-    //private _defaultSpriteMaterial: Material;
+    private _blastGl: BlastGL;
+
+    constructor(blastGl: BlastGL) {
+        this._blastGl = blastGl;
+    }
 
     init(element: string): void {
         // Inject canvas
@@ -49,7 +53,7 @@ export default class Renderer {
         this._gl.blendFuncSeparate(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA, this._gl.ONE, this._gl.ONE_MINUS_SRC_ALPHA);
 
         // Set texture manager
-        this._textureManager = new TextureManager('main');
+        this._textureManager = new TextureManager(this, 'main');
         //this._defaultSpriteMaterial = new SpriteMaterial();
 
         // Update timer
@@ -81,13 +85,13 @@ export default class Renderer {
     }
 
     update(): void {
-        BlastGL.info.tickId += 1;
+        this._blastGl.info.tickId += 1;
 
-        if (!BlastGL.scene) {
+        if (!this._blastGl.scene) {
             return;
         }
 
-        if (!BlastGL.scene.camera) {
+        if (!this._blastGl.scene.camera) {
             return;
         }
 
@@ -95,8 +99,8 @@ export default class Renderer {
         this._textureManager.update();
 
         // Update scene if not paused
-        if (!BlastGL.scene.isPaused) {
-            BlastGL.scene.update(BlastGL.info.deltaTime);
+        if (!this._blastGl.scene.isPaused) {
+            this._blastGl.scene.update(this._blastGl.info.deltaTime);
         }
 
         // Split elements to chunks
@@ -106,13 +110,13 @@ export default class Renderer {
         //let lastTexture: WebGLTexture = null;
         //let lastMaterial: Material = null;
 
-        for (let i = 0; i < BlastGL.scene.layers.length; i++) {
-            for (let j = 0; j < BlastGL.scene.layers[i].elements.length; j++) {
+        for (let i = 0; i < this._blastGl.scene.layers.length; i++) {
+            for (let j = 0; j < this._blastGl.scene.layers[i].elements.length; j++) {
                 if (this._isNeedToAllocateChunk) {
                     tempChunk = this.allocateChunk();
                     this._isNeedToAllocateChunk = false;
-                    tempChunk.material = BlastGL.scene.layers[i].elements[j].material;
-                    tempChunk.addObject(BlastGL.scene.layers[i].elements[j]);
+                    tempChunk.material = this._blastGl.scene.layers[i].elements[j].material;
+                    tempChunk.addObject(this._blastGl.scene.layers[i].elements[j]);
                     console.log(tempChunk);
                 }
             }
@@ -219,7 +223,7 @@ export default class Renderer {
     private allocateChunk(): Chunk {
         this._chunkCounter += 1;
         if (!this._chunkList[this._chunkCounter - 1]) {
-            this._chunkList[this._chunkCounter - 1] = new Chunk(this._chunkCounter - 1);
+            this._chunkList[this._chunkCounter - 1] = new Chunk(this, this._blastGl.scene.camera, this._chunkCounter - 1);
         }
 
         return this._chunkList[this._chunkCounter - 1];

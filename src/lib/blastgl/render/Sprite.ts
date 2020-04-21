@@ -4,7 +4,7 @@ import SpriteMaterial from "../shader/SpriteMaterial";
 import Mesh from "./Mesh";
 
 export default class Sprite extends RenderObject {
-    constructor(params: TypeRenderObjectParameters = {}) {
+    constructor(params: TypeRenderObjectParameters) {
         super(params);
 
         // Set default mesh
@@ -27,7 +27,7 @@ export default class Sprite extends RenderObject {
         );
 
         if (!this.material) {
-            this.material = new SpriteMaterial();
+            this.material = new SpriteMaterial(this.blastGl);
         }
 
         // Set area

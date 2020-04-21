@@ -4,8 +4,11 @@ import Color from "../../image/Color";
 import Material from "../shader/Material";
 import BlastGL from "../BlastGL";
 import Mesh from "./Mesh";
+import Renderer from "../core/Renderer";
 
 export type TypeRenderObjectParameters = {
+    blastGl: BlastGL;
+
     x?: number;
     y?: number;
     zIndex?: number;
@@ -32,6 +35,7 @@ export default class RenderObject extends ShapeObject {
     //public brightness: number = 1;
     public material: Material;
     public mesh: Mesh;
+    // public renderer: Renderer;
 
     //public vertex: Float32Array;
     /*public readonly vertexColor: Float32Array = new Float32Array([
@@ -50,9 +54,8 @@ export default class RenderObject extends ShapeObject {
     public readonly vertexBuffer: WebGLBuffer;
     public readonly uvBuffer: WebGLBuffer;*/
 
-    constructor({ x, y, zIndex, width, height, scaleX, scaleY, material }: TypeRenderObjectParameters = {}) {
-        super({ x, y, zIndex, width, height, scaleX, scaleY });
-        // this._texture = texture || null;
+    constructor({ blastGl, x, y, zIndex, width, height, scaleX, scaleY, material }: TypeRenderObjectParameters) {
+        super({ blastGl, x, y, zIndex, width, height, scaleX, scaleY });
         this.material = material || null;
 
         /*this.indexBuffer = BlastGL.renderer.gl.createBuffer();

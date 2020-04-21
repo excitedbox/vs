@@ -1,11 +1,13 @@
 import Layer from "./Layer";
 import ShapeObject from "../render/ShapeObject";
 import Camera from "./Camera";
+import BlastGL from "../BlastGL";
 
 export default class Scene {
     public readonly layers: Layer[] = [];
     public isPaused: boolean = false;
     private _camera: Camera;
+    public blastGl: BlastGL;
     public isNeedGarbageCollector: boolean = false;
 
     init(): void {

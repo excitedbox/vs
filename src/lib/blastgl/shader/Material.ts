@@ -1,11 +1,17 @@
 import Shader from "./Shader";
 import RenderObject from "../render/RenderObject";
 import Texture from "../texture/Texture";
+import Renderer from "../core/Renderer";
+import BlastGL from "../BlastGL";
 
 export default class Material {
     protected static _shader: Shader;
-
     protected _texture: Texture;
+    protected _blastGl: BlastGL;
+
+    constructor(blastGl: BlastGL) {
+        this._blastGl = blastGl;
+    }
 
     public get shader(): Shader {
         return Material._shader;

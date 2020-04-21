@@ -1,4 +1,5 @@
 import BlastGL from "../BlastGL";
+import TextureManager from "./TextureManager";
 
 export default class Texture {
     // Data info
@@ -21,7 +22,7 @@ export default class Texture {
     public baseUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
     public triangleUV: Float32Array = new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
 
-    constructor({url, image, useAtlas}: { useAtlas?: boolean; url?: string; image?: HTMLImageElement }) {
+    constructor({blastGl, url, image, useAtlas}: { blastGl: BlastGL; useAtlas?: boolean; url?: string; image?: HTMLImageElement }) {
         this.url = url || null;
         this.image = image;
 
@@ -29,19 +30,18 @@ export default class Texture {
         this.height = image.height;
 
         if (useAtlas) {
-            BlastGL.renderer.textureManager.addTexture(this);
+            blastGl.renderer.textureManager.addTexture(this);
         }
     }
 
     // Create texture from url
-    static async from(url: string, useAtlas: boolean = true): Promise<Texture> {
+    static async from(blastGl: BlastGL, url: string, useAtlas: boolean = true): Promise<Texture> {
         const image = new Image();
         image.src = url;
 
         return new Promise((resolve: Function) => {
             image.onload = (): void => {
-                const texture = new Texture({url, image, useAtlas});
-
+                const texture = new Texture({blastGl, url, image, useAtlas});
                 resolve(texture);
             };
         });
