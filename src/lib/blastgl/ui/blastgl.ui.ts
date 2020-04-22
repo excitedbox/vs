@@ -7,11 +7,17 @@ import BlastGL from "../BlastGL";
 import UI_SensitiveButton from "../../../../user/root/bin/github.com/maldan/sensitive/ui/button.ui";
 
 export default class UI_BlastGL extends SensitiveComponent {
+    public props: {
+        blastGl: BlastGL;
+    };
+
     constructor(props: {}) {
         super(props);
     }
 
     render(): {} {
+        const blastGl = this.props.blastGl;
+
         const state = SensitiveUI.watch({
             section: 'Game'
         });
@@ -72,8 +78,10 @@ export default class UI_BlastGL extends SensitiveComponent {
                             engineInfoNode.watch(engineInfoState);
 
                             engineInfoNode.push({
-                                '.tick-id': `Tick ID: ${BlastGL.info.tickId}`,
-                                '.delta': `Delta: ${BlastGL.info.deltaTime}`,
+                                '.tick-id': `Tick ID: ${blastGl.info.tickId}`,
+                                '.delta': `Delta: ${blastGl.info.deltaTime}`,
+                                '.scene': `Scene: ${blastGl.info.sceneName}`,
+                                '.chunk-amount': `Chunks: ${blastGl.info.chunkAmount}`,
                                 '@1': new UI_SensitiveButton({
                                     title: 'Refresh',
                                     onClick(): void {

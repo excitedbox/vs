@@ -19,23 +19,19 @@ export default class Scene {
     private _chunkList: Chunk[] = [];
     private _chunkCounter: number = 0;
 
-    public fb: WebGLFramebuffer;
-    //public fb2: WebGLFramebuffer;
+    /*public fb: WebGLFramebuffer;
     public tt: Texture;
-    //public tt2: Texture;
-    public mat: Material;
-    public gag: boolean = false;
+    public mat: Material;*/
 
     async init(): Promise<void> {
-        this.tt = await Texture.from(this.blastGl, { width: 720, height: 480 });
-        // this.tt2 = await Texture.from(this.blastGl, { width: 720, height: 480 });
+        //this.tt = await Texture.from(this.blastGl, { width: 720, height: 480 });
 
         // Create and bind the framebuffer
-        this.fb = this.blastGl.renderer.gl.createFramebuffer();
+        /*this.fb = this.blastGl.renderer.gl.createFramebuffer();
         this.blastGl.renderer.gl.bindFramebuffer(this.blastGl.renderer.gl.FRAMEBUFFER, this.fb);
         this.blastGl.renderer.gl.framebufferTexture2D(
             this.blastGl.renderer.gl.FRAMEBUFFER, this.blastGl.renderer.gl.COLOR_ATTACHMENT0,
-            this.blastGl.renderer.gl.TEXTURE_2D, this.tt.texture, 0);
+            this.blastGl.renderer.gl.TEXTURE_2D, this.tt.texture, 0);*/
 
         /*this.fb2 = this.blastGl.renderer.gl.createFramebuffer();
         this.blastGl.renderer.gl.bindFramebuffer(this.blastGl.renderer.gl.FRAMEBUFFER, this.fb2);
@@ -44,7 +40,7 @@ export default class Scene {
             this.blastGl.renderer.gl.TEXTURE_2D, this.tt2.texture, 0);*/
 
         // may
-        this.mat = new SpriteMaterial(this.blastGl);
+        // this.mat = new SpriteMaterial(this.blastGl);
     }
 
     addObject(object: ShapeObject, layerId: number = 0): void {
@@ -102,6 +98,9 @@ export default class Scene {
         } else {
             chunk.addObject(object);
         }
+
+        // Info about chunk's amount
+        this.blastGl.info.chunkAmount = this._chunkList.length;
     }
 
     private removeObjectFromChunk(object: RenderObject): void {
@@ -152,7 +151,7 @@ export default class Scene {
         for (let i = 0; i < this.layers.length; i++) {
             for (let j = 0; j < this.layers[i].elements.length; j++) {
                 const tempElement = this.layers[i].elements[j];
-                tempElement.zIndex = -(i * 2) - (j / this.layers[i].elements.length);
+                // tempElement.zIndex = -(i * 2) - (j / this.layers[i].elements.length);
 
                 if (tempElement.update) {
                     tempElement.update(delta);
@@ -167,10 +166,10 @@ export default class Scene {
         }
     }
 
-    draw(): void {
+    draw(material: Material = null): void {
         for (let i = 0; i < this._chunkList.length; i++) {
             const chunk = this._chunkList[i];
-            chunk.draw();
+            chunk.draw(material);
         }
     }
 

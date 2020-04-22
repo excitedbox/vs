@@ -3,23 +3,40 @@ import BlastGL from "../BlastGL";
 import Chunk from "../scene/Chunk";
 import Sprite from "../render/Sprite";
 import Camera from "../scene/Camera";
+import Texture from "../texture/Texture";
+import Material from "../shader/Material";
+import InfoMaterial from "../material/InfoMaterial";
 
 export default class Renderer {
+    private readonly _blastGl: BlastGL;
+
     private _gl: WebGLRenderingContext;
     private _canvas: HTMLCanvasElement;
     private _atlasContainer: HTMLElement;
     private _sceneWidth: number;
     private _sceneHeight: number;
     private _textureManager: TextureManager;
-    private readonly _blastGl: BlastGL;
-    private _gasChunk: Chunk;
-    private _gasSpr: Sprite;
+    private _finalImageChunk: Chunk;
+    private _finalImageSprite: Sprite;
+
+    private _frameBufferList: { final: WebGLFramebuffer; info: WebGLFramebuffer } = {
+        final: null,
+        info: null
+    };
+    private _renderTextureList: { final: Texture; info: Texture } = {
+        final: null,
+        info: null
+    };
+    private _renderMaterialList: { final: Material; info: InfoMaterial } = {
+        final: null,
+        info: null
+    };
 
     constructor(blastGl: BlastGL) {
         this._blastGl = blastGl;
     }
 
-    init(element: string): void {
+    async init(element: string): Promise<void> {
         // Inject canvas
         document.querySelector(element).innerHTML = `
             <canvas style="border: 1px solid #fefefe; image-rendering: pixelated;"></canvas>
@@ -59,14 +76,33 @@ export default class Renderer {
             this.draw();
         }, 16);
 
-        this._gasChunk = new Chunk(this._blastGl, 0);
-        this._gasSpr = new Sprite({
+        this.initFinalImageChunk();
+        await this.initFrameBuffers();
+    }
+
+    private initFinalImageChunk(): void {
+        this._finalImageChunk = new Chunk(this._blastGl, 0);
+        this._finalImageSprite = new Sprite({
             blastGl: this._blastGl
         });
-        this._gasChunk.material = this._gasSpr.material;
-        this._gasChunk.camera = new Camera(720, 480);
-        this._gasChunk.camera.update();
-        this._gasChunk.addObject(this._gasSpr);
+        this._finalImageChunk.material = this._finalImageSprite.material;
+        this._finalImageChunk.camera = new Camera(720, 480);
+        this._finalImageChunk.camera.update();
+        this._finalImageChunk.addObject(this._finalImageSprite);
+    }
+
+    private async initFrameBuffers(): Promise<void> {
+        const gl = this.gl;
+
+        for (const item in this._frameBufferList) {
+            this._renderTextureList[item] = await Texture.from(this._blastGl, { width: 720, height: 480 });
+            this._frameBufferList[item] = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBufferList[item]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._renderTextureList[item].texture, 0);
+        }
+
+        this._renderMaterialList.final = null;
+        this._renderMaterialList.info = new InfoMaterial(this._blastGl);
     }
 
     resize(width: number, height: number, scale: number = 1): void {
@@ -247,66 +283,33 @@ export default class Renderer {
         this._blastGl.info.lastFrameTime = performance.now();
     }
 
-    /*registerObject(object: RenderObject): void {
-        let isFound = false;
-        let chunk: Chunk;
+    private drawBuffers(): void {
+        const gl = this.gl;
 
-        // console.time('a');
+        // Render each buffer
+        for (const item in this._frameBufferList) {
+            // Render to buffer
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBufferList[item]);
+            gl.bindTexture(gl.TEXTURE_2D, this._renderTextureList[item].texture);
 
-        for (let i = 0; i < this._chunkList.length; i++) {
-            chunk = this._chunkList[i];
-            isFound = true;
+            // Clear buffer
+            gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+            gl.clearDepth(1.0);
 
-            // Check shader
-            if (chunk.material.shader !== object.material.shader) {
-                isFound = false;
-                continue;
+            // Draw current scene
+            if (this._blastGl.scene) {
+                this._blastGl.scene.draw(this._renderMaterialList[item]);
             }
         }
-
-        if (!isFound) {
-            chunk = this.allocateChunk();
-            chunk.camera = this._blastGl.scene.camera;
-            chunk.material = object.material;
-            chunk.addObject(object);
-        } else {
-            chunk.addObject(object);
-        }
-
-        // console.timeEnd('a');
-        // console.log(chunk);
     }
-
-    unRegisterObject(object: RenderObject): void {
-
-    }*/
-
-    /*private allocateChunk(): Chunk {
-        this._chunkCounter += 1;
-        if (!this._chunkList[this._chunkCounter - 1]) {
-            this._chunkList[this._chunkCounter - 1] = new Chunk(this._blastGl, this._chunkCounter - 1);
-        }
-
-        return this._chunkList[this._chunkCounter - 1];
-    }*/
 
     draw(): void {
         const gl = this.gl;
 
-        // Render to buffer
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._blastGl.scene.fb);
-        gl.bindTexture(gl.TEXTURE_2D, this._blastGl.scene.tt.texture);
+        // Draw all buffers
+        this.drawBuffers();
 
-        // Clear buffer
-        gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-        gl.clearDepth(1.0);
-
-        // Draw current scene
-        if (this._blastGl.scene) {
-            this._blastGl.scene.draw();
-        }
-
-        // Render to the canvas
+        // Render final image to the canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // Clear canvas
@@ -314,12 +317,12 @@ export default class Renderer {
         gl.clearDepth(1.0);
 
         // Draw final
-        this._gasSpr.texture = this._blastGl.scene.tt; // !this._blastGl.scene.gag ?this._blastGl.scene.tt2 :this._blastGl.scene.tt;
-        this._gasSpr.update(0);
-        this._gasChunk.build();
-        this._gasChunk.draw();
+        this._finalImageSprite.texture = this._renderTextureList.final;
+        this._finalImageSprite.update(0);
+        this._finalImageChunk.build();
+        this._finalImageChunk.draw();
 
-        this._blastGl.scene.gag = !this._blastGl.scene.gag;
+        // this._blastGl.scene.gag = !this._blastGl.scene.gag;
 
         // console.log(this._gasChunk);
         /*for (let i = 0; i < this._blastGl.s; i++) {

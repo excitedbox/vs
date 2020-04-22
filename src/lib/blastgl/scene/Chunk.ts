@@ -100,7 +100,6 @@ export default class Chunk {
 
         // Add object to pool
         this._objectList.push(renderObject);
-
         this._isObjectListChanged = true;
     }
 
@@ -211,15 +210,22 @@ export default class Chunk {
         this._isObjectListChanged = false;
     }
 
-    public draw(): void {
+    public draw(material: Material = null): void {
         const gl = this._blastGl.renderer.gl;
 
+        // Set material
+        let tempMaterial = this._material;
+        if (material) {
+            tempMaterial = material;
+            tempMaterial.textureList[0] = this._material.textureList[0];
+        }
+
         // Set shader
-        gl.useProgram(this.material.shader.program);
-        this.material.shader.enableVertexAttribArray();
+        gl.useProgram(tempMaterial.shader.program);
+        tempMaterial.shader.enableVertexAttribArray();
 
         // Get properties for material
-        const params = this._material.shaderPropertyList;
+        const params = tempMaterial.shaderPropertyList;
 
         for (let i = 0; i < params.length; i++) {
             switch (params[i].type) {
@@ -227,20 +233,20 @@ export default class Chunk {
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._bufferList[params[i].name]);
                     break;
                 case "camera":
-                    gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
+                    gl.uniformMatrix4fv(tempMaterial.shader.getUniformLocation(params[i].name),
                         false, this.camera.matrix.matrix);
                     break;
-                case "background":
+                /*case "background":
                     // Bind texture
                     gl.activeTexture(gl.TEXTURE0 + params[i].slot);
                     gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), params[i].slot);
                     gl.bindTexture(gl.TEXTURE_2D, this._blastGl.scene.gag ?this._blastGl.scene.tt2.texture :this._blastGl.scene.tt.texture);
-                    break;
+                    break;*/
                 case "texture":
                     // Bind texture
                     gl.activeTexture(gl.TEXTURE0 + params[i].slot);
-                    gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), params[i].slot);
-                    gl.bindTexture(gl.TEXTURE_2D, this.material.textureList[params[i].slot].texture);
+                    gl.uniform1i(gl.getUniformLocation(tempMaterial.shader.program, params[i].name), params[i].slot);
+                    gl.bindTexture(gl.TEXTURE_2D, tempMaterial.textureList[params[i].slot].texture);
                     break;
                 case "screenUv":
                 case "uv":
@@ -248,13 +254,13 @@ export default class Chunk {
                 case "float":
                     gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferList[params[i].name]);
                     gl.vertexAttribPointer(
-                        this.material.shader.getAttributeLocation(params[i].name),
+                        tempMaterial.shader.getAttributeLocation(params[i].name),
                         params[i].size,
                         gl.FLOAT, false, 0, 0
                     );
                     break;
                 case "time":
-                    gl.uniform4fv(this.material.shader.getUniformLocation(params[i].name),
+                    gl.uniform4fv(tempMaterial.shader.getUniformLocation(params[i].name),
                         new Float32Array([
                             this._blastGl.info.tickId, 1, 1, 1
                         ]));

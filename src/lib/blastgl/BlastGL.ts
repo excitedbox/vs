@@ -10,7 +10,7 @@ export default class BlastGL {
 
     private _scene: Scene;
 
-    setScene(scene: Scene): void {
+    async setScene(scene: Scene): Promise<void> {
         if (this._scene === scene) {
             return;
         }
@@ -19,9 +19,10 @@ export default class BlastGL {
             this._scene.destroy();
         }
 
+        this.info.sceneName = scene.constructor.name;
         this._scene = scene;
         this._scene.blastGl = this;
-        this._scene.init();
+        await this._scene.init();
     }
 
     get scene(): Scene {
