@@ -9,8 +9,8 @@ export default class Camera {
     public y: number = 0;
     public z: number = 0;
 
-    private _width: number;
-    private _height: number;
+    private readonly _width: number;
+    private readonly _height: number;
     private _zoom: number = 1;
 
     // Области камеры
@@ -37,16 +37,14 @@ export default class Camera {
         this.area.bottom = this.spaceScreen.bottom - this.y;
 
         // Рассчитываем область экрана
-        this.spaceScreen.left = ((-(this._width / 1) / 2) / this.zoom);
-        this.spaceScreen.right = (((this._width / 1) / 2) / this.zoom);
-        this.spaceScreen.top = (((this._height / 1) / 2) / this.zoom);
-        this.spaceScreen.bottom = ((-(this._height / 1) / 2) / this.zoom);
-
-        // console.log(this.x);
+        this.spaceScreen.left = -this._width / 2 / this.zoom;
+        this.spaceScreen.right = this._width / 2 / this.zoom;
+        this.spaceScreen.top = this._height / 2 / this.zoom;
+        this.spaceScreen.bottom = -this._height / 2 / this.zoom;
     }
 
     getInputWorldPosition(): Vector2D {
-        return new Vector2D((Input.x - this._width / 2 ) / this._zoom - this.x, (Input.y - this._height / 2) / this._zoom - this.y);
+        return new Vector2D((Input.x - this._width / 2) / this._zoom - this.x, (Input.y - this._height / 2) / this._zoom - this.y);
     }
 
     set zoom(value: number) {

@@ -1,5 +1,5 @@
-import Material from "./Material";
-import Shader from "./Shader";
+import Material from "../shader/Material";
+import Shader from "../shader/Shader";
 import BlastGL from "../BlastGL";
 
 export default class SpriteMaterial extends Material {
@@ -36,8 +36,9 @@ export default class SpriteMaterial extends Material {
                         void main(void) {
                             gl_FragColor = texture2D(uTexture, vec2(vUV.x, vUV.y));
 
-                            if (gl_FragColor.a < 0.01)
-                            discard;
+                            if (gl_FragColor.a < 0.01) {
+                                discard;
+                            }
                         }
                 `,
             );

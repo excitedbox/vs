@@ -1,9 +1,9 @@
-import Material from "./Material";
-import Shader from "./Shader";
+import Material from "../shader/Material";
+import Shader from "../shader/Shader";
 import Color from "../../image/Color";
 import BlastGL from "../BlastGL";
 
-export default class SpriteMaterial extends Material {
+export default class AdvancedSpriteMaterial extends Material {
     private readonly _aColor: Float32Array = new Float32Array([
         1, 1, 1, 1,
         1, 1, 1, 1,
@@ -22,7 +22,7 @@ export default class SpriteMaterial extends Material {
         super(blastGl);
 
         // Create shader
-        SpriteMaterial._shader = new Shader(
+        AdvancedSpriteMaterial._shader = new Shader(
             blastGl,
             'sprite2d',
              // language=GLSL
@@ -63,10 +63,10 @@ export default class SpriteMaterial extends Material {
         );
 
         // Bind attributes
-        SpriteMaterial._shader.bindAttribute('aMesh');
-        SpriteMaterial._shader.bindAttribute('aUV');
-        SpriteMaterial._shader.bindAttribute('aColor');
-        SpriteMaterial._shader.bindUniform('uCamera');
+        AdvancedSpriteMaterial._shader.bindAttribute('aMesh');
+        AdvancedSpriteMaterial._shader.bindAttribute('aUV');
+        AdvancedSpriteMaterial._shader.bindAttribute('aColor');
+        AdvancedSpriteMaterial._shader.bindUniform('uCamera');
     }
 
     public get aColor(): Float32Array {
@@ -80,7 +80,7 @@ export default class SpriteMaterial extends Material {
     }
 
     public get shader(): Shader {
-        return SpriteMaterial._shader;
+        return AdvancedSpriteMaterial._shader;
     }
 
     get shaderPropertyList(): { name: string; type: string; size?: number; slot?: number }[] {

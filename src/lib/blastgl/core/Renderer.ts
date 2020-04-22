@@ -1,5 +1,8 @@
 import TextureManager from "../texture/TextureManager";
 import BlastGL from "../BlastGL";
+import Chunk from "../scene/Chunk";
+import Sprite from "../render/Sprite";
+import Camera from "../scene/Camera";
 
 export default class Renderer {
     private _gl: WebGLRenderingContext;
@@ -9,6 +12,8 @@ export default class Renderer {
     private _sceneHeight: number;
     private _textureManager: TextureManager;
     private readonly _blastGl: BlastGL;
+    private _gasChunk: Chunk;
+    private _gasSpr: Sprite;
 
     constructor(blastGl: BlastGL) {
         this._blastGl = blastGl;
@@ -53,6 +58,15 @@ export default class Renderer {
         setInterval(() => {
             this.draw();
         }, 16);
+
+        this._gasChunk = new Chunk(this._blastGl, 0);
+        this._gasSpr = new Sprite({
+            blastGl: this._blastGl
+        });
+        this._gasChunk.material = this._gasSpr.material;
+        this._gasChunk.camera = new Camera(720, 480);
+        this._gasChunk.camera.update();
+        this._gasChunk.addObject(this._gasSpr);
     }
 
     resize(width: number, height: number, scale: number = 1): void {
@@ -279,6 +293,11 @@ export default class Renderer {
     draw(): void {
         const gl = this.gl;
 
+        // Render to buffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._blastGl.scene.fb);
+        gl.bindTexture(gl.TEXTURE_2D, this._blastGl.scene.tt.texture);
+
+        // Clear buffer
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         gl.clearDepth(1.0);
 
@@ -287,6 +306,22 @@ export default class Renderer {
             this._blastGl.scene.draw();
         }
 
+        // Render to the canvas
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // Clear canvas
+        gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+        gl.clearDepth(1.0);
+
+        // Draw final
+        this._gasSpr.texture = this._blastGl.scene.tt; // !this._blastGl.scene.gag ?this._blastGl.scene.tt2 :this._blastGl.scene.tt;
+        this._gasSpr.update(0);
+        this._gasChunk.build();
+        this._gasChunk.draw();
+
+        this._blastGl.scene.gag = !this._blastGl.scene.gag;
+
+        // console.log(this._gasChunk);
         /*for (let i = 0; i < this._blastGl.s; i++) {
             const chunk = this._chunkList[i];
             chunk.draw();

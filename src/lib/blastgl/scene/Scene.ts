@@ -4,6 +4,9 @@ import Camera from "./Camera";
 import BlastGL from "../BlastGL";
 import RenderObject from "../render/RenderObject";
 import Chunk from "./Chunk";
+import Texture from "../texture/Texture";
+import Material from "../shader/Material";
+import SpriteMaterial from "../material/SpriteMaterial";
 
 export default class Scene {
     public blastGl: BlastGL;
@@ -16,8 +19,32 @@ export default class Scene {
     private _chunkList: Chunk[] = [];
     private _chunkCounter: number = 0;
 
-    init(): void {
+    public fb: WebGLFramebuffer;
+    //public fb2: WebGLFramebuffer;
+    public tt: Texture;
+    //public tt2: Texture;
+    public mat: Material;
+    public gag: boolean = false;
 
+    async init(): Promise<void> {
+        this.tt = await Texture.from(this.blastGl, { width: 720, height: 480 });
+        // this.tt2 = await Texture.from(this.blastGl, { width: 720, height: 480 });
+
+        // Create and bind the framebuffer
+        this.fb = this.blastGl.renderer.gl.createFramebuffer();
+        this.blastGl.renderer.gl.bindFramebuffer(this.blastGl.renderer.gl.FRAMEBUFFER, this.fb);
+        this.blastGl.renderer.gl.framebufferTexture2D(
+            this.blastGl.renderer.gl.FRAMEBUFFER, this.blastGl.renderer.gl.COLOR_ATTACHMENT0,
+            this.blastGl.renderer.gl.TEXTURE_2D, this.tt.texture, 0);
+
+        /*this.fb2 = this.blastGl.renderer.gl.createFramebuffer();
+        this.blastGl.renderer.gl.bindFramebuffer(this.blastGl.renderer.gl.FRAMEBUFFER, this.fb2);
+        this.blastGl.renderer.gl.framebufferTexture2D(
+            this.blastGl.renderer.gl.FRAMEBUFFER, this.blastGl.renderer.gl.COLOR_ATTACHMENT0,
+            this.blastGl.renderer.gl.TEXTURE_2D, this.tt2.texture, 0);*/
+
+        // may
+        this.mat = new SpriteMaterial(this.blastGl);
     }
 
     addObject(object: ShapeObject, layerId: number = 0): void {

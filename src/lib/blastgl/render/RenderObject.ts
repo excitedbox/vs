@@ -2,6 +2,7 @@ import ShapeObject from "./ShapeObject";
 import Material from "../shader/Material";
 import BlastGL from "../BlastGL";
 import Mesh from "./Mesh";
+import Camera from "../scene/Camera";
 
 export type TypeRenderObjectParameters = {
     blastGl: BlastGL;
@@ -27,6 +28,9 @@ export default class RenderObject extends ShapeObject {
     // Visual effects
     protected _material: Material;
     public mesh: Mesh;
+
+    // Which camera is looking for this object
+    public camera: Camera;
 
     constructor({ blastGl, x, y, zIndex, width, height, scaleX, scaleY, material }: TypeRenderObjectParameters) {
         super({ blastGl, x, y, zIndex, width, height, scaleX, scaleY });

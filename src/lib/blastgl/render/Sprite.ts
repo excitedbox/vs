@@ -1,7 +1,9 @@
 import RenderObject, {TypeRenderObjectParameters} from "./RenderObject";
-import SpriteMaterial from "../shader/SpriteMaterial";
+import SpriteMaterial from "../material/SpriteMaterial";
 import Mesh from "./Mesh";
 import Texture from "../texture/Texture";
+import * as ts from "typescript/lib/tsserverlibrary";
+import convertCompilerOptions = ts.server.convertCompilerOptions;
 
 export default class Sprite extends RenderObject {
     constructor(params: TypeRenderObjectParameters) {
@@ -18,7 +20,14 @@ export default class Sprite extends RenderObject {
                 0.5, 0.5, 0.0,
                 -0.5, 0.5, 0.0
             ]),
-            []
+            [
+                new Float32Array([
+                    0.0, 0.0,
+                    1.0, 0.0,
+                    1.0, 1.0,
+                    0.0, 1.0
+                ])
+            ]
         );
 
         // Set default material
@@ -84,6 +93,29 @@ export default class Sprite extends RenderObject {
         this.area.left = Math.min(this.mesh.vertex[0], this.mesh.vertex[3], this.mesh.vertex[6], this.mesh.vertex[9]);
         this.area.bottom = Math.min(this.mesh.vertex[1], this.mesh.vertex[4], this.mesh.vertex[7], this.mesh.vertex[10]);
         this.area.right = Math.max(this.mesh.vertex[0], this.mesh.vertex[3], this.mesh.vertex[6], this.mesh.vertex[9]);
+
+        const cameraWidth = (this.camera?.width || 0) / (this.camera?.zoom || 1);
+        const cameraHeight = (this.camera?.height || 0) / (this.camera?.zoom || 1);
+        const cameraX = (this.camera?.x || 0);
+        const cameraY = (this.camera?.y || 0);
+
+        // console.log(this.area);
+        this.mesh.uv[16] = new Float32Array([
+            (this.area.left + cameraX + cameraWidth / 2) / cameraWidth, (this.area.bottom + cameraY + cameraHeight / 2) / cameraHeight,
+            (this.area.right + cameraX + cameraWidth / 2) / cameraWidth, (this.area.bottom + cameraY + cameraHeight / 2) / cameraHeight,
+            (this.area.right + cameraX + cameraWidth / 2) / cameraWidth, (this.area.top + cameraY + cameraHeight / 2) / cameraHeight,
+            (this.area.left + cameraX + cameraWidth / 2) / cameraWidth, (this.area.top + cameraY + cameraHeight / 2) / cameraHeight
+            /*(this.x - this.width / 2) / 720, 1 - this.area.top / (480 ),
+            (this.x + this.width / 2) / 720, 1 - this.area.top / (480),
+            (this.x + this.width / 2) / 720, 1 - this.area.bottom / (480 ),
+            (this.x - this.width / 2) / 720, 1 - this.area.bottom / (480 ),*/
+
+            /*this.x / (720 / 2), 1 - (this.y + this.height) / (480 / 2),
+            (this.x + this.width) / (720 / 2), 1 - (this.y + this.height) / (480 / 2),
+            (this.x + this.width) / (720 / 2), 1 - this.y / (480 / 2),
+            this.x / (720 / 2), 1 - this.y / (480 / 2)*/
+        ]);
+        // console.log(this.mesh.uv[16]);
     }
 
     set texture(value: Texture) {

@@ -1,5 +1,5 @@
 import Sprite from "./Sprite";
-import AdvancedSpriteMaterial from "../shader/AdvancedSpriteMaterial";
+import AdvancedSpriteMaterial from "../material/AdvancedSpriteMaterial";
 import {TypeRenderObjectParameters} from "./RenderObject";
 
 export default class AdvancedSprite extends Sprite {

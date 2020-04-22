@@ -40,7 +40,8 @@ export default class Chunk {
         // Init buffers for all properties
         for (let i = 0; i < params.length; i++) {
             if (!(params[i].type === "float" || params[i].type === "index"
-                || params[i].type === "mesh" || params[i].type === "uv")) {
+                || params[i].type === "mesh" || params[i].type === "uv"
+                || params[i].type === "screenUv")) {
                 continue;
             }
 
@@ -49,17 +50,19 @@ export default class Chunk {
     }
 
     public addObject(renderObject: RenderObject): void {
-        if (!renderObject.isVisible) {
+        /*if (!renderObject.isVisible) {
             return;
-        }
+        }*/
 
         // Get properties for material
         const params = renderObject.material.shaderPropertyList;
 
+
         // Calculate all parameters length
         for (let i = 0; i < params.length; i++) {
             if (!(params[i].type === "float" || params[i].type === "index"
-                || params[i].type === "mesh" || params[i].type === "uv")) {
+                || params[i].type === "mesh" || params[i].type === "uv"
+                || params[i].type === "screenUv")) {
                 continue;
             }
 
@@ -80,6 +83,10 @@ export default class Chunk {
             if (params[i].type === "uv" && renderObject.mesh.uv[params[i].slot]) {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.uv[params[i].slot].length;
                 this._parameterLength[params[i].name] = renderObject.mesh.uv[params[i].slot].length;
+            }
+            if (params[i].type === "screenUv" && renderObject.mesh.uv[16]) {
+                this._parameterDataLength[params[i].name] += renderObject.mesh.uv[16].length;
+                this._parameterLength[params[i].name] = renderObject.mesh.uv[16].length;
             }
             if (params[i].type === "index") {
                 this._parameterDataLength[params[i].name] += renderObject.mesh.index.length;
@@ -119,7 +126,8 @@ export default class Chunk {
         // Allocate all arrays
         for (let i = 0; i < params.length; i++) {
             if (!(params[i].type === "float" || params[i].type === "index"
-                || params[i].type === "mesh" || params[i].type === "uv")) {
+                || params[i].type === "mesh" || params[i].type === "uv"
+                || params[i].type === "screenUv")) {
                 continue;
             }
 
@@ -141,6 +149,7 @@ export default class Chunk {
 
             for (let j = 0; j < this._objectList.length; j++) {
                 const object = this._objectList[j];
+                object.camera = this.camera;
                 let parameter = object.material.getProperty(params[i].name);
                 let positionId: number = 0;
 
@@ -156,6 +165,10 @@ export default class Chunk {
                     parameter = this._objectList[j].mesh.uv[params[i].slot];
                 }
 
+                if (params[i].type === "screenUv") {
+                    parameter = this._objectList[j].mesh.uv[16];
+                }
+
                 if (params[i].type === "index") {
                     // Put element's vertex in chunk vertex array
                     let gas = 0;
@@ -169,9 +182,16 @@ export default class Chunk {
                     this._indexAmount += parameter.length;
                     indexOffset += gas + 1;
                 } else {
-                    // Put element's vertex in chunk vertex array
-                    for (let k = 0; k < parameter.length; k++) {
-                        this._valueList[params[i].name][positionId++ + j * this._parameterLength[params[i].name]] = parameter[k];
+                    if (!object.isVisible && params[i].type === "mesh") {
+                        // Hide mesh
+                        for (let k = 0; k < parameter.length; k++) {
+                            this._valueList[params[i].name][positionId++ + j * this._parameterLength[params[i].name]] = 0;
+                        }
+                    } else {
+                        // Put element's vertex in chunk vertex array
+                        for (let k = 0; k < parameter.length; k++) {
+                            this._valueList[params[i].name][positionId++ + j * this._parameterLength[params[i].name]] = parameter[k];
+                        }
                     }
                 }
             }
@@ -210,12 +230,19 @@ export default class Chunk {
                     gl.uniformMatrix4fv(this.material.shader.getUniformLocation(params[i].name),
                         false, this.camera.matrix.matrix);
                     break;
+                case "background":
+                    // Bind texture
+                    gl.activeTexture(gl.TEXTURE0 + params[i].slot);
+                    gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), params[i].slot);
+                    gl.bindTexture(gl.TEXTURE_2D, this._blastGl.scene.gag ?this._blastGl.scene.tt2.texture :this._blastGl.scene.tt.texture);
+                    break;
                 case "texture":
                     // Bind texture
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), 0);
+                    gl.activeTexture(gl.TEXTURE0 + params[i].slot);
+                    gl.uniform1i(gl.getUniformLocation(this.material.shader.program, params[i].name), params[i].slot);
                     gl.bindTexture(gl.TEXTURE_2D, this.material.textureList[params[i].slot].texture);
                     break;
+                case "screenUv":
                 case "uv":
                 case "mesh":
                 case "float":
