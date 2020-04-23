@@ -89,7 +89,7 @@ declare global {
         /**
          * Convert date object to string
          */
-        format(): string;
+        format(withTimeZone?: boolean): string;
 
         /**
          * Convert date to human readable variant. Starts from current date, example: 5 sec before and etc.
@@ -227,8 +227,13 @@ Date.prototype.getWeek = function () {
     return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 };
 
-Date.prototype.format = function () {
-    return this.date() + ' ' + this.time();
+Date.prototype.format = function (withTimeZone: boolean = false): string {
+    let out = this.date() + ' ' + this.time();
+    if (withTimeZone) {
+        const s = new Date().getTimezoneOffset() / -60;
+        out += `${s >= 0 ?'+' :'-'}${('00' + s).slice(-2)}:00`;
+    }
+    return out;
 };
 
 Date.prototype.humanDate = function () {

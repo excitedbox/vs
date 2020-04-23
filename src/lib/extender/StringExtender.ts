@@ -85,13 +85,20 @@ declare global {
     }
 }
 
-String.prototype.toDate = function () {
+String.prototype.toDate = function (): Date {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let date = this;
     let d;
-    if (date.indexOf(' ') !== -1) date = date.replace(' ', 'T');
-    if (date.indexOf('T') !== -1) d = new Date(date);
+    if (date.indexOf(' ') !== -1) {
+        date = date.replace(' ', 'T');
+    }
+    if (date.indexOf('T') !== -1) {
+        d = new Date(date);
+    }
 
-    if (isNaN(d.getTime())) return null;
+    if (isNaN(d.getTime())) {
+        return null;
+    }
 
     /*let t = date.split('-');
     if (t.length === 1) t = date.split('.');
@@ -115,14 +122,14 @@ String.prototype.replaceAt = function (index: number, replacement: string) {
 
 String.prototype.DMYToYMD = function (): string {
     const date = this.split(' ')[0];
-    const time = this.split(' ').length > 1 ?(' ' + this.split(' ')[1]) : '';
+    const time = this.split(' ').length > 1 ? (' ' + this.split(' ')[1]) : '';
     const tuple = date.split('.');
     return tuple[2] + '-' + tuple[1] + '-' + tuple[0] + time;
 };
 
 String.prototype.YMDToDMY = function (): string {
     const date = this.split(' ')[0];
-    const time = this.split(' ').length > 1 ?(' ' + this.split(' ')[1]) : '';
+    const time = this.split(' ').length > 1 ? (' ' + this.split(' ')[1]) : '';
     const tuple = date.split('-');
     return tuple[2] + '.' + tuple[1] + '.' + tuple[0] + time;
 };
