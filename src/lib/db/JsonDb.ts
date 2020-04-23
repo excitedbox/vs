@@ -1,5 +1,6 @@
 import * as Fs from 'fs';
 import * as Util from "util";
+import "../../lib/extender/ArrayExtender";
 
 const ReadFile = Util.promisify(Fs.readFile);
 const WriteFile = Util.promisify(Fs.writeFile);
@@ -84,8 +85,10 @@ class JsonTable {
         }
 
         // Get key
-        for (let key in query) {
-            if (!query.hasOwnProperty(key)) continue;
+        for (const key in query) {
+            if (!query.hasOwnProperty(key)) {
+                continue;
+            }
 
             // Detect operators
             let operator = '===';
@@ -106,18 +109,20 @@ class JsonTable {
 
             // Go through all records from collection
             for (let i = 0; i < collection.length; i++) {
-                if (skipRecord[i] === 1) continue;
+                if (skipRecord[i] === 1) {
+                    continue;
+                }
 
                 // Date test, check if date (without time) is matching
                 if (query[key] instanceof Date && collection[i][collectionKey] instanceof Date) {
-                    let d = collection[i][collectionKey];
+                    const d = collection[i][collectionKey];
 
                     if (operator !== '===') {
                         if (JsonTableComparator.compare(d.getTime(), query[key].getTime(), operator)) {
                             counter[i]++;
                         }
                     } else {
-                        if ((d.getDay() === query[key].getDay()
+                        if ((d.getDate() === query[key].getDate()
                             && d.getMonth() === query[key].getMonth()
                             && d.getFullYear() === query[key].getFullYear())) {
                             counter[i]++;
@@ -129,7 +134,9 @@ class JsonTable {
 
                 // Regexp test
                 if (query[key] instanceof RegExp) {
-                    if (query[key].test(collection[i][collectionKey])) counter[i]++;
+                    if (query[key].test(collection[i][collectionKey])) {
+                        counter[i]++;
+                    }
                     continue;
                 }
 
