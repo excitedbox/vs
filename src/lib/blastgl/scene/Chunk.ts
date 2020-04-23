@@ -50,10 +50,6 @@ export default class Chunk {
     }
 
     public addObject(renderObject: RenderObject): void {
-        /*if (!renderObject.isVisible) {
-            return;
-        }*/
-
         // Get properties for material
         const params = renderObject.material.shaderPropertyList;
 
@@ -141,9 +137,9 @@ export default class Chunk {
                 if (params[i].type === "index") {
                     continue;
                 }
-                if (params[i].type === "uv") {
+                /*if (params[i].type === "uv") {
                     continue;
-                }
+                }*/
             }
 
             for (let j = 0; j < this._objectList.length; j++) {
@@ -212,6 +208,10 @@ export default class Chunk {
 
     public draw(material: Material = null): void {
         const gl = this._blastGl.renderer.gl;
+
+        if (!this.camera) {
+            return;
+        }
 
         // Set material
         let tempMaterial = this._material;

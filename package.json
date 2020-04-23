@@ -34,7 +34,8 @@
             "@typescript-eslint/interface-name-prefix": "off",
             "@typescript-eslint/typedef": "error",
             "@typescript-eslint/array-type": "error",
-            "@typescript-eslint/no-empty-function": "off"
+            "@typescript-eslint/no-empty-function": "off",
+            "@typescript-eslint/ban-ts-ignore": "off"
         }
     },
     "browserslist": [

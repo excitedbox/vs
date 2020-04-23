@@ -6,8 +6,8 @@ import Vector2D from "../../math/geom/Vector2D";
 
 export type TypeTextParameters = {
     blastGl: BlastGL;
-    x: number;
-    y: number;
+    x?: number;
+    y?: number;
     text: string;
     font: BitmapFont;
 };
@@ -69,6 +69,6 @@ export default class BitmapText extends Sprite {
             this.blastGl.renderer.textureManager.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
         }
 
-        this.texture.uv = this._area.uv;
+        this.mesh.uv[0] = this._area.uv;
     }
 }

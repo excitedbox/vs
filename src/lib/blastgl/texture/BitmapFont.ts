@@ -12,6 +12,8 @@ export type TypeBitmapFontParameters = {
 };
 
 export default class BitmapFont {
+    private readonly _blastGl: BlastGL;
+
     private readonly _fontUrl: string;
     public readonly glyphWidth: number;
     public readonly glyphHeight: number;
@@ -19,7 +21,6 @@ export default class BitmapFont {
     private _fontTexture: Texture;
     private _charWidth: { [key: string]: number };
     private _isCaseSensitive: boolean;
-    private _blastGl: BlastGL;
 
     constructor(params: TypeBitmapFontParameters) {
         this._blastGl = params.blastGl;
