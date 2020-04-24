@@ -13,8 +13,8 @@ export default class Renderer {
     private _gl: WebGLRenderingContext;
     private _canvas: HTMLCanvasElement;
     private _atlasContainer: HTMLElement;
-    private _sceneWidth: number;
-    private _sceneHeight: number;
+    //private _sceneWidth: number;
+    //private _sceneHeight: number;
     private _textureManager: TextureManager;
     private _finalImageChunk: Chunk;
     private _finalImageSprite: Sprite;
@@ -39,7 +39,7 @@ export default class Renderer {
     async init(element: string): Promise<void> {
         // Inject canvas
         document.querySelector(element).innerHTML = `
-            <canvas style="border: 1px solid #fefefe; image-rendering: pixelated;"></canvas>
+            <canvas></canvas>
             <div></div>
         `;
 
@@ -95,7 +95,10 @@ export default class Renderer {
         const gl = this.gl;
 
         for (const item in this._frameBufferList) {
-            this._renderTextureList[item] = await Texture.from(this._blastGl, { width: 720, height: 480 });
+            this._renderTextureList[item] = await Texture.from(this._blastGl, {
+                width: 720,
+                height: 480
+            });
             this._frameBufferList[item] = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBufferList[item]);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._renderTextureList[item].texture, 0);
@@ -107,8 +110,8 @@ export default class Renderer {
 
     resize(width: number, height: number, scale: number = 1): void {
         // Set scene size
-        this._sceneWidth = width / scale;
-        this._sceneHeight = height / scale;
+        //this._sceneWidth = width / scale;
+        //this._sceneHeight = height / scale;
 
         // Set canvas size attribute
         this._canvas.setAttribute("width", width / scale + "");
@@ -118,8 +121,8 @@ export default class Renderer {
         this._gl.viewport(0, 0, width / scale, height / scale);
 
         // Set canvas style size
-        this._canvas.style.width = width + 'px';
-        this._canvas.style.height = height + 'px';
+        //this._canvas.style.width = width + 'px';
+        //this._canvas.style.height = height + 'px';
     }
 
     update(): void {
