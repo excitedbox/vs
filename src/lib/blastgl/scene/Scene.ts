@@ -129,7 +129,7 @@ export default class Scene {
         for (let i = 0; i < this.layers.length; i++) {
             for (let j = 0; j < this.layers[i].elements.length; j++) {
                 const tempElement = this.layers[i].elements[j];
-                // tempElement.zIndex = -(i * 2) - (j / this.layers[i].elements.length);
+                tempElement.zIndex = -(i * 2) - (j / this.layers[i].elements.length);
 
                 if (tempElement.update) {
                     tempElement.update(delta);

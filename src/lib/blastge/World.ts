@@ -9,7 +9,7 @@ export default class World {
         this.scene = scene;
     }
 
-    instantiate<T>(gameObject: T): T {
+    instantiate(gameObject: Function): unknown {
         // @ts-ignore
         const element = new gameObject(this.scene);
         this.elements.push(element);

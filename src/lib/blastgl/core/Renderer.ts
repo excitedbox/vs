@@ -6,6 +6,7 @@ import Camera from "../scene/Camera";
 import Texture from "../texture/Texture";
 import Material from "../shader/Material";
 import InfoMaterial from "../material/InfoMaterial";
+import Color from "../../image/Color";
 
 export default class Renderer {
     private readonly _blastGl: BlastGL;
@@ -18,6 +19,7 @@ export default class Renderer {
     private _textureManager: TextureManager;
     private _finalImageChunk: Chunk;
     private _finalImageSprite: Sprite;
+    private _background: Color = new Color();
 
     private _frameBufferList: { final: WebGLFramebuffer; info: WebGLFramebuffer } = {
         final: null,
@@ -318,6 +320,7 @@ export default class Renderer {
         // Clear canvas
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         gl.clearDepth(1.0);
+        gl.clearColor(this._background.r, this._background.g, this._background.b, 1);
 
         // Draw final
         this._finalImageSprite.texture = this._renderTextureList.final;
@@ -393,6 +396,10 @@ export default class Renderer {
             // Отрисовка чанка
             this._gl.drawElements(this._gl.TRIANGLES, tempChunk.size * 6, this._gl.UNSIGNED_SHORT, 0);
         }*/
+    }
+
+    set background(value: string) {
+        this._background = Color.fromHex(value);
     }
 
     get gl(): WebGLRenderingContext {
