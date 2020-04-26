@@ -13,13 +13,20 @@ export default class ColliderComponent extends ObjectComponent {
     }
 
     start(): void {
-        this.update(1);
+        this.gameObject.world.addCollider(this);
     }
 
     update(delta: number): void {
-        /*this.rect.left = this.area.left + this.gameObject.x;
-        this.rect.right = this.area.right + this.gameObject.x;
-        this.rect.top = this.area.top + this.gameObject.y;
-        this.rect.bottom = this.area.bottom + this.gameObject.y;*/
+        // console.log('gas');
+        this.rect.left = this.area.left + this.gameObject.renderObject.x;
+        this.rect.right = this.area.right + this.gameObject.renderObject.x;
+        this.rect.top = this.area.top + this.gameObject.renderObject.y;
+        this.rect.bottom = this.area.bottom + this.gameObject.renderObject.y;
+
+        // console.log(this.gameObject);
+    }
+
+    destroy(): void {
+        this.gameObject.world.removeCollider(this);
     }
 }
