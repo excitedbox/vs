@@ -14,7 +14,7 @@ export default class Neuron {
         this._type = type;
 
         for (let i = 0; i < size; i++) {
-            this.weightList[i] = -1 + Math.random() * 2;
+            this.weightList[i] = Math.random() * 2 - 1;
         }
     }
 
@@ -28,7 +28,7 @@ export default class Neuron {
         }
     }
 
-    correctX(delta: number): void {
+    correctHidden(delta: number): void {
         for (let i = 0; i < this._size; i++) {
             const error = this.weightList[i] * delta;
             const weight_delta = error * (this._out * (1 - this._out));

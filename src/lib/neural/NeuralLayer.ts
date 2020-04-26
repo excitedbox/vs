@@ -3,10 +3,14 @@ import Neuron from "./Neuron";
 export default class NeuralLayer {
     private _neurons: Neuron[] = [];
     private _inputSize: number;
+    private _size: number;
     private _k: number = 0;
+    private _type: string;
 
     constructor(type: string, neuronInput: number, size: number) {
         this._inputSize = neuronInput;
+        this._type = type;
+        this._size = size;
 
         for (let i = 0; i < size; i++) {
             this._neurons.push(new Neuron(type, neuronInput));
@@ -37,9 +41,9 @@ export default class NeuralLayer {
         }
     }
 
-    correctX(value: number): void {
+    correctHidden(value: number): void {
         for (let i = 0; i < this._neurons.length; i++) {
-            this._neurons[i].correctX(value);
+            this._neurons[i].correctHidden(value);
         }
     }
 
@@ -57,5 +61,17 @@ export default class NeuralLayer {
             out.push(this._neurons[i].calculate());
         }
         return out;
+    }
+
+    get type(): string {
+        return this._type;
+    }
+
+    get inputSize(): number {
+        return this._inputSize;
+    }
+
+    get size(): number {
+        return this._size;
     }
 }
