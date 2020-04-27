@@ -75,7 +75,7 @@ export default class VdeFileSystemApi {
         return await response.json();
     }
 
-    async writeFile(path: string, data: Buffer | Uint8Array | string | Blob): Promise<void> {
+    async writeFile(path: string, data: Buffer | Uint8Array | string | Blob | {}): Promise<void> {
         return new Promise<any>(((resolve, reject) => {
             const oReq = new XMLHttpRequest(), formData = new FormData();
 
