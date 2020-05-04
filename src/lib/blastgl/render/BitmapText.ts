@@ -69,6 +69,11 @@ export default class BitmapText extends Sprite {
             this.blastGl.renderer.textureManager.pasteTextureData(imgData, new Vector2D(this._area.area.x + x, this._area.area.y + y));
         }
 
+        // console.log(this._area);
+        // this.texture = this._area.texture;
+        // this.texture = this._area.texture;
+        // this.material.textureList[0] = this._area.atlas.texture;
+
         this.mesh.uv[0] = this._area.uv;
     }
 }
