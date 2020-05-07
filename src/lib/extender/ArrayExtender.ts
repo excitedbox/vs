@@ -65,6 +65,10 @@ declare global {
 
         toUTF8(): string;
     }
+
+    /*interface Buffer {
+        append(v: Buffer): Buffer;
+    }*/
 }
 
 Array.prototype.avg = function (field: string) {
@@ -202,6 +206,7 @@ Uint8Array.prototype.prepend = function (v: Uint8Array) {
 Uint8Array.prototype.toUTF8 = function () {
     return new TextDecoder().decode(this);
 };
+
 
 export default class ArrayExtender {
 }

@@ -169,4 +169,8 @@ export default class ByteArray {
     get base64() {
         return ByteHelper.base64decode(this._buffer);
     }
+
+    get capacity(): number {
+        return this._capacity;
+    }
 }

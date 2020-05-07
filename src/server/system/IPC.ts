@@ -1,37 +1,53 @@
-import {ChildProcess} from "child_process";
 import ServiceMessage from "./ServiceMessage";
 import Timeout = NodeJS.Timeout;
+import {Socket} from "net";
 
 export default class IPC {
-    private static _serviceList: Map<string, ChildProcess> = new Map<string, ChildProcess>();
+    private static _serviceList: Map<string, Socket> = new Map<string, Socket>();
     private static _messageCounter: number = 0;
     private static _callback: Map<number, Function> = new Map<number, Function>();
     private static _errorCallback: Map<number, Function> = new Map<number, Function>();
     private static _timeout: Map<number, Timeout> = new Map<number, Timeout>();
+    private static _buffer: Buffer = Buffer.alloc(0);
 
-    static addService(name: string, service: ChildProcess): void {
+    static addService(name: string, service: Socket): void {
         IPC._serviceList.set(name, service);
 
-        service.on('message', (message: Buffer) => {
-            const msg = ServiceMessage.from(message);
+        service.on('data', (message: Buffer) => {
+            // Put data to buffer
+            this._buffer = Buffer.from(this._buffer.append(new Uint8Array(message.buffer)));
 
-            clearTimeout(this._timeout.get(msg.id));
+            while (true) {
+                console.log('buff', this._buffer.length);
 
-            if (msg.type === "error") {
-                if (this._errorCallback.get(msg.id)) {
-                    this._errorCallback.get(msg.id)(msg.data);
-                }
-            } else {
-                if (this._callback.get(msg.id)) {
-                    this._callback.get(msg.id)(msg.data);
+                // Check if have full message
+                const size = ServiceMessage.check(this._buffer);
+                console.log('size', size);
+                if (size) {
+                    const msg = ServiceMessage.from(this._buffer.slice(0, size));
+                    this._buffer = this._buffer.slice(size, this._buffer.length);
+
+                    clearTimeout(this._timeout.get(msg.id));
+
+                    if (msg.type === "error") {
+                        if (this._errorCallback.get(msg.id)) {
+                            this._errorCallback.get(msg.id)(msg.data);
+                        }
+                    } else {
+                        if (this._callback.get(msg.id)) {
+                            this._callback.get(msg.id)(msg.data);
+                        }
+                    }
+
+                    this._callback.delete(msg.id);
+                    this._errorCallback.delete(msg.id);
+                } else {
+                    break;
                 }
             }
-
-            this._callback.delete(msg.id);
-            this._errorCallback.delete(msg.id);
         });
 
-        service.on('exit', (code: number) => {
+        service.on('close', (code: number) => {
             console.log(`Process ${name} died! Code: ${code}`);
         });
     }
@@ -43,7 +59,7 @@ export default class IPC {
 
         const messageId = IPC._messageCounter++;
         const message = new ServiceMessage(messageId, type, data);
-        IPC._serviceList.get(service).send(message.encode());
+        IPC._serviceList.get(service).write(message.encode());
 
         return new Promise(((resolve: Function, reject: Function) => {
             this._callback.set(messageId, resolve);

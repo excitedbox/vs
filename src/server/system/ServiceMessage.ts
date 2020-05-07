@@ -58,6 +58,24 @@ export default class ServiceMessage {
         }
     }
 
+    static check(buffer: Buffer): number {
+        try {
+            const id = buffer.readUInt32BE(0);
+            const type = buffer.readUInt8(4);
+            const length = buffer.readUInt32BE(5);
+            const data = buffer.subarray(9);
+
+            if (data.length >= length) {
+                return 4 + 1 + 4 + length;
+            }
+        }
+        catch (e) {
+            return 0;
+        }
+
+        return 0;
+    }
+
     static from(buffer: Buffer): ServiceMessage {
         buffer = Buffer.from(buffer);
         const id = buffer.readUInt32BE(0);
@@ -65,8 +83,15 @@ export default class ServiceMessage {
         const typeName = type === 0 ?"string" :type === 1 ?"json" :type === 2 ?"binary" :"error";
         const length = buffer.readUInt32BE(5);
         const data = buffer.subarray(9);
-        const convertedData = (typeName === "string" || typeName === "error") ?data.toString('utf-8')
-            :typeName === "json" ?JSON.parse(data.toString('utf-8')) :data;
-        return new ServiceMessage(id, typeName, convertedData);
+
+        try {
+            const convertedData = (typeName === "string" || typeName === "error") ? data.toString('utf-8')
+                : typeName === "json" ? JSON.parse(data.toString('utf-8')) : data;
+
+            return new ServiceMessage(id, typeName, convertedData);
+        }
+        catch (e) {
+            console.error(data.toString('utf-8'));
+        }
     }
 }

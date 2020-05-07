@@ -359,6 +359,7 @@ export default class Application {
 
         // Get application db and find app
         const appDb = await Application.getApplicationDb(session.user.name);
+
         const app = appDb.get('application').findOne([
             {repo: new RegExp(query, 'i')},
             {name: new RegExp(query, 'i')},

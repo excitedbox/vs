@@ -1,4 +1,6 @@
 import * as Fs from 'fs';
+import * as Path from 'path';
+import * as Net from 'net';
 import * as ChildProcess from 'child_process';
 import AppServer from "./core/AppServer";
 import EntryServer from "./core/EntryServer";
@@ -13,6 +15,7 @@ import User from "./user/User";
 import SHA256 from "../lib/crypto/SHA256";
 import JsonDb from "../lib/db/JsonDb";
 import IPC from "./system/IPC";
+import Timer from "../lib/util/Timer";
 
 export default class Main {
     static async run(isDebug: boolean = false): Promise<void> {
@@ -37,14 +40,60 @@ export default class Main {
         // Run all services
         const serviceList = await Service.list();
         for (let i = 0; i < serviceList.length; i++) {
-            const child = ChildProcess.spawn(`ts-node`, [serviceList[i].path], {
-                stdio: [0, 1, 2, 'ipc']
+            // console.log(Path.resolve(serviceList[i].path + '/index.ts'));
+
+            //if (process.platform === 'win32') {
+            //child = ChildProcess.spawn(process.env.comspec, ['/c', 'ts-node', serviceList[i].path], {
+            // child = ChildProcess.fork('ts-node', [serviceList[i].path], {
+            // child = ChildProcess.spawn(process.env.comspec, ['/c', `ts-node`, Path.resolve(serviceList[i].path + '/index.ts')], {
+            // stdio: 'inherit',
+            // stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+            // windowsHide: true,
+            // windowsVerbatimArguments: true,
+            // detached: true,
+            // shell: true,
+            //serialization: 'advanced'
+            //});
+            // child.unref();
+            //} else {
+            //    child = ChildProcess.spawn(`ts-node`, [serviceList[i].path], {
+            //        stdio: [0, 1, 2, 'ipc']
+            //    });
+            //}
+
+            const port = 8001;
+
+            /*if (process.platform === 'win32') {
+                const child = ChildProcess.spawn(process.env.comspec, ['/c', 'ts-node', serviceList[i].path, port + ''], {
+                    stdio: 'inherit'
+                });
+            } else {*/
+                const child = ChildProcess.spawn(`ts-node`, [serviceList[i].path, port + ''], {
+                    stdio: 'inherit',
+                    shell: true
+                });
+            //}
+
+            await Timer.delay(5000);
+
+            const client = new Net.Socket();
+            client.connect(port, '127.0.0.1', function() {
+                console.log(`Service "${serviceList[i].name}" connected`);
             });
 
-            IPC.addService(serviceList[i].name, child);
+            /*client.on('data', function(data) {
+                console.log('Received: ' + data);
+                client.destroy(); // kill client after server's response
+            });
+
+            client.on('close', function() {
+                console.log('Connection closed');
+            });*/
+
+            IPC.addService(serviceList[i].name, client);
             console.log(`Run "${serviceList[i].name}" service`);
         }
-        
+
         // Run shell api for command input from terminal
         await ShellApi.run();
 
@@ -104,12 +153,12 @@ export default class Main {
                 {
                     name: 'root',
                     password: SHA256.encode('1234'),
-                    defaultApp: "https://github.com/maldan/vde-standard-wm.git"
+                    defaultApp: "https://github.com/maldan/vs-standard-wm.git"
                 },
                 {
                     name: 'test',
                     password: SHA256.encode('test1234'),
-                    defaultApp: "https://github.com/maldan/vde-standard-wm.git"
+                    defaultApp: "https://github.com/maldan/vs-standard-wm.git"
                 }
             ]);
 
