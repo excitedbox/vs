@@ -1,4 +1,5 @@
 export default class VdeUrlApi {
+    async get(url: string, type: 'text'): Promise<string>;
     async get(url: string, type: 'blob' | 'binary'): Promise<Blob>;
     async get(url: string, type: 'text' | 'blob' | 'binary'): Promise<string | Blob> {
         const formData = new FormData();

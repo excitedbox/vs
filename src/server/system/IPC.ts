@@ -18,11 +18,11 @@ export default class IPC {
             this._buffer = Buffer.from(this._buffer.append(new Uint8Array(message.buffer)));
 
             while (true) {
-                console.log('buff', this._buffer.length);
+                // console.log('buff', this._buffer.length);
 
                 // Check if have full message
                 const size = ServiceMessage.check(this._buffer);
-                console.log('size', size);
+                //console.log('size', size);
                 if (size) {
                     const msg = ServiceMessage.from(this._buffer.slice(0, size));
                     this._buffer = this._buffer.slice(size, this._buffer.length);
