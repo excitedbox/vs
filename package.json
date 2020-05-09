@@ -78,6 +78,7 @@
         "express-formidable": "^1.2.0",
         "glob": "^7.1.6",
         "jsdom": "^16.0.1",
+        "math": "file:src/module/math",
         "md5": "^2.2.1",
         "mime-types": "^2.1.26",
         "mocha": "^7.0.1",
