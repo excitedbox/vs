@@ -2,15 +2,18 @@
   box-sizing: border-box;
 }
 
-html, body, .app {
+body {
+  background: #2b2b2b;
+  color: #bbbbbb;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+html, body, #app, .app {
   height: 100%;
   width: 100%;
   padding: 0;
   margin: 0;
-  background: #2b2b2b;
-  color: #bbbbbb;
   display: flex;
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
   flex-direction: column;
 }
