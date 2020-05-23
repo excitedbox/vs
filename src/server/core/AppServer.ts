@@ -12,6 +12,10 @@ import Session from "../user/Session";
 import * as Path from "path";
 import * as Express from 'express';
 import IPC from "../system/IPC";
+import * as ChildProcess from "child_process";
+import * as Os from "os";
+import * as Fs from "fs";
+import StringHelper from "../../lib/helper/StringHelper";
 
 export default class AppServer {
     private static _server: any;
@@ -98,6 +102,15 @@ export default class AppServer {
             }
         });
 
+        RestApp.post('^/\\$open-native', async (req: Express.Request, res: Express.Response) => {
+            const child = ChildProcess.spawn('node', ['node_modules/electron/cli.js', '.', req['fields'].url], {
+                cwd: 'native',
+                stdio: 'inherit',
+                detached: true,
+                windowsHide: true,
+                // shell: true
+            });
+        });
         // Get file from file system api
         /*RestApp.get('^/\\$service/:path(*)', async (req, res) => {
             try {
@@ -214,8 +227,7 @@ export default class AppServer {
 
                 if (typeof resp === "string") {
                     res.sendFile(resp);
-                } else
-                if (resp instanceof Buffer) {
+                } else if (resp instanceof Buffer) {
                     res.setHeader('Content-Type', resp.subarray(0, 255).toString('utf-8').replace(/\u0000/g, ''));
                     res.send(resp.subarray(255));
                 } else {

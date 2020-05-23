@@ -76,13 +76,23 @@ export default class VdeFileSystemApi {
     }
 
     async writeFile(path: string, data: Buffer | Uint8Array | string | Blob | {}): Promise<void> {
-        return new Promise<any>(((resolve, reject) => {
+        return new Promise<any>(((resolve: Function, reject: Function) => {
             const oReq = new XMLHttpRequest(), formData = new FormData();
 
-            if (typeof data === "object" && !(data instanceof Blob) && !(data instanceof Uint8Array)) {
+            if (data instanceof Buffer || data instanceof Uint8Array || data instanceof Blob || typeof data === "string") {
+                formData.append("data", new Blob([data]), "content-file");
+            } else {
+                formData.append("data", new Blob([JSON.stringify(data)]), "content-file");
+            }
+            /*if (typeof data === "object" && !(data instanceof Blob) && !(data instanceof Uint8Array)) {
+
+            } else {
+
+            }*/
+            /*if (typeof data === "object" && !(data instanceof Blob) && !(data instanceof Uint8Array)) {
                 data = JSON.stringify(data);
             }
-            formData.append("data", new Blob([data]), "content-file");
+            */
 
             oReq.onload = function () {
                 if (this.status === 200) {

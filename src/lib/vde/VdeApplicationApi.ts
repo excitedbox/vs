@@ -117,4 +117,15 @@ export default class VdeApplicationApi {
         }
         return await response.json();
     }
+
+    async openNative(url: string) {
+        const oReq = new XMLHttpRequest(), formData = new FormData();
+        formData.append("url", url);
+
+        oReq.onload = function () {
+
+        };
+        oReq.open("post", `/$open-native`, true);
+        oReq.send(formData);
+    }
 }
