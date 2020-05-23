@@ -8,12 +8,14 @@ async function createWindow () {
 
     // Создаем окно браузера.
     const win = new BrowserWindow({
+        title: params.title,
         width: params.window.width ?params.window.width + 12 :800,
         height: params.window.height ?params.window.height + 32 :600,
         titleBarStyle: 'hidden',
         webPreferences: {
             nodeIntegration: true
         },
+        // transparent: true,
         // frame: false
     });
     // console.log(params.size);

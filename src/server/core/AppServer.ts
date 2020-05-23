@@ -105,10 +105,15 @@ export default class AppServer {
         RestApp.post('^/\\$open-native', async (req: Express.Request, res: Express.Response) => {
             const child = ChildProcess.spawn('node', ['node_modules/electron/cli.js', '.', req['fields'].url], {
                 cwd: 'native',
-                stdio: 'inherit',
+                stdio: 'ignore',
                 detached: true,
                 windowsHide: true,
                 // shell: true
+            });
+            child.unref();
+
+            res.send({
+                status: true
             });
         });
         // Get file from file system api
