@@ -1,26 +1,19 @@
 import * as Formidable from "express-formidable";
 import * as Cors from "cors";
 import * as Request from "request";
-import * as MimeTypes from 'mime-types';
 import Application from "../app/Application";
 import User from "../user/User";
 import AuthenticationError from "../error/AuthenticationError";
-// import FileSystem from "../fs/FileSystem";
 import BaseServerApi from "./BaseServerApi";
-import Service from "../app/Service";
 import Session from "../user/Session";
-import * as Path from "path";
 import * as Express from 'express';
 import IPC from "../system/IPC";
 import * as ChildProcess from "child_process";
-import * as Os from "os";
-import * as Fs from "fs";
-import StringHelper from "../../lib/helper/StringHelper";
 
 export default class AppServer {
     private static _server: any;
 
-    static async run(port: number) {
+    static async run(port: number): Promise<void> {
         const RestApp = Express();
         RestApp.use(Formidable());
         RestApp.use(Cors());
@@ -107,8 +100,7 @@ export default class AppServer {
                 cwd: 'native',
                 stdio: 'ignore',
                 detached: true,
-                windowsHide: true,
-                // shell: true
+                windowsHide: true
             });
             child.unref();
 
