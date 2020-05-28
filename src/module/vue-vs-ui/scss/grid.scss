@@ -1,0 +1,49 @@
+.row {
+  display: block;
+  float: left;
+  width: 100%;
+}
+
+@media only screen and (max-width: 575.99px) {
+  .row {
+    @for $i from 1 through 16 {
+      .col-mobile-#{$i} {
+        float: left;
+        width: $i * (100 / 16) * 1%;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 576px) {
+  .row {
+    @for $i from 1 through 16 {
+      .col-tablet-#{$i} {
+        float: left;
+        width: $i * (100 / 16) * 1%;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  .row {
+    @for $i from 1 through 16 {
+      .col-desktop-#{$i} {
+        float: left;
+        width: $i * (100 / 16) * 1%;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .row {
+    @for $i from 1 through 16 {
+      .col-wide-#{$i} {
+        float: left;
+        width: $i * (100 / 16) * 1%;
+      }
+    }
+  }
+}
