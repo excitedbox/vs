@@ -101,7 +101,7 @@
         "typescript": "^3.7.5",
         "typescript-eslint": "0.0.1-alpha.0",
         "vm2": "^3.8.4",
-        "vs-ui": "file:src/module/vs-ui",
+        "vue-vs-ui": "file:src/module/vue-vs-ui",
         "vue": "^2.6.11",
         "vue-fragment": "^1.5.1",
         "vue-property-decorator": "^8.4.2",
