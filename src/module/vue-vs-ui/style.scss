@@ -51,7 +51,7 @@ html, body, #app, .app {
   background: darken($background, 3%);
   color: $text;
 
-  h1 {
+  h1, h2, h3, h4 {
     margin-top: 0;
   }
 
@@ -62,6 +62,8 @@ html, body, #app, .app {
   @import "scss/tab";
   @import "scss/block";
   @import "scss/calendar";
+  @import "scss/radio.group";
+  @import "scss/table";
 }
 
 @import "theme/dark";

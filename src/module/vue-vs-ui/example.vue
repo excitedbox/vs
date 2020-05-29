@@ -10,9 +10,11 @@
                 <ui-block>
                     <ui-form @success="step++">
                         <h1>Sign up</h1>
-                        <ui-input name="first-name" placeholder="First name" style="margin-bottom: 20px;" icon="fas fa-user"></ui-input>
+                        <ui-input name="first-name" placeholder="First name" style="margin-bottom: 20px;"
+                                  icon="fas fa-user"></ui-input>
                         <ui-input name="last-name" placeholder="Last name" style="margin-bottom: 20px;"></ui-input>
-                        <ui-dropdown name="gender" placeholder="Choose your gender" :items="['Human', 'Woman', 'Gaygin']"
+                        <ui-dropdown name="gender" placeholder="Choose your gender"
+                                     :items="['Human', 'Woman', 'Gaygin']"
                                      style="margin-bottom: 20px;"></ui-dropdown>
                         <div class="flex-row" style="margin-bottom: 20px;">
                             <ui-checkbox name="omega"></ui-checkbox>
@@ -49,7 +51,8 @@
                             placeholder="Description"
                             style="margin-bottom: 20px;"></ui-input>
                     <div class="flex-row" style="margin-bottom: 20px;">
-                        <ui-progress :is-radial="true" style="width: 32px; height: 32px; font-size: 0.5rem;" :value="text.length"></ui-progress>
+                        <ui-progress :is-radial="true" style="width: 32px; height: 32px; font-size: 0.5rem;"
+                                     :value="text.length"></ui-progress>
                         <div style="margin-left: 20px;">Gaygino mettero</div>
                     </div>
 
@@ -84,6 +87,55 @@
                     </div>
                 </ui-block>
             </div>
+
+            <div v-if="step === 2" class="col-tablet-16">
+                <ui-block>
+                    <ui-form @success="step++">
+                        <h1>Additional</h1>
+
+                        <h2>Are you really baka gaijin?</h2>
+                        <ui-radio-group name="a" :items="['Yos', 'Nope', 'Gaybe']"></ui-radio-group>
+
+                        <h2>Antatachi wa shitto wo tabemasu hoshii des ka?</h2>
+                        <ui-radio-group name="b" :items="['Sure', 'Nan', 'Fuck off gay']"></ui-radio-group>
+
+                        <h2>Sekkuso hoshii des ka?</h2>
+                        <ui-radio-group name="c" :items="['Iie', 'I donto allowedo to do sis']"></ui-radio-group>
+
+                        <div class="button-group">
+                            <ui-button class="labeled" @click="step--">
+                                <i class="fas fa-chevron-left"></i>
+                                Back
+                            </ui-button>
+                            <ui-button type="submit" class="primary">Next</ui-button>
+                        </div>
+                    </ui-form>
+                </ui-block>
+            </div>
+
+            <div v-if="step === 3" class="col-tablet-16">
+                <ui-block>
+                    <h2>Big Data DB</h2>
+                    <ui-table :header="[{ title: 'id', columnWidth: 0.2 }, 'name', { title: 'created', columnWidth: 0.4 }]" :data="[
+                        { id: 1, name: 'Tolja', created: 1},
+                        { id: 2, name: 'Kreeluwa', created: 2},
+                        { id: 3, name: 'CouPro', created: 10},
+                        { id: 4, name: 'Max New Tyan', created: 341},
+                        { id: 5, name: 'Cureizee daiamondo', created: 1124},
+                        ]"></ui-table>
+
+                    <ui-button style="margin-top: 20px; margin-bottom: 20px;">Add my name here</ui-button>
+                    <div class="flex-row" style="margin-bottom: 20px;">
+                        <ui-checkbox name="peezdeele"></ui-checkbox>
+                        <div>Remove this shitty db?</div>
+                    </div>
+                    <div class="flex-row" style="margin-bottom: 20px;">
+                        <ui-checkbox name="peezdeele"></ui-checkbox>
+                        <div>Send me callback is my ass</div>
+                    </div>
+                    <ui-button class="primary" style="margin-top: 20px; margin-bottom: 20px;">Finish this shit already</ui-button>
+                </ui-block>
+            </div>
         </div>
     </div>
 </template>
@@ -99,17 +151,20 @@
     import uiTab from "./component/ui.tab.vue";
     import uiProgress from "./component/ui.progress.vue";
     import uiCalendar from "./component/ui.calendar.vue";
+    import uiRadioGroup from "./component/ui.radio.group.vue";
+    import uiTable from "./component/ui.table.vue";
 
     @Component({
         components: {
             uiButton, uiInput, uiDropdown,
             uiBlock, uiCheckbox, uiForm,
-            uiTab, uiProgress, uiCalendar
+            uiTab, uiProgress, uiCalendar,
+            uiRadioGroup, uiTable
         }
     })
     export default class Example extends Vue {
         public isDarkTheme: boolean = false;
-        public step: number = 1;
+        public step: number = 0;
         public text: string = '';
 
         async mounted() {

@@ -23,12 +23,13 @@
         }
 
         submit() {
+            let out = {};
             let elements = Array.from((this.$refs['form'] as HTMLElement).querySelectorAll('[name]'));
             elements.forEach((e: HTMLElement) => {
-                console.log(e.getAttribute('name'), e['__vue__'].$data.value);
+                out[e.getAttribute('name')] =  e['__vue__'].$data.value;
             });
-
-            this.$emit('success');
+            console.log(out);
+            this.$emit('success', out);
         }
     }
 </script>

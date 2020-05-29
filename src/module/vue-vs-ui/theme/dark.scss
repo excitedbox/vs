@@ -107,4 +107,43 @@ $text: #dcdcdc;
       }
     }
   }
+
+  .ui-radio-group {
+    .item-container {
+      .item {
+        border: 2px solid darken($text, 20%);
+
+        > div {
+          background: darken($text, 10%);
+        }
+      }
+    }
+  }
+
+  .ui-table {
+    border: 1px solid darken($background, 20%);
+
+    .header {
+      background: darken($background, 5%);
+      border-bottom: 1px solid darken($background, 20%);
+
+      > div {
+        border-right: 1px solid darken($background, 10%);
+      }
+    }
+
+    .body {
+      > div {
+        border-bottom: 1px solid darken($background, 10%);
+
+        > div {
+          border-right: 1px solid darken($background, 10%);
+        }
+
+        &:nth-child(2n) {
+          background: darken($background, 3%);
+        }
+      }
+    }
+  }
 }
