@@ -18,11 +18,5 @@
 </script>
 
 <style lang="scss" scoped>
-    .ui-block {
-        padding: 1rem;
-        background: #fefefe;
-        border-radius: 0.2rem;
-        box-shadow: 0px 0 5px rgba(0, 0, 0, 0.16);
-        font-size: 1rem;
-    }
+
 </style>

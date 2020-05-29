@@ -5,21 +5,21 @@
   button {
     position: relative;
     flex: 1;
-    background: #dedede;
+    background: darken($background, 5%);
     border: 0;
     outline: none;
     padding: .78571429em 1.5em .78571429em;
     border-radius: 0.2rem;
     cursor: pointer;
-    color: rgba(0, 0, 0, .6);
+    color: $text;
     transition: all 0.2s;
     font-size: 1rem;
     font-weight: bold;
     overflow: hidden;
 
     &:hover, &:active {
-      background: darken(#dedede, 10%);
-      color: rgba(0, 0, 0, 1);
+      background: darken($background, 10%);
+      color: darken($text, 10%);
     }
   }
 }

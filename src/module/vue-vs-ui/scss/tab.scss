@@ -1,0 +1,26 @@
+.ui-tab {
+  border: 1px solid #bebebe;
+  border-radius: 0.2rem;
+  overflow: hidden;
+
+  .items {
+    display: flex;
+
+    > div {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem 1rem;
+      background: darken($background, 5%);
+      cursor: pointer;
+
+      &.active {
+        background: #2185d0;
+        color: #fefefe;
+      }
+    }
+  }
+
+  .body {
+    padding: 0.5rem 1rem;
+  }
+}

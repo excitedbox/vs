@@ -1,9 +1,8 @@
 .ui-input {
   flex: 1;
   display: flex;
-  // flex-direction: column;
   padding: 0.65em 1em;
-  background: #fefefe;
+  background: $background;
   border: 1px solid rgba(34, 36, 38, .15);
   border-radius: 0.2rem;
   align-items: center;
@@ -11,7 +10,7 @@
   i {
     font-size: 1rem;
     margin-right: 0.65rem;
-    color: rgba(0, 0, 0, 0.5);
+    color: lighten($text, 25%);
     transition: color 0.2s;
   }
 
@@ -27,7 +26,7 @@
     padding: 0;
     background: no-repeat;
     border-radius: 2px;
-    color: rgba(0, 0, 0, .87);
+    color: $text;
     outline: none;
     transition: border, background 0.2s;
     font-size: 1rem;
@@ -37,7 +36,7 @@
     }
 
     &::placeholder {
-      color: rgba(0, 0, 0, .5);
+      color: lighten($text, 50%);
     }
   }
 
@@ -51,5 +50,5 @@
 }
 
 .ui-input.preload {
-  background: #f7f7f7;
+  background: darken($background, 5%);
 }

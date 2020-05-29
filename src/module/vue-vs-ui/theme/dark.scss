@@ -5,6 +5,13 @@ $text: #dcdcdc;
   background: $background;
   color: $text;
 
+  .ui-button {
+    button {
+      background: lighten($background, 35%);
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
   .ui-button.primary {
     button {
       background: #cc4063;
@@ -17,6 +24,10 @@ $text: #dcdcdc;
 
   .ui-input {
     background: $background;
+
+    i {
+      color: darken($text, 35%);
+    }
 
     input, textarea {
       color: $text;
@@ -53,6 +64,21 @@ $text: #dcdcdc;
     > div {
       background: $background;
       color: $text;
+    }
+  }
+
+  .ui-tab {
+    border: 1px solid $background;
+
+    .items {
+      > div {
+        background: $background;
+
+        &.active {
+          background: #cc4063;
+          color: #fefefe;
+        }
+      }
     }
   }
 }

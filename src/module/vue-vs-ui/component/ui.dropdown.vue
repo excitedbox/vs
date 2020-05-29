@@ -1,8 +1,18 @@
 <template>
     <div style="position: relative;">
         <div class="ui-dropdown" @click.stop="toggleOpen" :class="isShowItems ?'active' :''">
-            <span v-if="!isMultiple">{{ selected || placeholder }}</span>
-            <span v-if="isMultiple && !selectedMultiple.length">{{ placeholder }}</span>
+            <!-- Placeholder -->
+            <span v-if="!isMultiple" :class="selected ?'' :'placeholder'">
+                {{ selected || placeholder }}
+            </span>
+
+            <!-- Placeholder -->
+            <span v-if="isMultiple && !selectedMultiple.length"
+                  :class="selected ?'' :'placeholder'">
+                {{ placeholder }}
+            </span>
+
+            <!-- Multiple -->
             <div v-if="isMultiple" class="items">
                 <div v-for="x in selectedMultiple">
                     {{ x }}
@@ -40,6 +50,7 @@
         public isShowItems: boolean = false;
         public selected: string = '';
         public selectedMultiple: string[] = [];
+        public value: string | string[] = '';
         private _listener: () => void = null;
 
         toggleOpen() {
@@ -69,8 +80,11 @@
                 if (this.selectedMultiple.length === this.items.length) {
                     this.toggleOpen();
                 }
+
+                this.value = this.selectedMultiple;
             } else {
                 this.selected = item;
+                this.value = item;
                 this.toggleOpen();
             }
         }

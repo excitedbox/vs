@@ -2,7 +2,7 @@
   flex: 1;
   display: flex;
   padding: 0.65em 1em;
-  background: #fefefe;
+  background: $background;
   border: 1px solid rgba(34, 36, 38, .15);
   border-radius: 0.2rem;
   align-items: center;
@@ -14,11 +14,15 @@
     position: relative;
     top: -0.16rem;
     margin-left: auto;
-    color: rgba(0, 0, 0, .6);
+    color: $text;
   }
 
   span {
-    color: rgba(0, 0, 0, .6);
+    color: $text;
+  }
+
+  span.placeholder {
+    color: lighten($text, 50%);
   }
 
   .items {
@@ -26,7 +30,7 @@
     flex-wrap: wrap;
 
     > div {
-      background: #dedede;
+      background: darken($background, 10%);
       font-size: 0.8rem;
       border-radius: 0.2rem;
       margin-right: 0.2rem;
@@ -83,19 +87,19 @@
   left: 0;
   width: 100%;
   z-index: 1;
-  background: #fefefe;
+  background: $background;
 
   @include scroll;
 
   > div {
     font-size: 1rem;
     padding: 0.5rem 1rem;
-    background: #fefefe;
+    background: $background;
     cursor: pointer;
     transition: background-color 0.2s;
 
     &:hover {
-      background: darken(#fefefe, 5%);
+      background: darken($background, 5%);
     }
   }
 }
