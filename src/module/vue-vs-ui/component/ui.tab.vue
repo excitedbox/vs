@@ -19,7 +19,7 @@
 
         }
     })
-    export default class UI_Block extends Vue {
+    export default class UI_Tab extends Vue {
         @Prop(Boolean) readonly items: string[];
         @Prop(Boolean) readonly maxHeight: number;
         public selected: string = '';

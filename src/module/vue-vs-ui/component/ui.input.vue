@@ -1,8 +1,19 @@
 <template>
     <div class="ui-input" :class="isPreload ?'preload' :''">
         <i v-if="icon" :class="icon"></i>
-        <input v-model="value" v-if="!isMultiline" type="text" :placeholder="placeholder" :disabled="isPreload">
-        <textarea v-model="value" v-if="isMultiline" :placeholder="placeholder" :disabled="isPreload"></textarea>
+        <input
+                @input="$emit('input', value)"
+                v-model="value" v-if="!isMultiline"
+                type="text"
+                :placeholder="placeholder"
+                :disabled="isPreload"
+        >
+        <textarea
+                @input="$emit('input', value)"
+                v-model="value"
+                v-if="isMultiline"
+                :placeholder="placeholder"
+                :disabled="isPreload"></textarea>
         <ui-preload v-if="isPreload"></ui-preload>
     </div>
 </template>

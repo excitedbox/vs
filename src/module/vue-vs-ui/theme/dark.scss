@@ -81,4 +81,30 @@ $text: #dcdcdc;
       }
     }
   }
+
+  .ui-calendar {
+    background: $background;
+    border: 1px solid $background;
+
+    .header {
+      border-bottom: 1px solid lighten($text, 50%);
+      color: $text;
+    }
+
+    .body {
+      .day-names {
+        color: lighten($text, 10%);
+      }
+
+      .day-list {
+        .day {
+          color: $text;
+        }
+
+        .day.inactive {
+          color: darken($text, 20%);
+        }
+      }
+    }
+  }
 }

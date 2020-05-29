@@ -43,7 +43,16 @@
                 <ui-block>
                     <h1>About you</h1>
                     <h2>Expurulain er smollness</h2>
-                    <ui-input :is-multiline="true" placeholder="Description" style="margin-bottom: 20px;"></ui-input>
+                    <ui-input
+                            @input="text = $event"
+                            :is-multiline="true"
+                            placeholder="Description"
+                            style="margin-bottom: 20px;"></ui-input>
+                    <div class="flex-row" style="margin-bottom: 20px;">
+                        <ui-progress :is-radial="true" style="width: 32px; height: 32px; font-size: 0.5rem;" :value="text.length"></ui-progress>
+                        <div style="margin-left: 20px;">Gaygino mettero</div>
+                    </div>
+
                     <ui-tab :items="['A', 'B', 'C']" style="margin-bottom: 20px;" :max-height="150">
                         <div class="item">
                             1
@@ -62,9 +71,10 @@
                             convallis nisi a diam malesuada mollis. Aliquam at enim ligula.
                         </div>
                         <div class="item">
-                            3
+                            GGG
                         </div>
                     </ui-tab>
+                    <ui-calendar style="margin-bottom: 20px;"></ui-calendar>
                     <div class="button-group">
                         <ui-button class="labeled" @click="step--">
                             <i class="fas fa-chevron-left"></i>
@@ -87,17 +97,20 @@
     import uiCheckbox from "./component/ui.checkbox.vue";
     import uiForm from "./component/ui.form.vue";
     import uiTab from "./component/ui.tab.vue";
+    import uiProgress from "./component/ui.progress.vue";
+    import uiCalendar from "./component/ui.calendar.vue";
 
     @Component({
         components: {
             uiButton, uiInput, uiDropdown,
             uiBlock, uiCheckbox, uiForm,
-            uiTab
+            uiTab, uiProgress, uiCalendar
         }
     })
     export default class Example extends Vue {
         public isDarkTheme: boolean = false;
-        public step: number = 0;
+        public step: number = 1;
+        public text: string = '';
 
         async mounted() {
 

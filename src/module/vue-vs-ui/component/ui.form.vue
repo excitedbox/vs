@@ -12,7 +12,7 @@
 
         }
     })
-    export default class UI_Block extends Vue {
+    export default class UI_Form extends Vue {
         mounted() {
             let element = (this.$refs['form'] as HTMLElement).querySelector('[type=submit]');
             if (element) {
