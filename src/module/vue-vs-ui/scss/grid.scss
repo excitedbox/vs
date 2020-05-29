@@ -4,7 +4,12 @@
   width: 100%;
 }
 
-@media only screen and (max-width: 575.99px) {
+.flex-row {
+  display: flex;
+  align-items: center;
+}
+
+@media only screen and (max-width: $mobileScreenWidth) {
   .row {
     @for $i from 1 through 16 {
       .col-mobile-#{$i} {
@@ -15,7 +20,7 @@
   }
 }
 
-@media only screen and (min-width: 576px) {
+@media only screen and (min-width: $tabletScreenWidth) {
   .row {
     @for $i from 1 through 16 {
       .col-tablet-#{$i} {
@@ -26,7 +31,7 @@
   }
 }
 
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: $desktopScreenWidth) {
   .row {
     @for $i from 1 through 16 {
       .col-desktop-#{$i} {
@@ -37,7 +42,7 @@
   }
 }
 
-@media only screen and (min-width: 1200px) {
+@media only screen and (min-width: $wideScreenWidth) {
   .row {
     @for $i from 1 through 16 {
       .col-wide-#{$i} {

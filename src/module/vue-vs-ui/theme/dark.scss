@@ -1,0 +1,58 @@
+$background: #000000;
+$text: #dcdcdc;
+
+.ui-theme.theme-dark {
+  background: $background;
+  color: $text;
+
+  .ui-button.primary {
+    button {
+      background: #cc4063;
+    }
+  }
+
+  .ui-block {
+    background: lighten($background, 20%);
+  }
+
+  .ui-input {
+    background: $background;
+
+    input, textarea {
+      color: $text;
+
+      &::placeholder {
+        color: $text;
+      }
+    }
+  }
+
+  .ui-checkbox {
+    border: 1px solid darken($text, 20%);
+    background: $background;
+  }
+
+  .ui-dropdown {
+    background: $background;
+
+    span, i {
+      color: $text;
+    }
+
+    .items {
+      > div {
+        background: lighten($background, 20%);
+      }
+    }
+  }
+
+  .ui-dropdown-elements, .ui-dropdown-elements-hide {
+    background: $background;
+    color: $text;
+
+    > div {
+      background: $background;
+      color: $text;
+    }
+  }
+}

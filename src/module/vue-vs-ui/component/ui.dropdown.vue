@@ -1,12 +1,19 @@
 <template>
-    <div>
+    <div style="position: relative;">
         <div class="ui-dropdown" @click.stop="toggleOpen" :class="isShowItems ?'active' :''">
-            <span>{{ selected || 'Select' }}</span>
+            <span v-if="!isMultiple">{{ selected || placeholder }}</span>
+            <span v-if="isMultiple && !selectedMultiple.length">{{ placeholder }}</span>
+            <div v-if="isMultiple" class="items">
+                <div v-for="x in selectedMultiple">
+                    {{ x }}
+                    <i @click.stop="removeItem(x)" class="fas fa-times" style="margin-left: 0.5rem;"></i>
+                </div>
+            </div>
             <i class="fas fa-sort-down"></i>
         </div>
         <div v-if="isShowItems"
         :class="[ isHideItems ?'ui-dropdown-elements-hide' :'ui-dropdown-elements']">
-            <div @click="[selected = x, toggleOpen()]" v-for="x in 10">{{ x }}</div>
+            <div @click.stop="[select(x)]" v-for="x in items.filter(y => selectedMultiple.indexOf(y) === -1)">{{ x }}</div>
         </div>
     </div>
 </template>
@@ -23,6 +30,7 @@
     })
     export default class UI_Dropdown extends Vue {
         @Prop(Boolean) readonly isPreload: boolean;
+        @Prop(Boolean) readonly isMultiple: boolean;
         @Prop(String) readonly title: string;
         @Prop(String) readonly icon: string;
         @Prop(String) readonly placeholder: string;
@@ -31,6 +39,7 @@
         public isHideItems: boolean = false;
         public isShowItems: boolean = false;
         public selected: string = '';
+        public selectedMultiple: string[] = [];
         private _listener: () => void = null;
 
         toggleOpen() {
@@ -51,6 +60,27 @@
             }
         }
 
+        select(item: string) {
+            if (this.isMultiple) {
+                if (this.selectedMultiple.indexOf(item) === -1) {
+                    this.selectedMultiple.push(item);
+                }
+
+                if (this.selectedMultiple.length === this.items.length) {
+                    this.toggleOpen();
+                }
+            } else {
+                this.selected = item;
+                this.toggleOpen();
+            }
+        }
+
+        removeItem(item: string) {
+            if (this.selectedMultiple.indexOf(item) !== -1) {
+                this.selectedMultiple.splice(this.selectedMultiple.indexOf(item), 1);
+            }
+        }
+
         mounted() {
             this._listener = () => {
                 this.hideElements();
@@ -64,87 +94,3 @@
         }
     }
 </script>
-
-<style lang="scss" scoped>
-    .ui-dropdown {
-        flex: 1;
-        display: flex;
-        padding: 0.65em 1em;
-        background: #fefefe;
-        border: 1px solid rgba(34, 36, 38, .15);
-        border-radius: 0.2rem;
-        align-items: center;
-        cursor: pointer;
-        font-size: 1rem;
-        // transition: border 0.2s;
-        user-select: none;
-
-        i.fa-sort-down {
-            position: relative;
-            top: -0.16rem;
-            margin-left: auto;
-            color: rgba(0, 0, 0, .6);
-        }
-
-        &.active {
-            border-color: #85b7d9;
-            border-bottom-color: rgba(34, 36, 38, .15);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-    }
-
-    @keyframes uiDropDownAppear {
-        0% {
-            transform: scaleY(0);
-            transform-origin: 0 0;
-            opacity: 0;
-        }
-        100% {
-            transform: scaleY(1);
-            transform-origin: 0 0;
-            opacity: 1;
-        }
-    }
-
-    @keyframes uiDropDownDisappear {
-        0% {
-            transform: scaleY(1);
-            transform-origin: 0 0;
-            opacity: 1;
-        }
-        100% {
-            transform: scaleY(0);
-            transform-origin: 0 0;
-            opacity: 0;
-        }
-    }
-
-    .ui-dropdown-elements, .ui-dropdown-elements-hide {
-        border: 1px solid #85b7d9;
-        border-top-width: 0;
-        border-radius: 0 0 0.2rem 0.2rem;
-        overflow: hidden;
-        user-select: none;
-        animation-name: uiDropDownAppear;
-        animation-duration: 0.3s;
-
-        > div {
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            background: #fefefe;
-            cursor: pointer;
-            transition: background-color 0.2s;
-
-            &:hover {
-                background: darken(#fefefe, 5%);
-            }
-        }
-    }
-
-    .ui-dropdown-elements-hide {
-        animation-name: uiDropDownDisappear;
-        animation-duration: 0.2s;
-        animation-fill-mode: forwards;
-    }
-</style>
