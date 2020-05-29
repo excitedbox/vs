@@ -1,0 +1,21 @@
+.button-group {
+  display: flex;
+
+  .ui-button {
+    flex: 1;
+
+    &:first-child > button {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    &:last-child > button {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    &:not(:first-child):not(:last-child) > button {
+      border-radius: 0;
+    }
+  }
+}
