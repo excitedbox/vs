@@ -1,0 +1,25 @@
+.ui-list {
+  margin: 0;
+  padding: 0;
+  user-select: none;
+
+  li {
+    display: block;
+    cursor: pointer;
+    border-bottom: 1px solid darken($background, 10%);
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    &.active {
+      padding-left: 10px;
+      background: darken($background, 10%);
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}

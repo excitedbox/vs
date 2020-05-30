@@ -20,7 +20,7 @@
         }
     })
     export default class UI_Button extends Vue {
-        @Prop(Boolean) readonly isPreload: boolean;
+        @Prop(Boolean) isPreload: boolean;
 
         click() {
             this.$emit('click');
