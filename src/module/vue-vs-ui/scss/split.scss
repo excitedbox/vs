@@ -1,0 +1,36 @@
+.ui-split {
+  display: flex;
+  position: relative;
+
+  .split {
+    position: absolute;
+    background: darken($background, 10%);
+    width: 6px;
+    height: 100%;
+    cursor: e-resize !important;
+    border-left: 1px solid darken($background, 20%);
+    border-right: 1px solid darken($background, 20%);
+
+    &::after {
+      content: "";
+      display: block;
+      position: absolute;
+      width: 1px;
+      height: 20px;
+      border-right: 2px dotted darken($background, 30%);
+      top: calc(50% - 10px);
+    }
+  }
+
+  .item {
+    width: 50%;
+
+    &:nth-child(1) {
+      padding-right: 1rem;
+    }
+
+    &:nth-child(2) {
+      padding-left: calc(1rem + 2px);
+    }
+  }
+}

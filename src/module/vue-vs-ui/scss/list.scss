@@ -13,6 +13,10 @@
     text-overflow: ellipsis;
     overflow: hidden;
 
+    i, b {
+      margin-right: 0.25rem;
+    }
+
     &.active {
       padding-left: 10px;
       background: darken($background, 10%);

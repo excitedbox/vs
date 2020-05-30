@@ -155,4 +155,22 @@
       border-radius: 0;
     }
   }
+
+  &.border {
+    border: 1px solid darken($background, 25%);
+    overflow: hidden;
+    border-radius: 0.2rem;
+
+    .ui-button {
+      border-right: 1px solid darken($background, 25%);
+
+      &:last-child {
+        border-right: 0;
+      }
+    }
+  }
+
+  &.round {
+    border-radius: 2rem;
+  }
 }

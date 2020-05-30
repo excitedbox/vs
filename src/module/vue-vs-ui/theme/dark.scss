@@ -146,4 +146,50 @@ $text: #dcdcdc;
       }
     }
   }
+
+  .ui-list {
+    li {
+      border-bottom: 1px solid lighten($background, 10%);
+
+      &.active {
+        background: lighten($background, 30%);
+      }
+    }
+  }
+
+  .ui-message {
+    background: #a5a5a5;
+    color: darken(#a5a5a5, 40%);
+
+    b {
+      background: darken(#a5a5a5, 5%);
+    }
+  }
+
+  .ui-message.primary {
+    background: #a573fb;
+    color: darken(#a573fb, 40%);
+
+    b {
+      background: darken(#a573fb, 5%);
+    }
+  }
+
+  .ui-message.positive {
+    background-color: #72d43a;
+    color: #1b4204;
+
+    b {
+      background: #57bb19;
+    }
+  }
+
+  .ui-message.negative {
+    background-color: #f76060;
+    color: #800000;
+
+    b {
+      background: #d64444;
+    }
+  }
 }

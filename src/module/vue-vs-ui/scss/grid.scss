@@ -1,6 +1,14 @@
+.grid {
+  display: grid;
+}
+
+.gap-10 {
+  grid-gap: 10px;
+}
+
 .row {
-  display: block;
-  float: left;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
   width: 100%;
 }
 
@@ -13,8 +21,7 @@
   .row {
     @for $i from 1 through 16 {
       .col-mobile-#{$i} {
-        float: left;
-        width: $i * (100 / 16) * 1%;
+        grid-column: span $i;
       }
     }
   }
@@ -24,8 +31,7 @@
   .row {
     @for $i from 1 through 16 {
       .col-tablet-#{$i} {
-        float: left;
-        width: $i * (100 / 16) * 1%;
+        grid-column: span $i;
       }
     }
   }
@@ -35,8 +41,7 @@
   .row {
     @for $i from 1 through 16 {
       .col-desktop-#{$i} {
-        float: left;
-        width: $i * (100 / 16) * 1%;
+        grid-column: span $i;
       }
     }
   }
@@ -46,8 +51,7 @@
   .row {
     @for $i from 1 through 16 {
       .col-wide-#{$i} {
-        float: left;
-        width: $i * (100 / 16) * 1%;
+        grid-column: span $i;
       }
     }
   }

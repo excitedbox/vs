@@ -3,7 +3,7 @@
         <button @click="click" v-if="!isPreload">
             <slot></slot>
         </button>
-        <button @click="click" v-if="isPreload">
+        <button v-if="isPreload" style="opacity: 0.7;" disabled>
             <ui-preload></ui-preload>
         </button>
     </div>

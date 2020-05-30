@@ -1,18 +1,19 @@
 <template>
     <div class="ui-theme" :class="isDarkTheme ?'theme-dark' :''" style="height: 100%;">
         <div class="row">
-            <ui-block style="display: flex; align-items: center;">
+            <ui-block class="col-mobile-16 col-tablet-16 flex-row">
                 <ui-checkbox @change="isDarkTheme = $event"></ui-checkbox>
                 <div>Switch theme</div>
             </ui-block>
 
-            <div v-if="step === 0" class="col-tablet-16">
+            <div v-if="step === 0" class="col-mobile-16 col-tablet-16">
                 <ui-block>
                     <ui-form @success="step++">
                         <h1>Sign up</h1>
                         <ui-input name="first-name" placeholder="First name" style="margin-bottom: 20px;"
                                   icon="fas fa-user"></ui-input>
                         <ui-input name="last-name" placeholder="Last name" style="margin-bottom: 20px;"></ui-input>
+                        <ui-input name="sex-name" placeholder="Sex name" style="margin-bottom: 20px;" :is-preload="true"></ui-input>
                         <ui-dropdown name="gender" placeholder="Choose your gender"
                                      :items="['Human', 'Woman', 'Gaygin']"
                                      style="margin-bottom: 20px;"></ui-dropdown>
@@ -36,12 +37,64 @@
                         'Dogs', 'Cats', 'Shit', 'Piss', 'Dicks'
                         ]" style="margin-bottom: 20px;"></ui-dropdown>
 
+                        <div class="button-group border round" style="margin-bottom: 20px;">
+                            <ui-button>
+                                <i class="fas fa-archive"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-adjust"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-battery-full"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-border-all"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fab fa-bootstrap"></i>
+                            </ui-button>
+                        </div>
+                        <div class="button-group border" style="margin-bottom: 20px;">
+                            <ui-button>
+                                <i class="fas fa-archive"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-adjust"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-battery-full"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-border-all"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fab fa-bootstrap"></i>
+                            </ui-button>
+                        </div>
+                        <div class="button-group" style="margin-bottom: 20px;">
+                            <ui-button>
+                                <i class="fas fa-archive"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-adjust"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-battery-full"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fas fa-border-all"></i>
+                            </ui-button>
+                            <ui-button>
+                                <i class="fab fa-bootstrap"></i>
+                            </ui-button>
+                        </div>
+                        <ui-button class="orange" style="margin-bottom: 20px;" :is-preload="true">Gas</ui-button>
                         <ui-button type="submit" class="primary">Next</ui-button>
                     </ui-form>
                 </ui-block>
             </div>
 
-            <div v-if="step === 1" class="col-tablet-16">
+            <div v-if="step === 1" class="col-mobile-16 col-tablet-16">
                 <ui-block>
                     <h1>About you</h1>
                     <h2>Expurulain er smollness</h2>
@@ -77,6 +130,7 @@
                             GGG
                         </div>
                     </ui-tab>
+
                     <ui-calendar style="margin-bottom: 20px;"></ui-calendar>
                     <div class="button-group">
                         <ui-button class="labeled" @click="step--">
@@ -88,7 +142,7 @@
                 </ui-block>
             </div>
 
-            <div v-if="step === 2" class="col-tablet-16">
+            <div v-if="step === 2" class="col-mobile-16 col-tablet-16">
                 <ui-block>
                     <ui-form @success="step++">
                         <h1>Additional</h1>
@@ -113,7 +167,7 @@
                 </ui-block>
             </div>
 
-            <div v-if="step === 3" class="col-tablet-16">
+            <div v-if="step === 3" class="col-mobile-16 col-tablet-16">
                 <ui-block>
                     <h2>Big Data DB</h2>
                     <ui-table :header="[{ title: 'id', columnWidth: 0.2 }, 'name', { title: 'created', columnWidth: 0.4 }]" :data="[
@@ -133,7 +187,62 @@
                         <ui-checkbox name="peezdeele"></ui-checkbox>
                         <div>Send me callback is my ass</div>
                     </div>
-                    <ui-button class="primary" style="margin-top: 20px; margin-bottom: 20px;">Finish this shit already</ui-button>
+
+                    <ui-button class="labeled" @click="step--">
+                        <i class="fas fa-chevron-left"></i>
+                        Back
+                    </ui-button>
+                    <ui-button @click="step++" class="primary" style="margin-top: 20px; margin-bottom: 20px;">Finish this shit already</ui-button>
+                </ui-block>
+            </div>
+
+            <div v-if="step === 4" class="col-mobile-16 col-tablet-16 grid gap-10">
+                <ui-block>
+                    <ui-list :items="['a', 'b', 'c']"></ui-list>
+                </ui-block>
+
+                <ui-block>
+                    <ui-list :items="['a', 'b', 'c']" :is-show-numbers="true"></ui-list>
+
+                    <ui-message style="margin-top: 20px">
+                        Omae wa <b>Baka gaigin</b> des ka? If not get the fuck out of here now!!!
+                    </ui-message>
+
+                    <ui-message class="primary" style="margin-top: 20px">
+                        Omae wa <b>Baka gaigin</b> des ka? If not get the fuck out of here now!!!
+                    </ui-message>
+
+                    <ui-message class="positive" style="margin-top: 20px">
+                        Omae wa <b>Baka gaigin</b> des ka? If not get the fuck out of here now!!!
+                    </ui-message>
+
+                    <ui-message class="negative" style="margin-top: 20px">
+                        Omae wa <b>Baka gaigin</b> des ka? If not get the fuck out of here now!!!
+                    </ui-message>
+
+                    <ui-button class="labeled" @click="step--" style="margin-top: 20px;">
+                        <i class="fas fa-chevron-left"></i>
+                        Baskov
+                    </ui-button>
+                </ui-block>
+
+                <ui-block>
+                    <ui-split>
+                        <div class="item">
+                            <ui-message>
+                                Omae wa <b>Baka gaigin</b> des ka? If not get the fuck out of here now!!!
+                            </ui-message>
+                        </div>
+                        <div class="item">
+                            Contributes the nth grid line to the grid item’s placement. If a negative integer is given, it instead counts in reverse, starting from the end edge of the explicit grid.
+                            If a name is given as a, only lines with that name are counted. If not enough lines with that name exist, all implicit grid lines are assumed to have that name for the purpose of finding this position.
+                        </div>
+                    </ui-split>
+
+                    <ui-button class="labeled" @click="step--" style="margin-top: 20px;">
+                        <i class="fas fa-chevron-left"></i>
+                        Back
+                    </ui-button>
                 </ui-block>
             </div>
         </div>
@@ -153,13 +262,17 @@
     import uiCalendar from "./component/ui.calendar.vue";
     import uiRadioGroup from "./component/ui.radio.group.vue";
     import uiTable from "./component/ui.table.vue";
+    import uiList from "./component/ui.list.vue";
+    import uiMessage from "./component/ui.message.vue";
+    import uiSplit from "./component/ui.split.vue";
 
     @Component({
         components: {
             uiButton, uiInput, uiDropdown,
             uiBlock, uiCheckbox, uiForm,
             uiTab, uiProgress, uiCalendar,
-            uiRadioGroup, uiTable
+            uiRadioGroup, uiTable, uiList,
+            uiMessage, uiSplit
         }
     })
     export default class Example extends Vue {
