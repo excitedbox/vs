@@ -1,9 +1,15 @@
 import * as ReadLine from "readline";
 import * as Opn from 'opn';
+import * as Fs from 'fs';
+import * as Util from 'util';
+import * as Ncp from 'ncp';
 import User from "../user/User";
 import Application from "../app/Application";
 import Session from "../user/Session";
 import Service from "../app/Service";
+
+const Exists = Util.promisify(Fs.exists);
+const NCP = Util.promisify(Ncp);
 
 export default class ShellApi {
     private static _tmpSession: Session;
@@ -40,7 +46,7 @@ export default class ShellApi {
         this._lineReader.removeAllListeners();
     }
 
-    private static async _processCommand(cmd: string) {
+    private static async _processCommand(cmd: string): Promise<void> {
         const cmdParsed = cmd.split(' ');
         const mainCmd = cmdParsed.shift();
         const restCmd = cmdParsed.join(' ');
@@ -117,6 +123,24 @@ export default class ShellApi {
             if (mainCmd === 'auth') {
                 this._tmpSession = await User.auth(cmdParsed[0], cmdParsed[1]);
                 console.log(`You logged as ${this._tmpSession.user.name}`);
+            }
+
+            if (mainCmd === 'template') {
+                const [appPath, type] = cmdParsed;
+                const finalPath = `./user/${this._tmpSession.user.name}/bin/${appPath}`;
+                const isExist = await Exists(finalPath);
+
+                if (!isExist) {
+                    console.log(`Folder "${finalPath}" not found`);
+                    return;
+                }
+
+                if (!['webpack-vue'].includes(type)) {
+                    console.log(`Unknown type "${type}"`);
+                    return;
+                }
+
+                await NCP('./extra/template/webpack-vue', finalPath);
             }
         } catch (e) {
             console.log(e.message);
