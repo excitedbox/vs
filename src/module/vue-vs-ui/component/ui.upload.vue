@@ -2,7 +2,7 @@
     <div class="ui-upload" :class="isPreload ?'preload' :''">
         <input ref="file-select" type="file" style="position: absolute; top: -10000px; display: none;">
         <div style="flex: 1;">
-            {{ value.length ?(value.length + ' files') :'Empty...'}}
+            {{ value ?(value.length + ' files') :'Empty...'}}
         </div>
         <ui-button @click="pickFile" class="primary labeled">
             <i class="fas fa-upload"></i>

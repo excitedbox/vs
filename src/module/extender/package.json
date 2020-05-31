@@ -1,5 +1,5 @@
 {
-  "name": "vue-vs-ui",
+  "name": "extender",
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
@@ -10,12 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.13.0",
-    "interactjs": "^1.9.18",
-    "swiper": "^5.4.1",
-    "typeface-montserrat": "0.0.75"
+    "lodash": "^4.17.15",
+    "moment": "^2.26.0",
+    "numeral": "^2.0.6",
+    "voca": "^1.4.0"
   },
-  "devDependencies": {
-    "@interactjs/types": "^1.9.18"
-  }
+  "devDependencies": {}
 }

@@ -196,7 +196,7 @@ export default class AppServer {
                 // Get application session by session key
                 const finalParams = Object.assign(req.query, req.body, req['fields'], req['files']);
                 const subdomainKey = req.headers.host.split('.')[0];
-                const accessToken = req.query.access_token || req.headers['access_token'] || subdomainKey;
+                const accessToken = (req.query.access_token as string) || (req.headers['access_token'] as string) || subdomainKey;
                 const session = Application.runningApplications.get(accessToken);
 
                 if (!session) {
