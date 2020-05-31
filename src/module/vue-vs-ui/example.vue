@@ -205,6 +205,8 @@
                     <ui-list :items="['a', 'b', 'c']"></ui-list>
 
                     <ui-pagination :amount="10" style="margin-top: 20px;"></ui-pagination>
+
+                    <ui-upload style="margin-top: 20px;"></ui-upload>
                 </ui-block>
 
                 <ui-block>
@@ -273,6 +275,7 @@
     import uiSplit from "./component/ui.split.vue";
     import uiPagination from "./component/ui.pagination.vue";
     import uiBreadcrumb from "./component/ui.breadcrumb.vue";
+    import uiUpload from "./component/ui.upload.vue";
 
     @Component({
         components: {
@@ -281,7 +284,7 @@
             uiTab, uiProgress, uiCalendar,
             uiRadioGroup, uiTable, uiList,
             uiMessage, uiSplit, uiPagination,
-            uiBreadcrumb
+            uiBreadcrumb, uiUpload
         }
     })
     export default class Example extends Vue {
