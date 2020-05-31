@@ -69,6 +69,8 @@ html, body, #app, .app {
   @import "scss/list";
   @import "scss/message";
   @import "scss/split";
+  @import "scss/pagination";
+  @import "scss/breadcrumb";
 }
 
 @import "theme/dark";

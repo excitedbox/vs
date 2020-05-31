@@ -198,7 +198,13 @@
 
             <div v-if="step === 4" class="col-mobile-16 col-tablet-16 grid gap-10">
                 <ui-block>
+                    <ui-breadcrumb :items="[`<i class='fas fa-address-card'></i> Main`, 'Sex', 'Rock']"></ui-breadcrumb>
+                </ui-block>
+
+                <ui-block>
                     <ui-list :items="['a', 'b', 'c']"></ui-list>
+
+                    <ui-pagination :amount="10" style="margin-top: 20px;"></ui-pagination>
                 </ui-block>
 
                 <ui-block>
@@ -265,6 +271,8 @@
     import uiList from "./component/ui.list.vue";
     import uiMessage from "./component/ui.message.vue";
     import uiSplit from "./component/ui.split.vue";
+    import uiPagination from "./component/ui.pagination.vue";
+    import uiBreadcrumb from "./component/ui.breadcrumb.vue";
 
     @Component({
         components: {
@@ -272,12 +280,13 @@
             uiBlock, uiCheckbox, uiForm,
             uiTab, uiProgress, uiCalendar,
             uiRadioGroup, uiTable, uiList,
-            uiMessage, uiSplit
+            uiMessage, uiSplit, uiPagination,
+            uiBreadcrumb
         }
     })
     export default class Example extends Vue {
         public isDarkTheme: boolean = false;
-        public step: number = 0;
+        public step: number = 4;
         public text: string = '';
 
         async mounted() {

@@ -1,0 +1,29 @@
+.ui-breadcrumb {
+  display: flex;
+
+  > div {
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  > div::after {
+    content: '/';
+    padding: 0 0.5rem;
+  }
+
+  > div:last-child {
+    font-weight: bold;
+    cursor: initial;
+    
+    &:hover {
+      opacity: 1;
+    }
+
+    &::after {
+      content: '';
+    }
+  }
+}
