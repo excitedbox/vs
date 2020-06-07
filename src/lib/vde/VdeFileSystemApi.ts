@@ -79,7 +79,7 @@ export default class VdeFileSystemApi {
         return new Promise<any>(((resolve: Function, reject: Function) => {
             const oReq = new XMLHttpRequest(), formData = new FormData();
 
-            if (data instanceof Buffer || data instanceof Uint8Array || data instanceof Blob || typeof data === "string") {
+            if (data instanceof Uint8Array || data instanceof Blob || typeof data === "string") {
                 formData.append("data", new Blob([data]), "content-file");
             } else {
                 formData.append("data", new Blob([JSON.stringify(data)]), "content-file");
