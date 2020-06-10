@@ -106,7 +106,6 @@
         "vue": "^2.6.11",
         "vue-fragment": "^1.5.1",
         "vue-property-decorator": "^8.4.2",
-        "vue-vs-ui": "file:src/module/vue-vs-ui",
         "webpack": "^4.41.5",
         "webpack-cli": "^3.3.10",
         "ws": "^7.2.3"
